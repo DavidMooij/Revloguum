@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "RevLog",
+    "slug": "RevLog",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/image.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#000000",
+        "foregroundImage": "./assets/image.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.veruum.RevLog"
+    },
+    "web": {
+      "favicon": "./assets/image.png"
+    },
+    "plugins": [
+      [
+        "expo-sqlite",
+        {
+          "useSQLCipher": true
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 24,
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 36
+          },
+          "ios": {
+            "deploymentTarget": "16.4"
+          }
+        }
+      ],
+      "expo-font",
+      "expo-secure-store",
+      "expo-image",
+      "expo-image-picker",
+      "expo-sharing"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "21fb9b7b-c908-4c6e-97f8-6c4854dea138"
+      }
+    }
+  }
+}
