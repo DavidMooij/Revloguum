@@ -9,6 +9,7 @@ import {
   TextInput,
   ToastAndroid,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
@@ -21,8 +22,8 @@ import { spacing, radius } from "../../theme/spacing";
 import { useExport } from "../../hooks/useExport";
 import Divider from "../components/Divider";
 import AlertModal from "../components/AlertModal";
+import LoadingOverlay from "../components/LoadingOverlay";
 import { SettingsToggle } from "../components/SettingsToggle";
-import { setHapticsEnabled, haptic } from "../../utils/haptics";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
 import { useAppStore } from "../../store/appStore";
@@ -133,10 +134,12 @@ export default function SettingsScreen() {
 
   const handleExportWithPassword = async () => {
     if (!keyInput.trim()) return;
+    setModal({ type: "none" });
+    setKeyInput("");
     setLoading(true);
+    await new Promise((r) => setTimeout(r, 50));
     const result = await exportDatabase(keyInput.trim());
     setLoading(false);
-    setKeyInput("");
     if (result.success) {
       setModal({ type: "exportReady", fileUri: result.fileUri });
     } else {
@@ -162,10 +165,12 @@ export default function SettingsScreen() {
 
   const handleImport = async () => {
     if (!keyInput.trim()) return;
+    setModal({ type: "none" });
+    setKeyInput("");
     setLoading(true);
+    await new Promise((r) => setTimeout(r, 50));
     const result = await importDatabase(keyInput.trim());
     setLoading(false);
-    setKeyInput("");
     if (result.success) {
       try {
         const db = await getDatabase();
@@ -217,6 +222,7 @@ export default function SettingsScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
+      <LoadingOverlay visible={loading} />
       <View style={styles.header}>
         <Text style={typography.h2}>{t("settings.title")}</Text>
         <Text style={typography.bodySmall}>
@@ -377,11 +383,12 @@ export default function SettingsScreen() {
           title={t("settings.exportPasswordTitle")}
           message={t("settings.exportPasswordMessage")}
           actions={[
-            { label: t("common.cancel"), variant: "secondary", onPress: close },
+            { label: t("common.cancel"), variant: "secondary", onPress: close, disabled: loading },
             {
-              label: loading ? "..." : t("settings.exportEncryptBtn"),
+              label: t("settings.exportEncryptBtn"),
               variant: "primary",
               onPress: handleExportWithPassword,
+              disabled: loading,
             },
           ]}
         >
@@ -394,6 +401,7 @@ export default function SettingsScreen() {
             autoCapitalize="none"
             autoCorrect={false}
             secureTextEntry
+            editable={!loading}
           />
         </AlertModal>
       )}
@@ -426,11 +434,12 @@ export default function SettingsScreen() {
           title={t("settings.importPasswordTitle")}
           message={t("settings.importPasswordMessage")}
           actions={[
-            { label: t("common.cancel"), variant: "secondary", onPress: close },
+            { label: t("common.cancel"), variant: "secondary", onPress: close, disabled: loading },
             {
-              label: loading ? "..." : t("settings.importAction"),
+              label: t("settings.importAction"),
               variant: "primary",
               onPress: handleImport,
+              disabled: loading,
             },
           ]}
         >
@@ -443,6 +452,7 @@ export default function SettingsScreen() {
             autoCapitalize="none"
             autoCorrect={false}
             secureTextEntry
+            editable={!loading}
           />
         </AlertModal>
       )}
