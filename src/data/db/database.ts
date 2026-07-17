@@ -1,6 +1,6 @@
-import * as SQLite from 'expo-sqlite';
-import { getDatabaseKey } from '../../security/keyManager';
-import { runMigrations } from './migrations';
+import * as SQLite from "expo-sqlite";
+import { getDatabaseKey } from "../../security/keyManager";
+import { runMigrations } from "./migrations";
 
 let _db: SQLite.SQLiteDatabase | null = null;
 let _initPromise: Promise<SQLite.SQLiteDatabase> | null = null;
@@ -12,18 +12,17 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
   _initPromise = (async () => {
     const key = await getDatabaseKey();
 
-    const db = await SQLite.openDatabaseAsync('revlog.db');
+    const db = await SQLite.openDatabaseAsync("revlog.db");
 
-    await db.runAsync(`PRAGMA key = '${key}';`);
-
-    // Verify encryption works
-    await db.runAsync('SELECT count(*) FROM sqlite_master;');
-
-    await db.execAsync('PRAGMA journal_mode = WAL;');
-    await db.execAsync('PRAGMA foreign_keys = ON;');
-    await db.execAsync('PRAGMA cache_size = -8000;');
-    await db.execAsync('PRAGMA synchronous = NORMAL;');
-    await db.execAsync('PRAGMA temp_store = MEMORY;');
+    await db.execAsync(`PRAGMA key = "x'${key}'";`);
+    await db.getFirstAsync("SELECT count(*) as c FROM sqlite_master");
+    await db.execAsync(`PRAGMA cipher_memory_security = ON;`);
+    await db.execAsync(`PRAGMA secure_delete = ON;`);
+    await db.execAsync("PRAGMA journal_mode = WAL;");
+    await db.execAsync("PRAGMA foreign_keys = ON;");
+    await db.execAsync("PRAGMA cache_size = -8000;");
+    await db.execAsync("PRAGMA synchronous = FULL;");
+    await db.execAsync("PRAGMA temp_store = MEMORY;");
 
     await runMigrations(db);
 

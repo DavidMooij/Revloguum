@@ -35,9 +35,9 @@ interface BackupPayload {
 
 interface EncryptedEnvelope {
   version: 2;
-  salt: string;   // hex, 32 bytes
-  iv: string;     // hex, 12 bytes
-  data: string;   // hex, ciphertext + 16-byte GCM tag appended by SubtleCrypto
+  salt: string; // hex, 32 bytes
+  iv: string; // hex, 12 bytes
+  data: string; // hex, ciphertext + 16-byte GCM tag appended by SubtleCrypto
 }
 
 function randomBytes(n: number): Uint8Array<ArrayBuffer> {
@@ -72,23 +72,32 @@ async function deriveKey(
     ["deriveKey"],
   );
   return crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt, iterations: 100_000, hash: "SHA-256" },
+    { name: "PBKDF2", salt, iterations: 650000, hash: "SHA-256" },
     base,
     { name: "AES-GCM", length: 256 },
     false,
     ["encrypt", "decrypt"],
   );
 }
-
 async function encryptPayload(
   plaintext: string,
   password: string,
 ): Promise<EncryptedEnvelope> {
   const salt = randomBytes(32);
-  const iv   = randomBytes(12);
-  const key  = await deriveKey(password, salt);
-  const ct   = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
+  const iv = randomBytes(12);
+  const key = await deriveKey(password, salt);
+  const ct = await crypto.subtle.encrypt(
+    {
+      name: "AES-GCM",
+      iv,
+      additionalData: new TextEncoder().encode(
+        JSON.stringify({
+          app: "RevLog",
+          format: "backup",
+          version: 3,
+        }),
+      ),
+    },
     key,
     new TextEncoder().encode(plaintext),
   );
@@ -105,14 +114,25 @@ async function decryptPayload(
   password: string,
 ): Promise<string> {
   const salt = fromHex(env.salt);
-  const iv   = fromHex(env.iv);
+  const iv = fromHex(env.iv);
   const data = fromHex(env.data);
-  const key  = await deriveKey(password, salt);
-  const pt   = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv },
+  const key = await deriveKey(password, salt);
+  const pt = await crypto.subtle.decrypt(
+    {
+      name: "AES-GCM",
+      iv,
+      additionalData: new TextEncoder().encode(
+        JSON.stringify({
+          app: "RevLog",
+          format: "backup",
+          version: 3,
+        }),
+      ),
+    },
     key,
     data,
   );
+
   return new TextDecoder().decode(pt);
 }
 
@@ -132,7 +152,9 @@ async function readAllData(): Promise<BackupPayload> {
 
   for (const entry of serviceEntries) {
     let paths: string[] = [];
-    try { paths = JSON.parse(entry.image_paths ?? "[]"); } catch {}
+    try {
+      paths = JSON.parse(entry.image_paths ?? "[]");
+    } catch {}
     for (let i = 0; i < paths.length; i++) {
       try {
         images[`${entry.id}_${i}`] = await FileSystem.readAsStringAsync(
@@ -187,13 +209,18 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
   await db.withTransactionAsync(async () => {
     for (const v of payload.vehicles ?? []) {
       const vehiclePhotoKey = `vehicle_photo_${v.id}`;
-      let restoredPhotoPath: string | null = v.photo_path ?? v.photoPath ?? null;
+      let restoredPhotoPath: string | null =
+        v.photo_path ?? v.photoPath ?? null;
       if (payload.images?.[vehiclePhotoKey]) {
         const photoPath = imgDir + vehiclePhotoKey + ".jpg";
         try {
-          await FileSystem.writeAsStringAsync(photoPath, payload.images[vehiclePhotoKey], {
-            encoding: FileSystem.EncodingType.Base64,
-          });
+          await FileSystem.writeAsStringAsync(
+            photoPath,
+            payload.images[vehiclePhotoKey],
+            {
+              encoding: FileSystem.EncodingType.Base64,
+            },
+          );
           restoredPhotoPath = photoPath;
         } catch {}
       }
@@ -204,13 +231,18 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
             vehicle_type,created_at,updated_at)
          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);`,
         [
-          v.id, v.make, v.model, v.year ?? null, v.nickname ?? null,
+          v.id,
+          v.make,
+          v.model,
+          v.year ?? null,
+          v.nickname ?? null,
           v.current_odometer ?? v.currentOdometer ?? 0,
           restoredPhotoPath,
           v.default_tank_liters ?? v.defaultTankLiters ?? null,
           v.default_fuel_price ?? v.defaultFuelPrice ?? null,
-          v.service_intervals ?? (v.serviceIntervals ? JSON.stringify(v.serviceIntervals) : null),
-          v.vehicle_type ?? v.vehicleType ?? 'motorcycle',
+          v.service_intervals ??
+            (v.serviceIntervals ? JSON.stringify(v.serviceIntervals) : null),
+          v.vehicle_type ?? v.vehicleType ?? "motorcycle",
           v.created_at ?? v.createdAt ?? Date.now(),
           v.updated_at ?? v.updatedAt ?? Date.now(),
         ],
@@ -222,15 +254,21 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
       await db.runAsync(
         `INSERT OR IGNORE INTO service_types (id,name,icon,is_system,sort_order,created_at)
          VALUES (?,?,?,0,?,?);`,
-        [t.id, t.name, t.icon ?? "wrench",
-         t.sort_order ?? t.sortOrder ?? 0,
-         t.created_at ?? t.createdAt ?? Date.now()],
+        [
+          t.id,
+          t.name,
+          t.icon ?? "wrench",
+          t.sort_order ?? t.sortOrder ?? 0,
+          t.created_at ?? t.createdAt ?? Date.now(),
+        ],
       );
     }
 
     for (const e of payload.serviceEntries ?? []) {
       let oldPaths: string[] = [];
-      try { oldPaths = JSON.parse(e.image_paths ?? "[]"); } catch {}
+      try {
+        oldPaths = JSON.parse(e.image_paths ?? "[]");
+      } catch {}
       const newPaths = oldPaths
         .map((_: string, i: number) => restored[`${e.id}_${i}`])
         .filter(Boolean);
@@ -240,9 +278,14 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
             notes,image_paths,created_at,updated_at)
          VALUES (?,?,?,?,?,?,?,?,?,?);`,
         [
-          e.id, e.vehicle_id ?? e.vehicleId, e.service_type_id ?? e.serviceTypeId,
-          e.date_ts ?? e.dateTs, e.odometer_km ?? e.odometerKm,
-          e.cost ?? null, e.notes ?? null, JSON.stringify(newPaths),
+          e.id,
+          e.vehicle_id ?? e.vehicleId,
+          e.service_type_id ?? e.serviceTypeId,
+          e.date_ts ?? e.dateTs,
+          e.odometer_km ?? e.odometerKm,
+          e.cost ?? null,
+          e.notes ?? null,
+          JSON.stringify(newPaths),
           e.created_at ?? e.createdAt ?? Date.now(),
           e.updated_at ?? e.updatedAt ?? Date.now(),
         ],
@@ -255,9 +298,13 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
            (id,vehicle_id,date_ts,odometer_km,liters,cost,notes,created_at)
          VALUES (?,?,?,?,?,?,?,?);`,
         [
-          f.id, f.vehicle_id ?? f.vehicleId, f.date_ts ?? f.dateTs,
-          f.odometer_km ?? f.odometerKm, f.liters,
-          f.cost ?? null, f.notes ?? null,
+          f.id,
+          f.vehicle_id ?? f.vehicleId,
+          f.date_ts ?? f.dateTs,
+          f.odometer_km ?? f.odometerKm,
+          f.liters,
+          f.cost ?? null,
+          f.notes ?? null,
           f.created_at ?? f.createdAt ?? Date.now(),
         ],
       );
@@ -269,7 +316,10 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
            (id,vehicle_id,category,amount,date_ts,interval_type,notes,created_at)
          VALUES (?,?,?,?,?,?,?,?);`,
         [
-          c.id, c.vehicle_id ?? c.vehicleId, c.category, c.amount,
+          c.id,
+          c.vehicle_id ?? c.vehicleId,
+          c.category,
+          c.amount,
           c.date_ts ?? c.dateTs,
           c.interval_type ?? c.intervalType ?? null,
           c.notes ?? null,
@@ -288,12 +338,15 @@ export function useExport() {
   const exportDatabase = useCallback(
     async (password: string): Promise<ExportResult> => {
       try {
-        const payload  = await readAllData();
-        const envelope = await encryptPayload(JSON.stringify(payload), password);
+        const payload = await readAllData();
+        const envelope = await encryptPayload(
+          JSON.stringify(payload),
+          password,
+        );
         const fileContent = JSON.stringify(envelope);
 
         const filename = `revlog_backup_${formatDate(todayTs())}.rvlg`;
-        const fileUri  = FileSystem.cacheDirectory + filename;
+        const fileUri = FileSystem.cacheDirectory + filename;
 
         await FileSystem.writeAsStringAsync(fileUri, fileContent, {
           encoding: FileSystem.EncodingType.UTF8,
@@ -313,7 +366,10 @@ export function useExport() {
       try {
         const available = await Sharing.isAvailableAsync();
         if (!available) {
-          return { success: false, error: "Sharing is not available on this device" };
+          return {
+            success: false,
+            error: "Sharing is not available on this device",
+          };
         }
         await Sharing.shareAsync(fileUri, {
           mimeType: "application/octet-stream",
@@ -358,7 +414,12 @@ export function useExport() {
         );
 
         const envelope: EncryptedEnvelope = JSON.parse(fileContent);
-        if (envelope.version !== 2 || !envelope.iv || !envelope.data || !envelope.salt) {
+        if (
+          envelope.version !== 2 ||
+          !envelope.iv ||
+          !envelope.data ||
+          !envelope.salt
+        ) {
           return { success: false, error: "Not a valid RevLog backup file" };
         }
 
@@ -399,7 +460,8 @@ export function useExport() {
       });
       const imgDir = FileSystem.documentDirectory + "revlog_images/";
       const info = await FileSystem.getInfoAsync(imgDir);
-      if (info.exists) await FileSystem.deleteAsync(imgDir, { idempotent: true });
+      if (info.exists)
+        await FileSystem.deleteAsync(imgDir, { idempotent: true });
       return { success: true };
     } catch (e) {
       return { success: false, error: (e as Error).message };
