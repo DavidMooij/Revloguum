@@ -285,7 +285,8 @@
     "vehicleTypeCar": "Car",
     "vehicleTypeOther": "Vehicle",
     "fuel": "Fuel",
-    "costAndConsumption": "Cost & consumption"
+    "costAndConsumption": "Cost & consumption",
+    "costAndCharts": "Cost & charts"
   },
   "history": {
     "title": "Service History",
@@ -429,9 +430,15 @@
     "total": "Total",
     "service": "Service",
     "other": "Other",
+    "insurance": "Insurance",
+    "maintenance": "Maintenance",
     "gasPriceChart": "GAS PRICE HISTORY",
-    "consumptionChart": "CONSUMPTION PER FILL-UP",
-    "fuelCostChart": "FUEL COSTS PER MONTH"
+    "consumptionChart": "CONSUMPTION",
+    "fuelCostChart": "FUEL COSTS PER MONTH",
+    "monthlyKmChart": "KM RIDDEN PER MONTH",
+    "monthlyTotalCostChart": "TOTAL COSTS PER MONTH",
+    "serviceTypeCostChart": "COSTS BY SERVICE TYPE",
+    "km": "km"
   },
   "settings": {
     "title": "Pit Stop",

@@ -284,7 +284,8 @@
     "vehicleTypeCar": "Auto",
     "vehicleTypeOther": "Fahrzeug",
     "fuel": "Tanken",
-    "costAndConsumption": "Kosten & Verbrauch"
+    "costAndConsumption": "Kosten & Verbrauch",
+    "costAndCharts": "Kosten & Diagramme"
   },
   "history": {
     "title": "Service-Historie",
@@ -427,9 +428,15 @@
     "allTime": "Gesamtzeitraum",
     "service": "Service",
     "other": "Sonstiges",
+    "insurance": "Versicherung",
+    "maintenance": "Wartung",
     "gasPriceChart": "BENZINPREIS VERLAUF",
-    "consumptionChart": "VERBRAUCH PRO TANKFÜLLUNG",
-    "fuelCostChart": "TREIBSTOFFKOSTEN PRO MONAT"
+    "consumptionChart": "VERBRAUCH",
+    "fuelCostChart": "TREIBSTOFFKOSTEN PRO MONAT",
+    "monthlyKmChart": "KM PRO MONAT",
+    "monthlyTotalCostChart": "GESAMTKOSTEN PRO MONAT",
+    "serviceTypeCostChart": "KOSTEN NACH SERVICE-TYP",
+    "km": "km"
   },
   "settings": {
     "title": "Pit Stop",

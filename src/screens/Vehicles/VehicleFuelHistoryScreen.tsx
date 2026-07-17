@@ -6,12 +6,13 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
+  FlatList,
   Dimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRoute } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { FlashList } from "@shopify/flash-list";
+
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import type { RootStackParamList } from "../../app/navigation/routes";
 import { colors } from "../../theme/colors";
@@ -150,7 +151,7 @@ export default function VehicleFuelHistoryScreen() {
           <ActivityIndicator color={colors.accent} size="large" />
         </View>
       ) : (
-        <FlashList
+        <FlatList
           data={entries}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
@@ -160,39 +161,6 @@ export default function VehicleFuelHistoryScreen() {
               title={t("fuel.noEntries")}
               subtitle={t("fuel.noEntriesSubtitle")}
             />
-          }
-          ListHeaderComponent={
-            entries.length >= 2 ? (
-              <View style={styles.chartsSection}>
-                {priceLineData.length >= 2 && (
-                  <View style={styles.chartCard}>
-                    <LineChart
-                      data={priceLineData}
-                      width={CHART_WIDTH - spacing.lg * 2}
-                      height={160}
-                      color={colors.accent}
-                      title={t("fuel.gasPriceChart")}
-                      unit="CHF/L"
-                      formatY={(v) => v.toFixed(2)}
-                    />
-                  </View>
-                )}
-
-                {consumptionLineData.length >= 2 && (
-                  <View style={styles.chartCard}>
-                    <LineChart
-                      data={consumptionLineData}
-                      width={CHART_WIDTH - spacing.lg * 2}
-                      height={160}
-                      color={colors.accentBright}
-                      title={t("fuel.consumptionChart")}
-                      unit="L/100km"
-                      formatY={(v) => v.toFixed(1)}
-                    />
-                  </View>
-                )}
-              </View>
-            ) : null
           }
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -335,7 +303,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  list: { padding: spacing.lg, paddingBottom: 60 },
+  list: { padding: spacing.lg },
   entry: {
     flexDirection: "row",
     alignItems: "center",
@@ -364,12 +332,4 @@ const styles = StyleSheet.create({
   entrySub: { fontSize: 12, color: colors.text2 },
   entryDot: { fontSize: 12, color: colors.text3 },
   entryNotes: { fontSize: 12, color: colors.text2, fontStyle: "italic" },
-  chartsSection: { gap: spacing.md, marginBottom: spacing.md },
-  chartCard: {
-    backgroundColor: colors.bg1,
-    borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border1,
-    padding: spacing.md,
-  },
 });

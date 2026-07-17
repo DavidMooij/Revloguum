@@ -84,28 +84,28 @@ export default function VehicleDetailScreen() {
 
   const navItems = [
     {
-      label: t('history.title'),
+      label: t("history.title"),
       icon: "history",
       screen: "VehicleHistory" as const,
-      sub: `${stats.totalServices} ${t('costs.serviceEntries').toLowerCase()}`,
+      sub: `${stats.totalServices} ${t("costs.serviceEntries").toLowerCase()}`,
     },
     {
-      label: t('vehicles.fuel'),
+      label: t("vehicles.fuel"),
       icon: "gas-pump",
       screen: "VehicleFuelHistory" as const,
       sub: `${stats.totalFuelLiters.toFixed(0)} L total`,
     },
     {
-      label: t('costs.title'),
+      label: t("costs.title"),
       icon: "receipt",
       screen: "VehicleCosts" as const,
       sub: formatCost(stats.totalOtherCost),
     },
     {
-      label: t('stats.title'),
+      label: t("stats.title"),
       icon: "chart-bar",
       screen: "VehicleStats" as const,
-      sub: t('vehicles.costAndConsumption'),
+      sub: t("vehicles.costAndCharts"),
     },
   ];
 
@@ -125,28 +125,34 @@ export default function VehicleDetailScreen() {
           </TouchableOpacity>
         }
       />
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.body}>
         <View style={styles.hero}>
           {vehicle.photoPath ? (
-            <Image source={{ uri: vehicle.photoPath }} style={styles.heroImage} />
+            <Image
+              source={{ uri: vehicle.photoPath }}
+              style={styles.heroImage}
+            />
           ) : (
             <View style={styles.heroPlaceholder}>
-              <Icon name={vehicleTypeIcon(vehicle.vehicleType)} size={48} color={colors.text2} />
+              <Icon
+                name={vehicleTypeIcon(vehicle.vehicleType)}
+                size={48}
+                color={colors.text2}
+              />
             </View>
           )}
           <Text style={styles.heroName}>
             {formatVehicleName(vehicle.make, vehicle.model, vehicle.nickname)}
           </Text>
-          {vehicle.year ? <Text style={styles.heroYear}>{vehicle.year}</Text> : null}
+          {vehicle.year ? (
+            <Text style={styles.heroYear}>{vehicle.year}</Text>
+          ) : null}
           <Text style={styles.heroOdo}>
             {formatOdometer(vehicle.currentOdometer)}
           </Text>
           {stats.lastServiceDate && (
             <Text style={styles.heroSub}>
-              Letzter Service: {stats.lastServiceDate}
+              {t("vehicles.lastService")}: {stats.lastServiceDate}
             </Text>
           )}
         </View>
@@ -170,19 +176,19 @@ export default function VehicleDetailScreen() {
             </TouchableOpacity>
           ))}
         </View>
-      </ScrollView>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg0 },
-  scroll: { padding: spacing.lg, paddingBottom: 60, gap: spacing.md },
+  body: { flex: 1, paddingHorizontal: spacing.md },
   hero: { alignItems: "center", paddingVertical: spacing.xl, gap: spacing.sm },
   heroImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
     marginBottom: spacing.sm,
   },
   heroPlaceholder: {

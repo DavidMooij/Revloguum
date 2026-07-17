@@ -255,4 +255,29 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
     );
     return row?.cnt ?? 0;
   }
+
+  async getCostByServiceType(
+    vehicleId: string,
+  ): Promise<{ serviceTypeName: string; total: number }[]> {
+    const rows = await this.db.getAllAsync<{ name: string; total: number }>(
+      `SELECT st.name, COALESCE(SUM(e.cost), 0) AS total
+       FROM service_entries e
+       JOIN service_types st ON st.id = e.service_type_id
+       WHERE e.vehicle_id = ? AND e.cost IS NOT NULL
+       GROUP BY st.id
+       ORDER BY total DESC;`,
+      [vehicleId],
+    );
+    return rows.map((r) => ({ serviceTypeName: r.name, total: r.total }));
+  }
+
+  async getAllWithDates(
+    vehicleId: string,
+  ): Promise<{ dateTs: number; cost: number | null }[]> {
+    const rows = await this.db.getAllAsync<{ date_ts: number; cost: number | null }>(
+      `SELECT date_ts, cost FROM service_entries WHERE vehicle_id = ? ORDER BY date_ts ASC;`,
+      [vehicleId],
+    );
+    return rows.map((r) => ({ dateTs: r.date_ts, cost: r.cost }));
+  }
 }

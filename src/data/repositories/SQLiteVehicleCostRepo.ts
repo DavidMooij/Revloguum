@@ -84,6 +84,27 @@ export class SQLiteVehicleCostRepo {
     return row?.total ?? 0;
   }
 
+  async getCostsByCategory(
+    vehicleId: string,
+  ): Promise<{ category: CostCategory; total: number }[]> {
+    const rows = await this.db.getAllAsync<{ category: string; total: number }>(
+      `SELECT category, COALESCE(SUM(amount), 0) AS total FROM vehicle_costs WHERE vehicle_id = ? GROUP BY category;`,
+      [vehicleId],
+    );
+    return rows.map((r) => ({
+      category: r.category as CostCategory,
+      total: r.total,
+    }));
+  }
+
+  async getAllWithDates(vehicleId: string): Promise<{ dateTs: number; amount: number }[]> {
+    const rows = await this.db.getAllAsync<{ date_ts: number; amount: number }>(
+      `SELECT date_ts, amount FROM vehicle_costs WHERE vehicle_id = ? ORDER BY date_ts ASC;`,
+      [vehicleId],
+    );
+    return rows.map((r) => ({ dateTs: r.date_ts, amount: r.amount }));
+  }
+
   private rowToEntity(row: any): VehicleCost {
     return {
       id: row.id,

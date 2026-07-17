@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   View,
@@ -13,123 +13,56 @@ import {
   useSafeAreaInsets,
   SafeAreaView,
 } from "react-native-safe-area-context";
-import { useRoute, useFocusEffect } from "@react-navigation/native";
+import { useRoute } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import type { RootStackParamList } from "../../app/navigation/routes";
 import { colors } from "../../theme/colors";
 import { spacing, radius } from "../../theme/spacing";
-import { getDatabase } from "../../data/db/database";
-import { SQLiteVehicleRepo } from "../../data/repositories/SQLiteVehicleRepo";
-import { SQLiteServiceEntryRepo } from "../../data/repositories/SQLiteServiceEntryRepo";
-import { SQLiteFuelRepo } from "../../data/repositories/SQLiteFuelRepo";
-import { SQLiteVehicleCostRepo } from "../../data/repositories/SQLiteVehicleCostRepo";
 import { formatCost, formatOdometer } from "../../utils/format";
-import { formatDateShort } from "../../utils/date";
 import ScreenHeader from "../components/ScreenHeader";
-import LineChart, { LineChartPoint } from "./components/charts/LineChart";
-import BarChart, { BarChartData } from "./components/charts/BarChart";
+import LineChart from "./components/charts/LineChart";
+import BarChart from "./components/charts/BarChart";
 import DonutChart from "./components/charts/DonutChart";
+import { useVehicleStats } from "../../hooks/useVehicleStats";
 
 type Props = NativeStackScreenProps<RootStackParamList, "VehicleStats">;
 
+type ExpandedChart =
+  | "price"
+  | "consumption"
+  | "monthlyFuel"
+  | "monthlyTotal"
+  | "monthlyKm"
+  | null;
+
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CHART_W = SCREEN_WIDTH - spacing.lg * 4;
+const CHART_W_FULL = SCREEN_WIDTH - spacing.lg * 2;
 
 export default function VehicleStatsScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const route = useRoute<Props["route"]>();
   const { vehicleId } = route.params;
-  const [stats, setStats] = useState<any>(null);
-  const [fuelEntries, setFuelEntries] = useState<any[]>([]);
-  const [expandedChart, setExpandedChart] = useState<
-    null | "price" | "consumption" | "monthly"
-  >(null);
-
-  useFocusEffect(
-    useCallback(() => {
-      (async () => {
-        const db = await getDatabase();
-        const moto = await new SQLiteVehicleRepo(db).getById(vehicleId);
-        if (!moto) return;
-        const fuelRepo = new SQLiteFuelRepo(db);
-        const [count, serviceCost, fuelStats, otherCost, allFuel] =
-          await Promise.all([
-            new SQLiteServiceEntryRepo(db).getCountForVehicle(vehicleId),
-            new SQLiteServiceEntryRepo(db).getTotalCostForVehicle(vehicleId),
-            fuelRepo.getStats({ vehicleId }),
-            new SQLiteVehicleCostRepo(db).getTotalCost(vehicleId),
-            fuelRepo.fetchFiltered({ vehicleId, limit: 50 }),
-          ]);
-        setStats({ moto, count, serviceCost, fuelStats, otherCost });
-        setFuelEntries(allFuel.reverse());
-      })();
-    }, [vehicleId]),
-  );
+  const stats = useVehicleStats(vehicleId);
+  const [expandedChart, setExpandedChart] = useState<ExpandedChart>(null);
 
   if (!stats) return null;
 
-  const { moto, count, serviceCost, fuelStats, otherCost } = stats;
-  const totalCost = serviceCost + fuelStats.totalCost + otherCost;
-  const costPerKm =
-    moto.currentOdometer > 0 ? totalCost / moto.currentOdometer : 0;
-
-  const priceLineData: LineChartPoint[] = fuelEntries
-    .filter((e: any) => e.liters > 0)
-    .map((e: any) => ({
-      x: e.dateTs,
-      y: parseFloat((e.cost / e.liters).toFixed(3)),
-      label: formatDateShort(e.dateTs),
-    }));
-
-  const consumptionLineData: LineChartPoint[] = fuelEntries
-    .slice(1)
-    .map((e: any, i: number) => {
-      const prev = fuelEntries[i];
-      const km = e.odometerKm - prev.odometerKm;
-      if (km <= 0) return null;
-      return {
-        x: e.dateTs,
-        y: parseFloat(((e.liters / km) * 100).toFixed(2)),
-        label: formatDateShort(e.dateTs),
-      };
-    })
-    .filter(Boolean) as LineChartPoint[];
-
-  const monthlyBarData: BarChartData[] = (() => {
-    const now = new Date();
-    return Array.from({ length: 6 }, (_, i) => {
-      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
-      const start = d.getTime();
-      const end = new Date(
-        d.getFullYear(),
-        d.getMonth() + 1,
-        0,
-        23,
-        59,
-        59,
-      ).getTime();
-      const total = fuelEntries
-        .filter((e: any) => e.dateTs >= start && e.dateTs <= end)
-        .reduce((sum: number, e: any) => sum + e.cost, 0);
-      return {
-        label: d.toLocaleString("de-CH", { month: "short" }),
-        value: total,
-        color: colors.accent,
-      };
-    });
-  })();
-
-  const donutData = [
-    { label: t("stats.service"), value: serviceCost, color: colors.accent },
-    {
-      label: t("stats.fuel"),
-      value: fuelStats.totalCost,
-      color: colors.accentBright,
-    },
-    { label: t("stats.other"), value: otherCost, color: colors.bg4 },
-  ].filter((d) => d.value > 0);
+  const {
+    moto,
+    count,
+    fuelStats,
+    costPerKm,
+    costDonutData,
+    serviceTypeCostData,
+    priceLineData,
+    consumptionLineData,
+    monthlyFuelCostBarData,
+    monthlyTotalCostBarData,
+    monthlyKmLineData,
+  } = stats;
 
   const metrics = [
     {
@@ -160,7 +93,38 @@ export default function VehicleStatsScreen() {
     { label: t("costs.serviceEntries"), value: String(count), icon: "wrench" },
   ];
 
-  const fullW = SCREEN_WIDTH - spacing.lg * 2;
+  const expandedChartTitle = (() => {
+    switch (expandedChart) {
+      case "price":
+        return t("stats.gasPriceChart");
+      case "consumption":
+        return t("stats.consumptionChart");
+      case "monthlyFuel":
+        return t("stats.fuelCostChart");
+      case "monthlyTotal":
+        return t("stats.monthlyTotalCostChart");
+      case "monthlyKm":
+        return t("stats.monthlyKmChart");
+      default:
+        return "";
+    }
+  })();
+
+  const expandedChartUnit = (() => {
+    switch (expandedChart) {
+      case "price":
+        return "CHF/L";
+      case "consumption":
+        return "L/100km";
+      case "monthlyFuel":
+      case "monthlyTotal":
+        return "CHF";
+      case "monthlyKm":
+        return t("stats.km");
+      default:
+        return "";
+    }
+  })();
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -172,16 +136,14 @@ export default function VehicleStatsScreen() {
         <View style={styles.costSummaryCard}>
           <View style={styles.costSummaryHeader}>
             <Text style={styles.cardLabel}>{t("stats.totalCosts")}</Text>
-
             <Text style={styles.costPeriod}>{t("stats.allTime")}</Text>
           </View>
-
           <View style={styles.costOverview}>
             <DonutChart
-              data={donutData}
+              data={costDonutData.map((d) => ({ ...d, label: t(d.label) }))}
               size={140}
               strokeWidth={18}
-              centerLabel={formatCost(totalCost)}
+              centerLabel={formatCost(stats.totalCost)}
               centerSub={t("stats.total")}
             />
           </View>
@@ -189,10 +151,10 @@ export default function VehicleStatsScreen() {
 
         <View style={styles.metricsGrid}>
           {metrics.map((m, i) => (
-            <View key={i} style={[styles.metricCard]}>
+            <View key={i} style={styles.metricCard}>
               <Icon name={m.icon as any} size={14} color={colors.accent} />
               <Text
-                style={[styles.metricValue]}
+                style={styles.metricValue}
                 adjustsFontSizeToFit
                 numberOfLines={1}
                 minimumFontScale={0.65}
@@ -205,6 +167,76 @@ export default function VehicleStatsScreen() {
             </View>
           ))}
         </View>
+
+        {monthlyFuelCostBarData.some((d) => d.value > 0) && (
+          <ChartCard
+            title={t("stats.fuelCostChart")}
+            unit="CHF"
+            onExpand={() => setExpandedChart("monthlyFuel")}
+          >
+            <BarChart
+              data={monthlyFuelCostBarData}
+              width={CHART_W}
+              height={160}
+              color={colors.accentBright}
+              formatValue={(v) => v.toFixed(0)}
+            />
+          </ChartCard>
+        )}
+
+        {monthlyKmLineData.length >= 2 && (
+          <ChartCard
+            title={t("stats.monthlyKmChart")}
+            unit={t("stats.km")}
+            onExpand={() => setExpandedChart("monthlyKm")}
+          >
+            <LineChart
+              data={monthlyKmLineData}
+              width={CHART_W}
+              height={160}
+              color={colors.success}
+              formatY={(v) => v.toFixed(0)}
+            />
+          </ChartCard>
+        )}
+
+        {serviceTypeCostData.length >= 2 && (
+          <View style={styles.chartCard}>
+            <View style={styles.chartCardHeader}>
+              <View>
+                <Text style={styles.sectionLabel}>
+                  {t("stats.serviceTypeCostChart")}
+                </Text>
+                <Text style={styles.chartUnit}>CHF</Text>
+              </View>
+            </View>
+            <DonutChart
+              data={serviceTypeCostData}
+              size={130}
+              strokeWidth={16}
+              centerLabel={formatCost(
+                serviceTypeCostData.reduce((s, d) => s + d.value, 0),
+              )}
+              centerSub={t("stats.total")}
+            />
+          </View>
+        )}
+
+        {monthlyTotalCostBarData.some((d) => d.value > 0) && (
+          <ChartCard
+            title={t("stats.monthlyTotalCostChart")}
+            unit="CHF"
+            onExpand={() => setExpandedChart("monthlyTotal")}
+          >
+            <BarChart
+              data={monthlyTotalCostBarData}
+              width={CHART_W}
+              height={160}
+              color={colors.accent}
+              formatValue={(v) => v.toFixed(0)}
+            />
+          </ChartCard>
+        )}
 
         {priceLineData.length >= 2 && (
           <ChartCard
@@ -221,33 +253,19 @@ export default function VehicleStatsScreen() {
             />
           </ChartCard>
         )}
+
         {consumptionLineData.length >= 2 && (
-          <ChartCard
+              <ChartCard
             title={t("stats.consumptionChart")}
             unit="L/100km"
             onExpand={() => setExpandedChart("consumption")}
           >
-            <LineChart
+          <LineChart
               data={consumptionLineData}
               width={CHART_W}
               height={160}
               color={colors.accentBright}
               formatY={(v) => v.toFixed(1)}
-            />
-          </ChartCard>
-        )}
-        {monthlyBarData.some((d) => d.value > 0) && (
-          <ChartCard
-            title={t("stats.fuelCostChart")}
-            unit="CHF"
-            onExpand={() => setExpandedChart("monthly")}
-          >
-            <BarChart
-              data={monthlyBarData}
-              width={CHART_W}
-              height={160}
-              color={colors.accent}
-              formatValue={(v) => v.toFixed(0)}
             />
           </ChartCard>
         )}
@@ -261,23 +279,9 @@ export default function VehicleStatsScreen() {
         <SafeAreaView style={styles.fullscreenModal}>
           <View style={styles.fullscreenHeader}>
             <View>
-              <Text style={styles.fullscreenTitle}>
-                {expandedChart === "price"
-                  ? t("stats.gasPriceChart")
-                  : expandedChart === "consumption"
-                    ? t("stats.consumptionChart")
-                    : t("stats.fuelCostChart")}
-              </Text>
-
-              <Text style={styles.fullscreenSubtitle}>
-                {expandedChart === "price"
-                  ? "CHF/L"
-                  : expandedChart === "consumption"
-                    ? "L/100km"
-                    : "CHF"}
-              </Text>
+              <Text style={styles.fullscreenTitle}>{expandedChartTitle}</Text>
+              <Text style={styles.fullscreenSubtitle}>{expandedChartUnit}</Text>
             </View>
-
             <TouchableOpacity
               onPress={() => setExpandedChart(null)}
               style={styles.closeBtn}
@@ -291,7 +295,7 @@ export default function VehicleStatsScreen() {
             {expandedChart === "price" && priceLineData.length >= 2 && (
               <LineChart
                 data={priceLineData}
-                width={SCREEN_WIDTH - spacing.lg * 2}
+                width={CHART_W_FULL}
                 height={420}
                 color={colors.accent}
                 unit="CHF/L"
@@ -299,12 +303,11 @@ export default function VehicleStatsScreen() {
                 showDots
               />
             )}
-
             {expandedChart === "consumption" &&
               consumptionLineData.length >= 2 && (
                 <LineChart
                   data={consumptionLineData}
-                  width={SCREEN_WIDTH - spacing.lg * 2}
+                  width={CHART_W_FULL}
                   height={420}
                   color={colors.accentBright}
                   unit="L/100km"
@@ -312,14 +315,33 @@ export default function VehicleStatsScreen() {
                   showDots
                 />
               )}
-
-            {expandedChart === "monthly" && (
+            {expandedChart === "monthlyFuel" && (
               <BarChart
-                data={monthlyBarData}
-                width={SCREEN_WIDTH - spacing.lg * 2}
+                data={monthlyFuelCostBarData}
+                width={CHART_W_FULL}
+                height={420}
+                color={colors.accentBright}
+                formatValue={(v) => v.toFixed(0)}
+              />
+            )}
+            {expandedChart === "monthlyTotal" && (
+              <BarChart
+                data={monthlyTotalCostBarData}
+                width={CHART_W_FULL}
                 height={420}
                 color={colors.accent}
                 formatValue={(v) => v.toFixed(0)}
+              />
+            )}
+            {expandedChart === "monthlyKm" && monthlyKmLineData.length >= 2 && (
+              <LineChart
+                data={monthlyKmLineData}
+                width={CHART_W_FULL}
+                height={420}
+                color={colors.success}
+                unit={t("stats.km")}
+                formatY={(v) => v.toFixed(0)}
+                showDots
               />
             )}
           </View>
@@ -370,7 +392,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     textTransform: "uppercase",
   },
-
   costSummaryCard: {
     backgroundColor: colors.bg1,
     borderRadius: radius.md,
@@ -379,13 +400,11 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.md,
   },
-
   costSummaryHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-
   cardLabel: {
     fontSize: 10,
     fontWeight: "700",
@@ -393,7 +412,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     textTransform: "uppercase",
   },
-
   costPeriod: {
     fontSize: 10,
     fontWeight: "700",
@@ -401,54 +419,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     textTransform: "uppercase",
   },
-
   costOverview: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
   },
-
-  costBreakdown: {
-    flex: 1,
-    gap: spacing.sm,
-  },
-
-  costBreakdownItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-
-  costText: {
-    flex: 1,
-  },
-
-  legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-
-  legendLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: colors.text1,
-  },
-
-  legendValue: {
-    fontSize: 11,
-    color: colors.text2,
-    marginTop: 1,
-  },
-
-  legendPct: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: colors.text0,
-  },
-
-  legendItem: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-
   metricsGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   metricCard: {
     width: (SCREEN_WIDTH - spacing.lg * 2 - spacing.sm * 2) / 3,
@@ -467,7 +442,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   metricLabel: { fontSize: 10, color: colors.text2, lineHeight: 13 },
-
   chartCard: {
     backgroundColor: colors.bg1,
     borderRadius: radius.md,
@@ -490,7 +464,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
   fullscreenModal: { flex: 1, backgroundColor: colors.bg0 },
   fullscreenHeader: {
     flexDirection: "row",
@@ -501,12 +474,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border0,
   },
-  fullscreenSubtitle: {
-    fontSize: 11,
-    color: colors.text2,
-    marginTop: 2,
-  },
-
+  fullscreenSubtitle: { fontSize: 11, color: colors.text2, marginTop: 2 },
   fullscreenChartArea: {
     flex: 1,
     alignItems: "center",
@@ -521,5 +489,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg2,
     alignItems: "center",
     justifyContent: "center",
-  }
+  },
 });
