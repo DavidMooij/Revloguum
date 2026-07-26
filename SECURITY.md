@@ -9,7 +9,7 @@ The application uses multiple layers of protection:
 - SQLCipher encrypted SQLite database
 - Hardware-backed key storage where available
 - Encrypted export backups
-- Private application storage for images
+- Individually encrypted image files
 - No cloud synchronization of user data
 
 ---
@@ -120,29 +120,44 @@ is expected because SQLCipher cannot decrypt the database.
 
 # Image Storage
 
-Images are stored separately from SQLite.
+Images are encrypted individually before being written to disk.
 
-Current storage:
+Encryption scheme:
+
+```
+AES-256-GCM
+
+Key:
+Same 256-bit key used for the database,
+stored in Android Keystore / iOS Keychain
+
+IV:
+12 random bytes per image
+
+Format:
+{ iv, tag, data } — hex-encoded, stored as .enc files
+```
+
+Storage location:
 
 ```
 Application private storage
 
 revlog_images/
-    image1.jpg
-    image2.jpg
+    1699999999999.enc
+    1700000000123.enc
 ```
 
-They are not stored in the public gallery.
+Images are decrypted only in memory when displayed, and written to a temporary
+cache file that is cleared with the rest of the app cache. They are not stored
+in the public gallery.
 
 Protection comes from:
 
+* AES-256-GCM encryption of each image file
 * Android application sandbox
 * iOS application container
 * OS-level filesystem permissions
-
-Future improvement:
-
-Encrypt image files individually using AES-GCM if threat requirements increase.
 
 ---
 
@@ -194,6 +209,10 @@ PBKDF2 iterations:
 650000
 ```
 
+Images included in a backup are decrypted first, then embedded as base64 inside
+the payload before the whole payload is encrypted with the backup password. On
+import, images are re-encrypted with the current device's key.
+
 The backup can safely be stored outside the device.
 
 ---
@@ -208,6 +227,7 @@ If the phone is locked:
 
 * Database key cannot be retrieved
 * SQLite database remains encrypted
+* Image files remain encrypted
 * Application data stays inside private storage
 
 ---
@@ -233,6 +253,13 @@ Error: file is not a database
 ```
 
 Expected behavior.
+
+---
+
+### Someone copying image files
+
+A copied `.enc` image file requires the device's AES-256 key to decrypt.
+Without it, the file is unreadable ciphertext.
 
 ---
 
@@ -375,10 +402,7 @@ RevLog follows these principles:
 
 Possible future enhancements:
 
-* Encrypt individual image files
 * Add biometric unlock option
 * Add automatic database locking after inactivity
 * Add encrypted cloud backup support
 * Add security audit before production release
-
-```
