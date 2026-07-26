@@ -564,7 +564,6 @@ export default function QuickFuelModal({
                     <Text style={styles.navBtnNextText}>
                       {t("fuel.saveChanges")}
                     </Text>
-                    <Icon name="check" size={14} color={colors.white} />
                   </>
                 )}
               </TouchableOpacity>
