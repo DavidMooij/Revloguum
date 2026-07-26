@@ -7,7 +7,8 @@
     "icon": "./assets/image.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.veruum.RevLog"
     },
     "android": {
       "adaptiveIcon": {
@@ -15,7 +16,8 @@
         "backgroundColor": "#000000"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.veruum.RevLog"
+      "package": "com.veruum.RevLog",
+      "permissions": ["android.permission.RECORD_AUDIO"]
     },
     "web": {
       "favicon": "./assets/image.png"
@@ -33,7 +35,10 @@
           "android": {
             "minSdkVersion": 24,
             "compileSdkVersion": 36,
-            "targetSdkVersion": 36
+            "targetSdkVersion": 36,
+            "packagingOptions": {
+              "pickFirst": ["**/libcrypto.so"]
+            }
           },
           "ios": {
             "deploymentTarget": "16.4"
