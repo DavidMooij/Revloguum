@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { haptic } from "../../../utils/haptics";
 import {
   ScrollView,
@@ -6,7 +6,6 @@ import {
   Text,
   StyleSheet,
   View,
-  Image,
 } from "react-native";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import type { Vehicle } from "../../../domain/entities/Vehicle";
@@ -14,6 +13,7 @@ import { colors } from "../../../theme/colors";
 import { spacing, radius } from "../../../theme/spacing";
 import { formatVehicleName } from "../../../utils/format";
 import { vehicleTypeIcon } from "../../../utils/vehicleType";
+import EncryptedImage from "@/screens/components/EncryptedImage";
 
 interface Props {
   vehicles: Vehicle[];
@@ -49,10 +49,7 @@ export default function VehicleSelector({
           >
             <View style={[styles.imageWrap, active && styles.imageWrapActive]}>
               {vehicle.photoPath ? (
-                <Image
-                  source={{ uri: vehicle.photoPath }}
-                  style={styles.image}
-                />
+                <EncryptedImage path={vehicle.photoPath} style={styles.image} />
               ) : (
                 <Icon
                   name={vehicleTypeIcon(vehicle.vehicleType)}
@@ -115,7 +112,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
-    borderWidth: 1
+    borderWidth: 1,
   },
 
   imageWrapActive: {

@@ -34,6 +34,7 @@ import type { ServiceInterval } from "../../domain/entities/Vehicle";
 import type { VehicleType } from "../../domain/entities/Vehicle";
 import { vehicleTypeIcon } from "../../utils/vehicleType";
 import ServiceIntervalConfig from "./components/stats/ServiceIntervalConfig";
+import { decryptImage, encryptImage } from "@/security/imageEncryption";
 
 type Props = NativeStackScreenProps<RootStackParamList, "AddVehicle">;
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -46,8 +47,7 @@ export default function AddVehicleScreen() {
   const editId = route.params?.editId;
   const isEditing = !!editId;
 
-  const { addVehicle, deleteVehicle, updateVehicle } =
-    useVehicles();
+  const { addVehicle, deleteVehicle, updateVehicle } = useVehicles();
   const { serviceTypes } = useServiceTypes();
 
   const [make, setMake] = useState("");
@@ -67,18 +67,19 @@ export default function AddVehicleScreen() {
     odometer?: string;
     tankLiters?: string;
   }>({});
-  const [photoUri, setPhotoUri] = useState<string | null>(null);
-  const [existingPhoto, setExistingPhoto] = useState<string | null>(null);
-  const [vehicleType, setVehicleType] = useState<VehicleType>('motorcycle');
+  const [photoPath, setPhotoPath] = useState<string | null>(null);
+  const [newPhotoUri, setNewPhotoUri] = useState<string | null>(null);
+  const [displayUri, setDisplayUri] = useState<string | null>(null);
+  const [vehicleType, setVehicleType] = useState<VehicleType>("motorcycle");
   const [deleteAlert, setDeleteAlert] = useState(false);
   const [errorAlert, setErrorAlert] = useState<string | null>(null);
 
   const vehicleTypeLabel =
-    vehicleType === 'motorcycle'
-      ? t('vehicles.vehicleTypeMotorcycle')
-      : vehicleType === 'car'
-        ? t('vehicles.vehicleTypeCar')
-        : t('vehicles.vehicleTypeOther');
+    vehicleType === "motorcycle"
+      ? t("vehicles.vehicleTypeMotorcycle")
+      : vehicleType === "car"
+        ? t("vehicles.vehicleTypeCar")
+        : t("vehicles.vehicleTypeOther");
 
   useEffect(() => {
     if (!editId) return;
@@ -99,15 +100,24 @@ export default function AddVehicleScreen() {
         moto.defaultFuelPrice ? String(moto.defaultFuelPrice) : "",
       );
       setServiceIntervals(moto.serviceIntervals ?? []);
-      setPhotoUri(moto.photoPath ?? null);
-      setExistingPhoto(moto.photoPath ?? null);
-      setVehicleType(moto.vehicleType ?? 'motorcycle');
+      setPhotoPath(moto.photoPath ?? null);
+      setVehicleType(moto.vehicleType ?? "motorcycle");
     })();
   }, [editId]);
 
+  useEffect(() => {
+    if (!photoPath) return;
+    decryptImage(photoPath)
+      .then(setDisplayUri)
+      .catch(() => {});
+  }, [photoPath]);
+
   const pickPhoto = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({ quality: 0.8 });
-    if (!result.canceled) setPhotoUri(result.assets[0].uri);
+    if (!result.canceled) {
+      setNewPhotoUri(result.assets[0].uri);
+      setDisplayUri(result.assets[0].uri);
+    }
   };
 
   const validate = useCallback(() => {
@@ -115,9 +125,11 @@ export default function AddVehicleScreen() {
     if (!make.trim()) errs.make = t("vehicles.errorMakeRequired");
     if (!model.trim()) errs.model = t("vehicles.errorModelRequired");
     const odo = parseInt(odometer, 10);
-    if (isNaN(odo) || odo < 0) errs.odometer = t("vehicles.errorOdometerInvalid");
+    if (isNaN(odo) || odo < 0)
+      errs.odometer = t("vehicles.errorOdometerInvalid");
     const tank = defaultTankLiters.trim() ? parseFloat(defaultTankLiters) : NaN;
-    if (isNaN(tank) || tank <= 0) errs.tankLiters = t("vehicles.errorTankRequired");
+    if (isNaN(tank) || tank <= 0)
+      errs.tankLiters = t("vehicles.errorTankRequired");
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }, [make, model, odometer, defaultTankLiters, t]);
@@ -145,7 +157,9 @@ export default function AddVehicleScreen() {
         year: parsedYear,
         nickname: nickname.trim() || null,
         currentOdometer: parsedOdo,
-        photoPath: photoUri ?? existingPhoto ?? null,
+        photoPath: newPhotoUri
+          ? await encryptImage(newPhotoUri)
+          : (photoPath ?? null),
         defaultTankLiters: parsedTankLiters,
         defaultFuelPrice: parsedFuelPrice,
         serviceIntervals,
@@ -181,8 +195,8 @@ export default function AddVehicleScreen() {
     addVehicle,
     updateVehicle,
     navigation,
-    photoUri,
-    existingPhoto,
+    newPhotoUri,
+    photoPath,
   ]);
 
   return (
@@ -192,7 +206,11 @@ export default function AddVehicleScreen() {
     >
       <View style={[styles.screen, { paddingTop: insets.top }]}>
         <ScreenHeader
-          title={isEditing ? t('vehicles.editType', { type: vehicleTypeLabel }) : t('vehicles.addType', { type: vehicleTypeLabel })}
+          title={
+            isEditing
+              ? t("vehicles.editType", { type: vehicleTypeLabel })
+              : t("vehicles.addType", { type: vehicleTypeLabel })
+          }
           showBack
           rightElement={
             isEditing ? (
@@ -217,11 +235,15 @@ export default function AddVehicleScreen() {
         >
           <TouchableOpacity onPress={pickPhoto} activeOpacity={0.8}>
             <View style={styles.photoCard}>
-              {photoUri ? (
-                <Image source={{ uri: photoUri }} style={styles.photo} />
+              {displayUri ? (
+                <Image source={{ uri: displayUri }} style={styles.photo} />
               ) : (
                 <View style={styles.placeholder}>
-                  <Icon name={vehicleTypeIcon(vehicleType)} size={34} color={colors.text2} />
+                  <Icon
+                    name={vehicleTypeIcon(vehicleType)}
+                    size={34}
+                    color={colors.text2}
+                  />
                   <Text style={styles.placeholderText}>{vehicleTypeLabel}</Text>
                 </View>
               )}
@@ -232,13 +254,19 @@ export default function AddVehicleScreen() {
           </TouchableOpacity>
 
           <View>
-            <Text style={styles.sectionTitle}>{t('vehicles.vehicleType')}</Text>
+            <Text style={styles.sectionTitle}>{t("vehicles.vehicleType")}</Text>
             <View style={styles.typeSelector}>
-              {(['motorcycle', 'car', 'other'] as VehicleType[]).map((type) => (
+              {(["motorcycle", "car", "other"] as VehicleType[]).map((type) => (
                 <TouchableOpacity
                   key={type}
-                  style={[styles.typeOption, vehicleType === type && styles.typeOptionActive]}
-                  onPress={() => { haptic.selection(); setVehicleType(type); }}
+                  style={[
+                    styles.typeOption,
+                    vehicleType === type && styles.typeOptionActive,
+                  ]}
+                  onPress={() => {
+                    haptic.selection();
+                    setVehicleType(type);
+                  }}
                   activeOpacity={0.8}
                 >
                   <Icon
@@ -246,8 +274,15 @@ export default function AddVehicleScreen() {
                     size={20}
                     color={vehicleType === type ? colors.accent : colors.text2}
                   />
-                  <Text style={[styles.typeLabel, vehicleType === type && styles.typeLabelActive]}>
-                    {t(`vehicles.vehicleType${type.charAt(0).toUpperCase() + type.slice(1)}` as any)}
+                  <Text
+                    style={[
+                      styles.typeLabel,
+                      vehicleType === type && styles.typeLabelActive,
+                    ]}
+                  >
+                    {t(
+                      `vehicles.vehicleType${type.charAt(0).toUpperCase() + type.slice(1)}` as any,
+                    )}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -255,72 +290,74 @@ export default function AddVehicleScreen() {
           </View>
 
           <TextInputField
-            label={t('vehicles.make')}
+            label={t("vehicles.make")}
             value={make}
             onChangeText={setMake}
-            placeholder={t('vehicles.placeholderMake')}
+            placeholder={t("vehicles.placeholderMake")}
             autoCapitalize="words"
             error={errors.make}
           />
           <TextInputField
-            label={t('vehicles.model')}
+            label={t("vehicles.model")}
             value={model}
             onChangeText={setModel}
-            placeholder={t('vehicles.placeholderModel')}
+            placeholder={t("vehicles.placeholderModel")}
             autoCapitalize="words"
             error={errors.model}
           />
           <View style={styles.row}>
             <TextInputField
-              label={t('vehicles.year')}
+              label={t("vehicles.year")}
               value={year}
               onChangeText={setYear}
-              placeholder={t('vehicles.placeholderYear')}
+              placeholder={t("vehicles.placeholderYear")}
               keyboardType="numeric"
               containerStyle={{ flex: 1 }}
             />
             <TextInputField
-              label={t('vehicles.odometer')}
+              label={t("vehicles.odometer")}
               value={odometer}
               onChangeText={setOdometer}
               keyboardType="numeric"
-              placeholder={t('vehicles.placeholderOdometer')}
+              placeholder={t("vehicles.placeholderOdometer")}
               error={errors.odometer}
               containerStyle={{ flex: 1 }}
             />
           </View>
           <TextInputField
-            label={t('vehicles.nickname')}
+            label={t("vehicles.nickname")}
             value={nickname}
             onChangeText={setNickname}
-            placeholder={t('vehicles.placeholderNickname')}
+            placeholder={t("vehicles.placeholderNickname")}
             autoCapitalize="words"
           />
 
           <View style={styles.sectionHeader}>
             <Icon name="gas-pump" size={13} color={colors.accent} />
-            <Text style={styles.sectionTitle}>{t('vehicles.tankSettings')}</Text>
+            <Text style={styles.sectionTitle}>
+              {t("vehicles.tankSettings")}
+            </Text>
           </View>
           <Text style={styles.sectionHint}>
-            {t('vehicles.tankSettingsHint')}
+            {t("vehicles.tankSettingsHint")}
           </Text>
           <View style={styles.row}>
             <TextInputField
-              label={t('vehicles.defaultTankSize') + ' *'}
+              label={t("vehicles.defaultTankSize") + " *"}
               value={defaultTankLiters}
               onChangeText={setDefaultTankLiters}
               keyboardType="decimal-pad"
-              placeholder={t('vehicles.placeholderTankSize')}
+              placeholder={t("vehicles.placeholderTankSize")}
               suffix="L"
               containerStyle={{ flex: 1 }}
               error={errors.tankLiters}
             />
             <TextInputField
-              label={t('vehicles.defaultPrice')}
+              label={t("vehicles.defaultPrice")}
               value={defaultFuelPrice}
               onChangeText={setDefaultFuelPrice}
               keyboardType="decimal-pad"
-              placeholder={t('vehicles.placeholderDefaultPrice')}
+              placeholder={t("vehicles.placeholderDefaultPrice")}
               suffix="CHF/L"
               containerStyle={{ flex: 1 }}
             />
@@ -328,7 +365,9 @@ export default function AddVehicleScreen() {
 
           <View style={styles.sectionHeader}>
             <Icon name="bell" size={13} color={colors.accent} />
-            <Text style={styles.sectionTitle}>{t('vehicles.serviceIntervals')}</Text>
+            <Text style={styles.sectionTitle}>
+              {t("vehicles.serviceIntervals")}
+            </Text>
           </View>
           <ServiceIntervalConfig
             serviceTypes={serviceTypes}
@@ -341,7 +380,11 @@ export default function AddVehicleScreen() {
           style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}
         >
           <PrimaryButton
-            label={isEditing ? t('common.saveChanges') : t('vehicles.addType', { type: vehicleTypeLabel })}
+            label={
+              isEditing
+                ? t("common.saveChanges")
+                : t("vehicles.addType", { type: vehicleTypeLabel })
+            }
             onPress={handleSave}
             loading={saving}
           />
@@ -353,12 +396,16 @@ export default function AddVehicleScreen() {
         onClose={() => setDeleteAlert(false)}
         icon="trash-alt"
         iconColor={colors.dangerText}
-        title={t('vehicles.deleteType', { type: vehicleTypeLabel })}
-        message={t('vehicles.deleteVehicleMessage')}
+        title={t("vehicles.deleteType", { type: vehicleTypeLabel })}
+        message={t("vehicles.deleteVehicleMessage")}
         actions={[
-          { label: t('common.cancel'), variant: "secondary", onPress: () => {} },
           {
-            label: t('common.delete'),
+            label: t("common.cancel"),
+            variant: "secondary",
+            onPress: () => {},
+          },
+          {
+            label: t("common.delete"),
             variant: "danger",
             onPress: async () => {
               haptic.error();
@@ -373,9 +420,11 @@ export default function AddVehicleScreen() {
         onClose={() => setErrorAlert(null)}
         icon="exclamation-triangle"
         iconColor={colors.dangerText}
-        title={t('common.error')}
+        title={t("common.error")}
         message={errorAlert ?? ""}
-        actions={[{ label: t('common.ok'), variant: "secondary", onPress: () => {} }]}
+        actions={[
+          { label: t("common.ok"), variant: "secondary", onPress: () => {} },
+        ]}
       />
     </KeyboardAvoidingView>
   );

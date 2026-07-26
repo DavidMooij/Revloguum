@@ -31,6 +31,8 @@ import { formatOdometer, formatCost } from "../../utils/format";
 import ScreenHeader from "../components/ScreenHeader";
 import AlertModal from "../components/AlertModal";
 import { haptic } from "@/utils/haptics";
+import { decryptImage } from "@/security/imageEncryption";
+import EncryptedImage from "../components/EncryptedImage";
 
 type Props = NativeStackScreenProps<RootStackParamList, "EntryDetail">;
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -55,13 +57,18 @@ export default function EntryDetailScreen() {
         const e = await repo.getById(entryId);
         if (isActive) setEntry(e);
       })();
-      return () => { isActive = false; };
+      return () => {
+        isActive = false;
+      };
     }, [entryId]),
   );
 
   const openImage = (index: number) => {
     if (!entry?.imagePaths) return;
-    navigation.navigate("ImageViewer", { images: entry.imagePaths, initialIndex: index });
+    navigation.navigate("ImageViewer", {
+      images: entry.imagePaths,
+      initialIndex: index,
+    });
   };
 
   if (!entry) return null;
@@ -74,7 +81,9 @@ export default function EntryDetailScreen() {
         showBack
         rightElement={
           <TouchableOpacity
-            onPress={() => navigation.navigate("AddEntry", { editEntryId: entry.id })}
+            onPress={() =>
+              navigation.navigate("AddEntry", { editEntryId: entry.id })
+            }
             hitSlop={10}
             style={styles.editBtn}
           >
@@ -84,12 +93,19 @@ export default function EntryDetailScreen() {
       />
 
       <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 48 }]}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingBottom: insets.bottom + 48 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.hero}>
           <View style={styles.heroIcon}>
-            <Icon name={entry.serviceTypeIcon} size={36} color={colors.accent} />
+            <Icon
+              name={entry.serviceTypeIcon}
+              size={36}
+              color={colors.accent}
+            />
           </View>
           <Text style={styles.heroTitle}>{entry.serviceTypeName}</Text>
           <Text style={styles.heroDate}>{formatDate(entry.dateTs)}</Text>
@@ -101,8 +117,17 @@ export default function EntryDetailScreen() {
         </View>
 
         <View style={styles.section}>
-          <InfoRow label={t("entryDetail.odometer")} value={formatOdometer(entry.odometerKm)} icon="tachometer-alt" />
-          <InfoRow label={t("entryDetail.vehicle")} value={entry.vehicleDisplayName} icon="car" last />
+          <InfoRow
+            label={t("entryDetail.odometer")}
+            value={formatOdometer(entry.odometerKm)}
+            icon="tachometer-alt"
+          />
+          <InfoRow
+            label={t("entryDetail.vehicle")}
+            value={entry.vehicleDisplayName}
+            icon="car"
+            last
+          />
         </View>
 
         {entry.notes ? (
@@ -122,8 +147,12 @@ export default function EntryDetailScreen() {
               contentContainerStyle={styles.imageScrollContent}
             >
               {entry.imagePaths?.map((uri, i) => (
-                <TouchableOpacity key={i} onPress={() => openImage(i)} activeOpacity={0.85}>
-                  <Image source={{ uri }} style={styles.image} />
+                <TouchableOpacity
+                  key={i}
+                  onPress={() => openImage(i)}
+                  activeOpacity={0.85}
+                >
+                  <EncryptedImage path={uri} style={styles.image} />
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -131,19 +160,28 @@ export default function EntryDetailScreen() {
         )}
 
         <View style={styles.metaSection}>
-          <Text style={styles.metaText}>{t("entryDetail.recorded")} · {formatDateTime(entry.createdAt)}</Text>
+          <Text style={styles.metaText}>
+            {t("entryDetail.recorded")} · {formatDateTime(entry.createdAt)}
+          </Text>
           {entry.updatedAt !== entry.createdAt && (
-            <Text style={styles.metaText}>{t("entryDetail.lastEdited")} · {formatDateTime(entry.updatedAt)}</Text>
+            <Text style={styles.metaText}>
+              {t("entryDetail.lastEdited")} · {formatDateTime(entry.updatedAt)}
+            </Text>
           )}
         </View>
 
         <TouchableOpacity
           style={styles.deleteBtn}
-          onPress={() => { haptic.error(); setDeleteAlert(true); }}
+          onPress={() => {
+            haptic.error();
+            setDeleteAlert(true);
+          }}
           activeOpacity={0.7}
         >
           <Icon name="trash-alt" size={13} color={colors.dangerText} />
-          <Text style={styles.deleteBtnText}>{t("entryDetail.deleteEntry").replace("?", "")}</Text>
+          <Text style={styles.deleteBtnText}>
+            {t("entryDetail.deleteEntry").replace("?", "")}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -155,7 +193,11 @@ export default function EntryDetailScreen() {
         title={t("entryDetail.deleteEntry")}
         message={t("common.cannotBeUndone")}
         actions={[
-          { label: t("common.cancel"), variant: "secondary", onPress: () => {} },
+          {
+            label: t("common.cancel"),
+            variant: "secondary",
+            onPress: () => {},
+          },
           {
             label: t("common.delete"),
             variant: "danger",
@@ -170,7 +212,17 @@ export default function EntryDetailScreen() {
   );
 }
 
-function InfoRow({ label, value, icon, last }: { label: string; value: string; icon?: string; last?: boolean }) {
+function InfoRow({
+  label,
+  value,
+  icon,
+  last,
+}: {
+  label: string;
+  value: string;
+  icon?: string;
+  last?: boolean;
+}) {
   return (
     <View style={[infoRowStyles.row, last && infoRowStyles.rowLast]}>
       <View style={infoRowStyles.iconWrap}>
@@ -222,7 +274,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: spacing.xs,
   },
-  heroTitle: { fontSize: 20, fontWeight: "700", color: colors.text0, textAlign: "center" },
+  heroTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: colors.text0,
+    textAlign: "center",
+  },
   heroDate: { fontSize: 13, color: colors.text2 },
   costBadge: {
     marginTop: spacing.xs,
@@ -250,10 +307,19 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     paddingVertical: spacing.xs,
   },
-  notesText: { fontSize: 14, color: colors.text1, lineHeight: 22, paddingBottom: spacing.sm },
+  notesText: {
+    fontSize: 14,
+    color: colors.text1,
+    lineHeight: 22,
+    paddingBottom: spacing.sm,
+  },
 
   imageScroll: { marginHorizontal: -spacing.md },
-  imageScrollContent: { paddingHorizontal: spacing.md, gap: spacing.sm, paddingBottom: spacing.xs },
+  imageScrollContent: {
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
+    paddingBottom: spacing.xs,
+  },
   image: { width: 200, height: 140, borderRadius: radius.md },
 
   metaSection: { paddingVertical: spacing.sm, gap: 4, alignItems: "center" },

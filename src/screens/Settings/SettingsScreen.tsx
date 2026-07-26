@@ -29,6 +29,7 @@ import i18n from "../../i18n";
 import { useAppStore } from "../../store/appStore";
 import { getDatabase } from "../../data/db/database";
 import { SQLiteVehicleRepo } from "../../data/repositories/SQLiteVehicleRepo";
+import { haptic, setHapticsEnabled } from "@/utils/haptics";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -102,8 +103,8 @@ export default function SettingsScreen() {
     useExport();
   const setVehicles = useAppStore((s) => s.setVehicles);
   const [aboutVisible, setAboutVisible] = useState(false);
+  const [hapticsOn, setHapticsOn] = useState(true);
 
-  const [haptics, setHaptics] = useState(true);
   const [lang, setLang] = useState<"en" | "de">(
     (i18n.language?.slice(0, 2) as "en" | "de") ?? "en",
   );
@@ -119,15 +120,15 @@ export default function SettingsScreen() {
   };
 
   const toggleHaptics = (value: boolean) => {
+    setHapticsOn(value);
     setHapticsEnabled(value);
-    setHaptics(value);
     if (value) haptic.medium();
   };
 
   const changeLanguage = (value: "en" | "de") => {
     setLang(value);
     i18n.changeLanguage(value);
-    haptic.light?.();
+    haptic?.light?.();
   };
 
   const handleExport = () => setModal({ type: "exportPasswordEntry" });
@@ -225,9 +226,7 @@ export default function SettingsScreen() {
       <LoadingOverlay visible={loading} />
       <View style={styles.header}>
         <Text style={typography.h2}>{t("settings.title")}</Text>
-        <Text style={typography.bodySmall}>
-          {t("settings.subtitle")}
-        </Text>
+        <Text style={typography.bodySmall}>{t("settings.subtitle")}</Text>
       </View>
 
       <ScrollView
@@ -267,7 +266,7 @@ export default function SettingsScreen() {
             label={t("settings.hapticFeedback")}
             right={
               <Switch
-                value={haptics}
+                value={hapticsOn}
                 onValueChange={toggleHaptics}
                 trackColor={{ false: colors.bg4, true: colors.accent }}
                 thumbColor={colors.white}
@@ -383,7 +382,12 @@ export default function SettingsScreen() {
           title={t("settings.exportPasswordTitle")}
           message={t("settings.exportPasswordMessage")}
           actions={[
-            { label: t("common.cancel"), variant: "secondary", onPress: close, disabled: loading },
+            {
+              label: t("common.cancel"),
+              variant: "secondary",
+              onPress: close,
+              disabled: loading,
+            },
             {
               label: t("settings.exportEncryptBtn"),
               variant: "primary",
@@ -434,7 +438,12 @@ export default function SettingsScreen() {
           title={t("settings.importPasswordTitle")}
           message={t("settings.importPasswordMessage")}
           actions={[
-            { label: t("common.cancel"), variant: "secondary", onPress: close, disabled: loading },
+            {
+              label: t("common.cancel"),
+              variant: "secondary",
+              onPress: close,
+              disabled: loading,
+            },
             {
               label: t("settings.importAction"),
               variant: "primary",

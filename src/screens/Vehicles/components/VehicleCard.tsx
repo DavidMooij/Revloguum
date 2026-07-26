@@ -7,6 +7,7 @@ import { colors } from "../../../theme/colors";
 import { radius } from "../../../theme/spacing";
 import { formatOdometer, formatVehicleName } from "../../../utils/format";
 import { vehicleTypeIcon } from "../../../utils/vehicleType";
+import EncryptedImage from "@/screens/components/EncryptedImage";
 
 interface Props {
   vehicle: Vehicle;
@@ -36,12 +37,7 @@ export default function VehicleCard({
         </TouchableOpacity>
 
         {vehicle.photoPath ? (
-          <Image
-            source={{
-              uri: `${vehicle.photoPath}?t=${vehicle.updatedAt}`,
-            }}
-            style={styles.image}
-          />
+          <EncryptedImage path={vehicle.photoPath} style={styles.image} />
         ) : (
           <View style={styles.motoIcon}>
             <FontAwesome5

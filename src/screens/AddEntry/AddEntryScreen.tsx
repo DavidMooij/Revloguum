@@ -34,6 +34,7 @@ import { haptic } from "@/utils/haptics";
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "expo-image";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
+import { decryptImage, encryptImage } from "@/security/imageEncryption";
 
 type Props = NativeStackScreenProps<RootStackParamList, "AddEntry">;
 
@@ -49,8 +50,7 @@ export default function AddEntryScreen() {
   const { addEntry, updateEntry } = useServiceEntryActions();
   const { vehicles, activeVehicleId } = useVehicles();
 
-  const resolvedMotoId =
-    vehicleId ?? activeVehicleId ?? vehicles[0]?.id ?? "";
+  const resolvedMotoId = vehicleId ?? activeVehicleId ?? vehicles[0]?.id ?? "";
 
   const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null);
   const [dateTs, setDateTs] = useState(Date.now());
@@ -64,8 +64,8 @@ export default function AddEntryScreen() {
   const [images, setImages] = useState<string[]>([]);
   const [errorAlert, setErrorAlert] = useState<string | null>(null);
   const [cameraAlert, setCameraAlert] = useState(false);
-
   const isEditing = !!editEntryId;
+  const [displayUris, setDisplayUris] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (isEditing || !resolvedMotoId) return;
@@ -76,6 +76,12 @@ export default function AddEntryScreen() {
       if (last) setOdometer(String(last.odometerKm + 1));
     })();
   }, [resolvedMotoId, isEditing]);
+
+  const getEncryptedImages = useCallback(async (uris: string[]) => {
+    return Promise.all(
+      uris.map((uri) => (uri.endsWith(".enc") ? uri : encryptImage(uri))),
+    );
+  }, []);
 
   useEffect(() => {
     if (!editEntryId) return;
@@ -92,6 +98,36 @@ export default function AddEntryScreen() {
       setImages(entry.imagePaths ?? []);
     })();
   }, [editEntryId]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadImages() {
+      const result: Record<string, string> = {};
+
+      for (const path of images) {
+        try {
+          if (path.endsWith(".enc")) {
+            result[path] = await decryptImage(path);
+          } else {
+            result[path] = path;
+          }
+        } catch (e) {
+          console.warn("Failed to decrypt image:", path, e);
+        }
+      }
+
+      if (!cancelled) {
+        setDisplayUris(result);
+      }
+    }
+    if (images.length > 0) {
+      loadImages();
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [images]);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -118,10 +154,10 @@ export default function AddEntryScreen() {
 
   const validate = useCallback(() => {
     const errs: typeof errors = {};
-    if (!selectedTypeId) errs.type = t('addEntry.errorTypeRequired');
+    if (!selectedTypeId) errs.type = t("addEntry.errorTypeRequired");
     const odo = parseInt(odometer, 10);
     if (!odometer || isNaN(odo) || odo < 0)
-      errs.odometer = t('addEntry.errorOdometerRequired');
+      errs.odometer = t("addEntry.errorOdometerRequired");
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }, [selectedTypeId, odometer]);
@@ -136,6 +172,7 @@ export default function AddEntryScreen() {
     try {
       const parsedOdo = parseInt(odometer, 10);
       const parsedCost = cost.trim() ? parseFloat(cost) : null;
+      const encryptedImages = await getEncryptedImages(images);
       if (isEditing && editEntryId) {
         await updateEntry(editEntryId, {
           serviceTypeId: selectedTypeId!,
@@ -143,7 +180,7 @@ export default function AddEntryScreen() {
           odometerKm: parsedOdo,
           cost: parsedCost,
           notes: notes.trim() || null,
-          imagePaths: images.length > 0 ? images : [],
+          imagePaths: encryptedImages,
         });
       } else {
         await addEntry({
@@ -153,7 +190,7 @@ export default function AddEntryScreen() {
           odometerKm: parsedOdo,
           cost: parsedCost,
           notes: notes.trim() || null,
-          imagePaths: images.length > 0 ? images : [],
+          imagePaths: encryptedImages,
         });
       }
       haptic.success();
@@ -178,6 +215,7 @@ export default function AddEntryScreen() {
     updateEntry,
     navigation,
     images,
+    getEncryptedImages,
   ]);
 
   return (
@@ -187,7 +225,7 @@ export default function AddEntryScreen() {
     >
       <View style={[styles.screen, { paddingTop: insets.top }]}>
         <ScreenHeader
-          title={isEditing ? t('addEntry.editTitle') : t('addEntry.title')}
+          title={isEditing ? t("addEntry.editTitle") : t("addEntry.title")}
           showBack
         />
 
@@ -197,7 +235,7 @@ export default function AddEntryScreen() {
           showsVerticalScrollIndicator={false}
         >
           <Text style={[typography.caption, styles.sectionLabel]}>
-            {t('entryDetail.service')}
+            {t("entryDetail.service")}
           </Text>
           <ServiceTypePicker
             serviceTypes={serviceTypes}
@@ -209,22 +247,22 @@ export default function AddEntryScreen() {
           <View style={styles.row}>
             <View style={{ flex: 1 }}>
               <TextInputField
-                label={t('addEntry.odometer')}
+                label={t("addEntry.odometer")}
                 value={odometer}
                 onChangeText={setOdometer}
                 keyboardType="numeric"
-                placeholder={t('addEntry.placeholderOdometer')}
+                placeholder={t("addEntry.placeholderOdometer")}
                 suffix="km"
                 error={errors.odometer}
               />
             </View>
             <View style={{ flex: 1 }}>
               <TextInputField
-                label={t('addEntry.cost')}
+                label={t("addEntry.cost")}
                 value={cost}
                 onChangeText={setCost}
                 keyboardType="decimal-pad"
-                placeholder={t('addEntry.placeholderCost')}
+                placeholder={t("addEntry.placeholderCost")}
                 suffix="CHF"
               />
             </View>
@@ -233,25 +271,37 @@ export default function AddEntryScreen() {
           <DatePickerField value={dateTs} onChange={setDateTs} />
 
           <TextInputField
-            label={t('addEntry.notes')}
+            label={t("addEntry.notes")}
             value={notes}
             onChangeText={setNotes}
-            placeholder={t('addEntry.placeholderNotes')}
+            placeholder={t("addEntry.placeholderNotes")}
             multiline
             numberOfLines={3}
             containerStyle={styles.notesField}
           />
 
           <View style={styles.imageSection}>
-            <Text style={styles.imageLabel}>{t('addEntry.photos')}</Text>
+            <Text style={styles.imageLabel}>{t("addEntry.photos")}</Text>
             <View style={styles.imageRow}>
               {images.map((uri, i) => (
                 <View key={i} style={styles.imageWrapper}>
-                  <Image source={uri} style={styles.image} contentFit="cover" />
+                  <Image
+                    source={{
+                      uri: displayUris[uri] ?? uri,
+                    }}
+                    style={styles.image}
+                    contentFit="cover"
+                  />
                   <TouchableOpacity
-                    onPress={() =>
-                      setImages((prev) => prev.filter((_, idx) => idx !== i))
-                    }
+                    onPress={() => {
+                      setImages((prev) => prev.filter((_, idx) => idx !== i));
+
+                      setDisplayUris((prev) => {
+                        const copy = { ...prev };
+                        delete copy[uri];
+                        return copy;
+                      });
+                    }}
                     style={styles.removeBtn}
                   >
                     <Text style={styles.removeText}>×</Text>
@@ -260,11 +310,11 @@ export default function AddEntryScreen() {
               ))}
               <TouchableOpacity onPress={pickImage} style={styles.addTile}>
                 <Icon name="images" size={18} color={colors.text2} />
-                <Text style={styles.addText}>{t('addEntry.gallery')}</Text>
+                <Text style={styles.addText}>{t("addEntry.gallery")}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={takePhoto} style={styles.addTile}>
                 <Icon name="camera" size={18} color={colors.text2} />
-                <Text style={styles.addText}>{t('addEntry.camera')}</Text>
+                <Text style={styles.addText}>{t("addEntry.camera")}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -274,7 +324,9 @@ export default function AddEntryScreen() {
           style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}
         >
           <PrimaryButton
-            label={isEditing ? t('addEntry.saveChanges') : t('addEntry.saveEntry')}
+            label={
+              isEditing ? t("addEntry.saveChanges") : t("addEntry.saveEntry")
+            }
             onPress={handleSave}
             loading={saving}
           />
@@ -286,9 +338,11 @@ export default function AddEntryScreen() {
         onClose={() => setCameraAlert(false)}
         icon="camera"
         iconColor={colors.warningText}
-        title={t('addEntry.cameraPermission')}
-        message={t('addEntry.cameraPermissionMessage')}
-        actions={[{ label: t('common.ok'), variant: "secondary", onPress: () => {} }]}
+        title={t("addEntry.cameraPermission")}
+        message={t("addEntry.cameraPermissionMessage")}
+        actions={[
+          { label: t("common.ok"), variant: "secondary", onPress: () => {} },
+        ]}
       />
 
       <AlertModal
@@ -296,9 +350,11 @@ export default function AddEntryScreen() {
         onClose={() => setErrorAlert(null)}
         icon="exclamation-triangle"
         iconColor={colors.dangerText}
-        title={t('common.error')}
+        title={t("common.error")}
         message={errorAlert ?? ""}
-        actions={[{ label: t('common.ok'), variant: "secondary", onPress: () => {} }]}
+        actions={[
+          { label: t("common.ok"), variant: "secondary", onPress: () => {} },
+        ]}
       />
     </KeyboardAvoidingView>
   );

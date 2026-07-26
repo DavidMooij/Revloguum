@@ -15,6 +15,7 @@ import * as Sharing from "expo-sharing";
 
 import { getDatabase } from "../data/db/database";
 import { formatDate, todayTs } from "../utils/date";
+import { decryptImage, encryptImage } from "@/security/imageEncryption";
 
 export type ExportResult =
   | { success: true; fileUri: string }
@@ -157,9 +158,13 @@ async function readAllData(): Promise<BackupPayload> {
     } catch {}
     for (let i = 0; i < paths.length; i++) {
       try {
+        const decryptedUri = await decryptImage(paths[i]);
+
         images[`${entry.id}_${i}`] = await FileSystem.readAsStringAsync(
-          paths[i],
-          { encoding: FileSystem.EncodingType.Base64 },
+          decryptedUri,
+          {
+            encoding: FileSystem.EncodingType.Base64,
+          },
         );
       } catch {}
     }
@@ -169,8 +174,11 @@ async function readAllData(): Promise<BackupPayload> {
     const photoPath: string | null = v.photo_path ?? null;
     if (photoPath) {
       try {
+        const decryptedUri = photoPath.endsWith(".enc")
+          ? await decryptImage(photoPath)
+          : photoPath;
         images[`vehicle_photo_${v.id}`] = await FileSystem.readAsStringAsync(
-          photoPath,
+          decryptedUri,
           { encoding: FileSystem.EncodingType.Base64 },
         );
       } catch {}
@@ -199,11 +207,12 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
 
   const restored: Record<string, string> = {};
   for (const [key, b64] of Object.entries(payload.images ?? {})) {
-    const path = imgDir + key + ".jpg";
-    await FileSystem.writeAsStringAsync(path, b64, {
+    const tempPath = FileSystem.cacheDirectory + key + ".jpg";
+    await FileSystem.writeAsStringAsync(tempPath, b64, {
       encoding: FileSystem.EncodingType.Base64,
     });
-    restored[key] = path;
+    const encryptedPath = await encryptImage(tempPath);
+    restored[key] = encryptedPath;
   }
 
   await db.withTransactionAsync(async () => {

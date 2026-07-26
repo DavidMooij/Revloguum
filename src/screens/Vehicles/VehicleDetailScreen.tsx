@@ -37,6 +37,7 @@ import {
 import { formatDate } from "../../utils/date";
 import ScreenHeader from "../components/ScreenHeader";
 import { vehicleTypeIcon } from "@/utils/vehicleType";
+import EncryptedImage from "../components/EncryptedImage";
 
 type Props = NativeStackScreenProps<RootStackParamList, "VehicleDetail">;
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -128,10 +129,7 @@ export default function VehicleDetailScreen() {
       <View style={styles.body}>
         <View style={styles.hero}>
           {vehicle.photoPath ? (
-            <Image
-              source={{ uri: vehicle.photoPath }}
-              style={styles.heroImage}
-            />
+            <EncryptedImage path={vehicle.photoPath} style={styles.heroImage} />
           ) : (
             <View style={styles.heroPlaceholder}>
               <Icon

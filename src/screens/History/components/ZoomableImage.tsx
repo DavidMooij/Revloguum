@@ -1,18 +1,17 @@
 import React from "react";
 import { Dimensions } from "react-native";
-import { Image } from "expo-image";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
+import EncryptedImage from "../../components/EncryptedImage";
 
 const { width, height } = Dimensions.get("window");
 
 export function ZoomableImage({ uri }: { uri: string }) {
   const scale = useSharedValue(1);
-
   const pinch = Gesture.Pinch()
     .onUpdate((e) => {
       scale.value = e.scale;
@@ -28,7 +27,6 @@ export function ZoomableImage({ uri }: { uri: string }) {
     });
 
   const composed = Gesture.Simultaneous(pinch, doubleTap);
-
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
@@ -37,7 +35,11 @@ export function ZoomableImage({ uri }: { uri: string }) {
     <GestureDetector gesture={composed}>
       <Animated.View style={{ width, height }}>
         <Animated.View style={[{ flex: 1 }, animStyle]}>
-          <Image source={{ uri }} style={{ width, height }} contentFit="contain" />
+          <EncryptedImage
+            path={uri}
+            style={{ width, height }}
+            contentFit="contain"
+          />
         </Animated.View>
       </Animated.View>
     </GestureDetector>

@@ -40,10 +40,16 @@
           }
         }
       ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "RevLog uses your photos to add vehicle images and service records.",
+          "cameraPermission": "RevLog uses your camera to take vehicle photos and service photos."
+        }
+      ],
       "expo-font",
       "expo-secure-store",
       "expo-image",
-      "expo-image-picker",
       "expo-sharing"
     ],
     "extra": {
