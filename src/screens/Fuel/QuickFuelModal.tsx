@@ -38,11 +38,15 @@ const NAV_BTN_WIDTH = 140;
 function NumPad({
   value,
   onChange,
+  allowDecimal,
 }: {
   value: string;
   onChange: (v: string) => void;
+  allowDecimal?: boolean;
 }) {
-  const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "⌫"];
+  const keys = allowDecimal
+    ? ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "⌫"]
+    : ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "⌫"];
   return (
     <View style={numStyles.grid}>
       {keys.map((k, i) => (
@@ -53,11 +57,17 @@ function NumPad({
             if (!k) return;
             haptic.soft();
             if (k === "⌫") {
-              onChange(value.slice(0, -1) || "0");
+              onChange(value.slice(0, -1));
               return;
             }
-            const next = value === "0" ? k : value + k;
-            if (next.length <= 7) onChange(next);
+            if (k === "." && value.includes(".")) return;
+            const next =
+              value === "0" || value === ""
+                ? k === "."
+                  ? "0."
+                  : k
+                : value + k;
+            if (next.length <= 8) onChange(next);
           }}
           activeOpacity={0.55}
           disabled={!k}
@@ -75,7 +85,12 @@ function NumPad({
 }
 
 const numStyles = StyleSheet.create({
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+    justifyContent: "center",
+  },
   key: {
     width: BTN_WIDTH,
     height: 54,
@@ -182,6 +197,8 @@ const adjStyles = StyleSheet.create({
   textAccent: { color: colors.accentText },
 });
 
+type PriceMode = "total" | "perLiter";
+
 export default function QuickFuelModal({
   visible,
   onClose,
@@ -195,6 +212,8 @@ export default function QuickFuelModal({
   const [odometer, setOdometer] = useState("");
   const [liters, setLiters] = useState(0);
   const [pricePerLiter, setPricePerLiter] = useState(0);
+  const [priceMode, setPriceMode] = useState<PriceMode>("total");
+  const [totalInput, setTotalInput] = useState("");
   const [saving, setSaving] = useState(false);
 
   const defaultLiters = vehicle.defaultTankLiters ?? 15;
@@ -208,14 +227,29 @@ export default function QuickFuelModal({
   useEffect(() => {
     if (visible) {
       setStep(0);
-      setOdometer(String(vehicle.currentOdometer));
+      setOdometer("");
       setLiters(defaultLiters);
-      setPricePerLiter(Math.round(defaultPrice * 100) / 100);
+      const initialPrice = Math.round(defaultPrice * 100) / 100;
+      setPricePerLiter(initialPrice);
+      setPriceMode("total");
+      setTotalInput(
+        (Math.round(defaultLiters * initialPrice * 100) / 100).toFixed(2),
+      );
       setSaving(false);
     }
   }, [visible]);
 
-  const totalCost = Math.round(liters * pricePerLiter * 100) / 100;
+  const totalCost =
+    priceMode === "total"
+      ? Math.round((parseFloat(totalInput || "0") || 0) * 100) / 100
+      : Math.round(liters * pricePerLiter * 100) / 100;
+
+  const effectivePricePerLiter =
+    priceMode === "total"
+      ? liters > 0
+        ? totalCost / liters
+        : 0
+      : pricePerLiter;
 
   const handleSave = useCallback(async () => {
     setSaving(true);
@@ -364,27 +398,94 @@ export default function QuickFuelModal({
 
           {step === 2 && (
             <View style={styles.stepBody}>
-              <Text style={styles.stepLabel}>{t("fuel.stepPrice")}</Text>
-              <Text style={styles.bigNumber}>
-                {t("fuel.priceDisplay", { price: pricePerLiter.toFixed(2) })}
-              </Text>
-              <View style={styles.adjRow}>
-                <AdjBtn label="−10 Rp." onPress={() => adjustPrice(-0.1)} />
-                <AdjBtn label="−1 Rp." onPress={() => adjustPrice(-0.01)} />
-                <AdjBtn label="+1 Rp." onPress={() => adjustPrice(0.01)} />
-                <AdjBtn label="+10 Rp." onPress={() => adjustPrice(0.1)} />
+              <View style={styles.priceHeaderRow}>
+                <Text style={styles.stepLabel}>{t("fuel.stepPrice")}</Text>
+                <View style={styles.modeToggle}>
+                  <TouchableOpacity
+                    style={[
+                      styles.modeBtn,
+                      priceMode === "total" && styles.modeBtnActive,
+                    ]}
+                    onPress={() => {
+                      haptic.selection();
+                      setPriceMode("total");
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.modeBtnText,
+                        priceMode === "total" && styles.modeBtnTextActive,
+                      ]}
+                    >
+                      {t("fuel.priceModeTotal")}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.modeBtn,
+                      priceMode === "perLiter" && styles.modeBtnActive,
+                    ]}
+                    onPress={() => {
+                      haptic.selection();
+                      setPriceMode("perLiter");
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.modeBtnText,
+                        priceMode === "perLiter" && styles.modeBtnTextActive,
+                      ]}
+                    >
+                      {t("fuel.priceModePerLiter")}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>
-                  {t("fuel.totalPreview", {
-                    liters: liters.toFixed(1),
-                    price: pricePerLiter.toFixed(2),
-                  })}
-                </Text>
-                <Text style={styles.totalValue}>
-                  {t("fuel.totalEq", { total: totalCost.toFixed(2) })}
-                </Text>
-              </View>
+
+              {priceMode === "total" ? (
+                <>
+                  <Text style={styles.bigNumber}>
+                    {t("fuel.priceDisplay", {
+                      price: (parseFloat(totalInput || "0") || 0).toFixed(2),
+                    })}
+                  </Text>
+                  <Text style={styles.hint}>
+                    {t("fuel.pricePerLiterEq", {
+                      price: effectivePricePerLiter.toFixed(2),
+                    })}
+                  </Text>
+                  <NumPad
+                    value={totalInput || "0"}
+                    onChange={setTotalInput}
+                    allowDecimal
+                  />
+                </>
+              ) : (
+                <>
+                  <Text style={styles.bigNumber}>
+                    {t("fuel.priceDisplay", {
+                      price: pricePerLiter.toFixed(2),
+                    })}
+                  </Text>
+                  <View style={styles.adjRow}>
+                    <AdjBtn label="−10 Rp." onPress={() => adjustPrice(-0.1)} />
+                    <AdjBtn label="−1 Rp." onPress={() => adjustPrice(-0.01)} />
+                    <AdjBtn label="+1 Rp." onPress={() => adjustPrice(0.01)} />
+                    <AdjBtn label="+10 Rp." onPress={() => adjustPrice(0.1)} />
+                  </View>
+                  <View style={styles.totalRow}>
+                    <Text style={styles.totalLabel}>
+                      {t("fuel.totalPreview", {
+                        liters: liters.toFixed(1),
+                        price: effectivePricePerLiter.toFixed(2),
+                      })}
+                    </Text>
+                    <Text style={styles.totalValue}>
+                      {t("fuel.totalEq", { total: totalCost.toFixed(2) })}
+                    </Text>
+                  </View>
+                </>
+              )}
             </View>
           )}
 
@@ -405,7 +506,7 @@ export default function QuickFuelModal({
                 <ConfirmRow
                   label={t("fuel.labelPricePerL")}
                   value={t("fuel.priceDisplay", {
-                    price: pricePerLiter.toFixed(2),
+                    price: effectivePricePerLiter.toFixed(2),
                   })}
                 />
                 <ConfirmRow
@@ -536,6 +637,26 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   barFill: { height: 8, borderRadius: 4, backgroundColor: colors.accent },
+  priceHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  modeToggle: {
+    flexDirection: "row",
+    backgroundColor: colors.bg2,
+    borderRadius: radius.full,
+    padding: 3,
+    gap: 2,
+  },
+  modeBtn: {
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: 5,
+    borderRadius: radius.full,
+  },
+  modeBtnActive: { backgroundColor: colors.accent },
+  modeBtnText: { fontSize: 11, fontWeight: "600", color: colors.text2 },
+  modeBtnTextActive: { color: colors.white },
   totalRow: {
     flexDirection: "row",
     justifyContent: "space-between",

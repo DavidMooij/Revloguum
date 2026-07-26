@@ -131,294 +131,279 @@ export default function VehicleCostsScreen() {
   }, 0);
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <View style={[styles.screen, { paddingTop: insets.top }]}>
-        <ScreenHeader
-          title={t("costs.title")}
-          showBack
-          rightElement={
-            <TouchableOpacity
-              onPress={openAdd}
-              hitSlop={8}
-              style={styles.addBtn}
-            >
-              <Icon name="plus" size={14} color={colors.white} />
-            </TouchableOpacity>
-          }
-        />
+    <View style={[styles.screen, { paddingTop: insets.top }]}>
+      <ScreenHeader
+        title={t("costs.title")}
+        showBack
+        rightElement={
+          <TouchableOpacity onPress={openAdd} hitSlop={8} style={styles.addBtn}>
+            <Icon name="plus" size={14} color={colors.white} />
+          </TouchableOpacity>
+        }
+      />
 
-        <View style={styles.summaryCard}>
-          <View style={styles.summaryBlock}>
-            <Text style={styles.summaryLabel}>{t("costs.totalLabel")}</Text>
-            <Text style={styles.summaryValue}>{formatCost(totalCost)}</Text>
-          </View>
-
-          <View style={styles.summaryDivider} />
-
-          <View style={styles.summaryBlock}>
-            <Text style={styles.summaryLabel}>{t("costs.monthlyLabel")}</Text>
-            <Text style={[styles.summaryValue]}>
-              {formatCost(monthlyEstimate)}
-            </Text>
-          </View>
+      <View style={styles.summaryCard}>
+        <View style={styles.summaryBlock}>
+          <Text style={styles.summaryLabel}>{t("costs.totalLabel")}</Text>
+          <Text style={styles.summaryValue}>{formatCost(totalCost)}</Text>
         </View>
 
-        {loading ? (
-          <View style={styles.center}>
-            <ActivityIndicator color={colors.accent} size="large" />
-          </View>
-        ) : costs.length === 0 ? (
-          <EmptyState
-            icon="receipt"
-            title={t("costs.noCosts")}
-            subtitle={t("costs.noCostsHint")}
-          />
-        ) : (
-          <ScrollView
-            contentContainerStyle={styles.scroll}
-            showsVerticalScrollIndicator={false}
-          >
-            {grouped.map((group) => (
-              <View key={group.key} style={styles.group}>
-                <View style={styles.groupHeader}>
-                  <View style={styles.groupIconWrap}>
-                    <Icon name={group.icon} size={13} color={colors.accent} />
-                  </View>
-                  <Text style={styles.groupTitle}>
-                    {t(`costs.categories.${group.key}`)}
-                  </Text>
-                  <Text style={styles.groupTotal}>
-                    {formatCost(group.total)}
-                  </Text>
-                </View>
-                {group.items.map((item, idx) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={[
-                      styles.costRow,
-                      idx < group.items.length - 1 && styles.costRowBorder,
-                    ]}
-                    onPress={() => openEdit(item)}
-                    onLongPress={() => {
-                      haptic.error();
-                      setDeleteTarget(item.id);
-                    }}
-                    activeOpacity={0.72}
-                  >
-                    <View style={styles.costLeft}>
-                      <Text style={styles.costAmount}>
-                        {formatCost(item.amount)}
-                      </Text>
-                      {item.intervalType && (
-                        <View style={styles.intervalBadge}>
-                          <Text style={styles.intervalText}>
-                            {item.intervalType === "monthly"
-                              ? t("costs.monthlyShort")
-                              : t("costs.yearlyShort")}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                    <View style={styles.costRight}>
-                      <Text style={styles.costDate}>
-                        {formatDate(item.dateTs)}
-                      </Text>
-                      {item.notes ? (
-                        <Text style={styles.costNotes} numberOfLines={1}>
-                          {item.notes}
-                        </Text>
-                      ) : null}
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            ))}
-          </ScrollView>
-        )}
+        <View style={styles.summaryDivider} />
 
-        <Modal
-          visible={modalVisible}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setModalVisible(false)}
+        <View style={styles.summaryBlock}>
+          <Text style={styles.summaryLabel}>{t("costs.monthlyLabel")}</Text>
+          <Text style={[styles.summaryValue]}>
+            {formatCost(monthlyEstimate)}
+          </Text>
+        </View>
+      </View>
+
+      {loading ? (
+        <View style={styles.center}>
+          <ActivityIndicator color={colors.accent} size="large" />
+        </View>
+      ) : costs.length === 0 ? (
+        <EmptyState
+          icon="receipt"
+          title={t("costs.noCosts")}
+          subtitle={t("costs.noCostsHint")}
+        />
+      ) : (
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
         >
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-          >
-            <Pressable
-              style={styles.overlay}
-              onPress={() => setModalVisible(false)}
-            >
-              <Pressable onPress={(e) => e.stopPropagation()}>
-                <View
+          {grouped.map((group) => (
+            <View key={group.key} style={styles.group}>
+              <View style={styles.groupHeader}>
+                <View style={styles.groupIconWrap}>
+                  <Icon name={group.icon} size={13} color={colors.accent} />
+                </View>
+                <Text style={styles.groupTitle}>
+                  {t(`costs.categories.${group.key}`)}
+                </Text>
+                <Text style={styles.groupTotal}>{formatCost(group.total)}</Text>
+              </View>
+              {group.items.map((item, idx) => (
+                <TouchableOpacity
+                  key={item.id}
                   style={[
-                    styles.sheet,
-                    { paddingBottom: insets.bottom + spacing.xl },
+                    styles.costRow,
+                    idx < group.items.length - 1 && styles.costRowBorder,
                   ]}
+                  onPress={() => openEdit(item)}
+                  onLongPress={() => {
+                    haptic.error();
+                    setDeleteTarget(item.id);
+                  }}
+                  activeOpacity={0.72}
                 >
-                  <View style={styles.handle} />
-                  <Text style={styles.sheetTitle}>
-                    {editingCost ? t("costs.editCosts") : t("costs.addCosts")}
-                  </Text>
+                  <View style={styles.costLeft}>
+                    <Text style={styles.costAmount}>
+                      {formatCost(item.amount)}
+                    </Text>
+                    {item.intervalType && (
+                      <View style={styles.intervalBadge}>
+                        <Text style={styles.intervalText}>
+                          {item.intervalType === "monthly"
+                            ? t("costs.monthlyShort")
+                            : t("costs.yearlyShort")}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <View style={styles.costRight}>
+                    <Text style={styles.costDate}>
+                      {formatDate(item.dateTs)}
+                    </Text>
+                    {item.notes ? (
+                      <Text style={styles.costNotes} numberOfLines={1}>
+                        {item.notes}
+                      </Text>
+                    ) : null}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ))}
+        </ScrollView>
+      )}
 
-                  <Text style={styles.fieldLabel}>
-                    {t("costs.categoryLabel")}
-                  </Text>
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.chipScroll}
-                  >
-                    <View style={styles.chipRow}>
-                      {COST_CATEGORIES.map((cat) => (
-                        <TouchableOpacity
-                          key={cat.key}
-                          style={[
-                            styles.catChip,
-                            category === cat.key && styles.catChipActive,
-                          ]}
-                          onPress={() => setCategory(cat.key)}
-                        >
-                          <Icon
-                            name={cat.icon}
-                            size={12}
-                            color={
-                              category === cat.key ? colors.white : colors.text2
-                            }
-                          />
-                          <Text
-                            style={[
-                              styles.catChipText,
-                              category === cat.key && styles.catChipTextActive,
-                            ]}
-                          >
-                            {t(`costs.categories.${cat.key}`)}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </ScrollView>
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior="padding"
+          keyboardVerticalOffset={0}
+        >
+          <Pressable
+            style={styles.overlay}
+            onPress={() => setModalVisible(false)}
+          >
+            <Pressable onPress={(e) => e.stopPropagation()}>
+              <View
+                style={[
+                  styles.sheet,
+                  { paddingBottom: insets.bottom + spacing.xl },
+                ]}
+              >
+                <View style={styles.handle} />
+                <Text style={styles.sheetTitle}>
+                  {editingCost ? t("costs.editCosts") : t("costs.addCosts")}
+                </Text>
 
-                  <Text style={styles.fieldLabel}>
-                    {t("costs.intervalLabel")}
-                  </Text>
-                  <View style={[styles.chipRow, { marginBottom: spacing.md }]}>
-                    {INTERVALS.map((iv) => (
+                <Text style={styles.fieldLabel}>
+                  {t("costs.categoryLabel")}
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.chipScroll}
+                >
+                  <View style={styles.chipRow}>
+                    {COST_CATEGORIES.map((cat) => (
                       <TouchableOpacity
-                        key={String(iv.key)}
+                        key={cat.key}
                         style={[
-                          styles.intervalChip,
-                          intervalType === iv.key && styles.intervalChipActive,
+                          styles.catChip,
+                          category === cat.key && styles.catChipActive,
                         ]}
-                        onPress={() => setIntervalType(iv.key)}
+                        onPress={() => setCategory(cat.key)}
                       >
+                        <Icon
+                          name={cat.icon}
+                          size={12}
+                          color={
+                            category === cat.key ? colors.white : colors.text2
+                          }
+                        />
                         <Text
                           style={[
-                            styles.intervalChipText,
-                            intervalType === iv.key &&
-                              styles.intervalChipTextActive,
+                            styles.catChipText,
+                            category === cat.key && styles.catChipTextActive,
                           ]}
                         >
-                          {t(`costs.${iv.label}` as any)}
+                          {t(`costs.categories.${cat.key}`)}
                         </Text>
                       </TouchableOpacity>
                     ))}
                   </View>
+                </ScrollView>
 
-                  <View style={styles.formRow}>
-                    <View style={styles.formCol}>
-                      <Text style={styles.fieldLabel}>
-                        {t("costs.amountLabel")}
+                <Text style={styles.fieldLabel}>
+                  {t("costs.intervalLabel")}
+                </Text>
+                <View style={[styles.chipRow, { marginBottom: spacing.md }]}>
+                  {INTERVALS.map((iv) => (
+                    <TouchableOpacity
+                      key={String(iv.key)}
+                      style={[
+                        styles.intervalChip,
+                        intervalType === iv.key && styles.intervalChipActive,
+                      ]}
+                      onPress={() => setIntervalType(iv.key)}
+                    >
+                      <Text
+                        style={[
+                          styles.intervalChipText,
+                          intervalType === iv.key &&
+                            styles.intervalChipTextActive,
+                        ]}
+                      >
+                        {t(`costs.${iv.label}` as any)}
                       </Text>
-                      <TextInput
-                        style={styles.input}
-                        value={amount}
-                        onChangeText={setAmount}
-                        keyboardType="decimal-pad"
-                        placeholder={t("costs.placeholderCost")}
-                        placeholderTextColor={colors.text2}
-                        autoFocus={!editingCost}
-                      />
-                    </View>
-                    <View style={styles.formCol}>
-                      <DatePickerField
-                        value={dateTs}
-                        onChange={setDateTs}
-                        label={t("costs.datumLabel")}
-                      />
-                    </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <View style={styles.formRow}>
+                  <View style={styles.formCol}>
+                    <Text style={styles.fieldLabel}>
+                      {t("costs.amountLabel")}
+                    </Text>
+                    <TextInput
+                      style={styles.input}
+                      value={amount}
+                      onChangeText={setAmount}
+                      keyboardType="decimal-pad"
+                      placeholder={t("costs.placeholderCost")}
+                      placeholderTextColor={colors.text2}
+                      autoFocus={!editingCost}
+                    />
                   </View>
-
-                  <Text style={styles.fieldLabel}>{t("costs.notesLabel")}</Text>
-                  <TextInput
-                    style={[styles.input, styles.notesInput]}
-                    value={notes}
-                    onChangeText={setNotes}
-                    placeholder={t("costs.placeholderNotes")}
-                    placeholderTextColor={colors.text2}
-                    multiline
-                    numberOfLines={2}
-                  />
-
-                  <View style={styles.actions}>
-                    <TouchableOpacity
-                      style={styles.cancelBtn}
-                      onPress={() => setModalVisible(false)}
-                    >
-                      <Text style={styles.cancelText}>
-                        {t("common.cancel")}
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.saveBtn}
-                      onPress={handleSave}
-                    >
-                      {saving ? (
-                        <ActivityIndicator color={colors.white} size="small" />
-                      ) : (
-                        <Text style={styles.saveBtnText}>
-                          {editingCost ? t("costs.save") : t("costs.addBtn")}
-                        </Text>
-                      )}
-                    </TouchableOpacity>
+                  <View style={styles.formCol}>
+                    <DatePickerField
+                      value={dateTs}
+                      onChange={setDateTs}
+                      label={t("costs.datumLabel")}
+                    />
                   </View>
                 </View>
-              </Pressable>
-            </Pressable>
-          </KeyboardAvoidingView>
-        </Modal>
 
-        <AlertModal
-          visible={!!deleteTarget}
-          onClose={() => setDeleteTarget(null)}
-          icon="trash-alt"
-          iconColor={colors.dangerText}
-          title={t("costs.deleteCost")}
-          message={t("common.cannotBeUndone")}
-          actions={[
-            {
-              label: t("costs.abort"),
-              variant: "secondary",
-              onPress: () => {},
+                <Text style={styles.fieldLabel}>{t("costs.notesLabel")}</Text>
+                <TextInput
+                  style={[styles.input, styles.notesInput]}
+                  value={notes}
+                  onChangeText={setNotes}
+                  placeholder={t("costs.placeholderNotes")}
+                  placeholderTextColor={colors.text2}
+                  multiline
+                  numberOfLines={2}
+                />
+
+                <View style={styles.actions}>
+                  <TouchableOpacity
+                    style={styles.cancelBtn}
+                    onPress={() => setModalVisible(false)}
+                  >
+                    <Text style={styles.cancelText}>{t("common.cancel")}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+                    {saving ? (
+                      <ActivityIndicator color={colors.white} size="small" />
+                    ) : (
+                      <Text style={styles.saveBtnText}>
+                        {editingCost ? t("costs.save") : t("costs.addBtn")}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Pressable>
+          </Pressable>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      <AlertModal
+        visible={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        icon="trash-alt"
+        iconColor={colors.dangerText}
+        title={t("costs.deleteCost")}
+        message={t("common.cannotBeUndone")}
+        actions={[
+          {
+            label: t("costs.abort"),
+            variant: "secondary",
+            onPress: () => {},
+          },
+          {
+            label: t("common.delete"),
+            variant: "danger",
+            onPress: async () => {
+              if (deleteTarget) {
+                haptic.error();
+                await deleteCost(deleteTarget);
+              }
             },
-            {
-              label: t("common.delete"),
-              variant: "danger",
-              onPress: async () => {
-                if (deleteTarget) {
-                  haptic.error();
-                  await deleteCost(deleteTarget);
-                }
-              },
-            },
-          ]}
-        />
-      </View>
-    </KeyboardAvoidingView>
+          },
+        ]}
+      />
+    </View>
   );
 }
 

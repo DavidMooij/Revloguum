@@ -365,7 +365,10 @@
     "litersDisplay": "{{liters}} L",
     "priceDisplay": "CHF {{price}}",
     "totalEq": "= CHF {{total}}",
-    "resetDefault": "{{liters}} L ↺"
+    "resetDefault": "{{liters}} L ↺",
+    "priceModeTotal": "Gesamtpreis",
+    "priceModePerLiter": "Preis/L",
+    "pricePerLiterEq": "≈ {{price}} CHF/L"
   },
   "costs": {
     "title": "Kosten",

@@ -369,7 +369,10 @@
     "totalEq": "= CHF {{total}}",
     "resetDefault": "{{liters}} L ↺",
     "invalidOdometerTitle": "Invalid odometer",
-    "invalidOdometerMessage": "The odometer must be at least {{km}} km."
+    "invalidOdometerMessage": "The odometer must be at least {{km}} km.",
+    "priceModeTotal": "Total price",
+    "priceModePerLiter": "Price/L",
+    "pricePerLiterEq": "≈ {{price}} CHF/L"
   },
   "costs": {
     "title": "Costs",
