@@ -16,8 +16,7 @@
         "backgroundColor": "#000000"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.veruum.RevLog",
-      "permissions": ["android.permission.RECORD_AUDIO"]
+      "package": "com.veruum.RevLog"
     },
     "web": {
       "favicon": "./assets/image.png"
