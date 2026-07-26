@@ -11,8 +11,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#000000",
-        "foregroundImage": "./assets/image.png"
+        "foregroundImage": "./assets/image.png",
+        "backgroundColor": "#000000"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.veruum.RevLog"
