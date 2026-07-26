@@ -503,7 +503,14 @@
     "deleteAllDataConfirmPlaceholder": "Bestätigungscode eingeben",
     "deleteAllDataAction": "Löschen",
     "deleteAllSuccess": "Alle Daten gelöscht.",
-    "deleteAllFailed": "Löschen fehlgeschlagen"
+    "deleteAllFailed": "Löschen fehlgeschlagen",
+    "exportPdf": "PDF exportieren",
+    "exportPdfHint": "PDF-Bericht zum Teilen oder für den Verkauf erstellen",
+    "pdfContent": "Im PDF enthalten",
+    "pdfSelectAtLeastOne": "Wähle mindestens einen Abschnitt aus",
+    "pdfDetails": "Details",
+    "pdfIncludeCosts": "Preise anzeigen",
+    "pdfIncludeNotes": "Notizen anzeigen"
   },
   "serviceTypes": {
     "title": "Servicetypen",

@@ -243,6 +243,13 @@ export default function SettingsScreen() {
           />
           <Divider />
           <SettingsRow
+            icon="file-pdf"
+            label={t("settings.exportPdf")}
+            sublabel={t("settings.exportPdfHint")}
+            onPress={() => navigation.navigate("ExportPdf")}
+          />
+          <Divider />
+          <SettingsRow
             icon="file-export"
             label={t("settings.exportData")}
             sublabel={t("settings.exportDataHint")}

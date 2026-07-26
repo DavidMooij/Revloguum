@@ -18,6 +18,7 @@ import VehicleScreen from "@/screens/Vehicles/VehicleScreen";
 import AddVehicleScreen from "@/screens/Vehicles/AddVehicleScreen";
 import VehicleDetailScreen from "@/screens/Vehicles/VehicleDetailScreen";
 import VehicleCostsScreen from "@/screens/Vehicles/VehicleCostsScreen";
+import ExportPdfScreen from "@/screens/Settings/ExportPdfScreen";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -122,6 +123,10 @@ export default function RootNavigator() {
       <Stack.Screen
         name="VehicleStats"
         component={VehicleStatsScreen}
+      />
+      <Stack.Screen 
+        name="ExportPdf" 
+        component={ExportPdfScreen} 
       />
     </Stack.Navigator>
   );

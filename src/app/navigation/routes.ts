@@ -18,4 +18,5 @@ export type RootStackParamList = {
   VehicleCosts: { vehicleId: string };
   VehicleFuelHistory: { vehicleId: string };
   VehicleStats: { vehicleId: string };
+  ExportPdf: undefined;
 };

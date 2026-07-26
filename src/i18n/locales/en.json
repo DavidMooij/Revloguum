@@ -503,7 +503,14 @@
     "deleteAllDataConfirmPlaceholder": "Type confirmation code",
     "deleteAllDataAction": "Delete",
     "deleteAllSuccess": "All data deleted.",
-    "deleteAllFailed": "Deletion failed"
+    "deleteAllFailed": "Deletion failed",
+    "exportPdf": "Export PDF",
+    "exportPdfHint": "Create a PDF report to share or sell with",
+    "pdfContent": "Include in PDF",
+    "pdfSelectAtLeastOne": "Select at least one section",
+    "pdfDetails": "Details",
+    "pdfIncludeCosts": "Show prices",
+    "pdfIncludeNotes": "Show notes"
   },
   "serviceTypes": {
     "title": "Service types",
