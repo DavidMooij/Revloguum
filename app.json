@@ -54,8 +54,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "21fb9b7b-c908-4c6e-97f8-6c4854dea138"
+        "projectId": "51f3acc6-6842-40b5-a2bb-0c6618cf7963"
       }
-    }
+    },
+    "owner": "veruum"
   }
 }
