@@ -469,7 +469,7 @@
     "languageHint": "App-Sprache",
     "about": "Über RevLog",
     "aboutVersion": "Version 1.0.0",
-    "aboutMessage": "Version 1.0.0\n\nIn der Garage geboren, mit Kaffee betankt und von einer fragwürdig großen Menge KI unterstützt.\n\nKeine Motorräder wurden während der Entwicklung beschädigt (Glaube zumindest daran)\n\nGebaut von veruum_",
+    "aboutMessage": "Version 1.0.0\n\nIn der Garage geboren, mit Kaffee betankt und von einer fragwürdig großen Menge KI unterstützt.\n\nKeine Motorräder wurden während der Entwicklung beschädigt (Glaube zumindest daran)\n\nGebaut von veruum_ / DavidMooij",
     "exportFailed": "Export fehlgeschlagen",
     "dataRestored": "Alle Daten wurden wiederhergestellt.",
     "importSuccess": "Import erfolgreich",

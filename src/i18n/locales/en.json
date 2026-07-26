@@ -471,7 +471,7 @@
     "languageHint": "App language",
     "about": "About RevLog",
     "aboutVersion": "Version 1.0.0",
-    "aboutMessage": "Version 1.0.0\n\nBorn in a garage, fueled by coffee and a suspicious amount of AI.\n\nNo bikes were harmed during development (Probably)\n\nBuilt by veruum_",
+    "aboutMessage": "Version 1.0.0\n\nBorn in a garage, fueled by coffee and a suspicious amount of AI.\n\nNo bikes were harmed during development (Probably)\n\nBuilt by veruum_ / DavidMooij",
     "exportFailed": "Export failed",
     "dataRestored": "All data has been restored.",
     "importSuccess": "Import successful",

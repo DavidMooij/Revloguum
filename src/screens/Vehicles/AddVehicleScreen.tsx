@@ -54,7 +54,7 @@ export default function AddVehicleScreen() {
   const [model, setModel] = useState("");
   const [year, setYear] = useState("");
   const [nickname, setNickname] = useState("");
-  const [odometer, setOdometer] = useState("0");
+  const [odometer, setOdometer] = useState("");
   const [defaultTankLiters, setDefaultTankLiters] = useState("");
   const [defaultFuelPrice, setDefaultFuelPrice] = useState("");
   const [serviceIntervals, setServiceIntervals] = useState<ServiceInterval[]>(

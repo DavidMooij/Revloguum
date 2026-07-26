@@ -19,11 +19,14 @@ import AddVehicleScreen from "@/screens/Vehicles/AddVehicleScreen";
 import VehicleDetailScreen from "@/screens/Vehicles/VehicleDetailScreen";
 import VehicleCostsScreen from "@/screens/Vehicles/VehicleCostsScreen";
 import ExportPdfScreen from "@/screens/Settings/ExportPdfScreen";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function TabNavigator() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -32,10 +35,12 @@ function TabNavigator() {
           backgroundColor: colors.bg1,
           borderTopColor: colors.border0,
           borderTopWidth: 1,
-          height: 72,
-          paddingBottom: 10,
+
+          height: 72 + insets.bottom,
+          paddingBottom: 10 + insets.bottom,
           paddingTop: 8,
         },
+
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.text2,
         tabBarLabelStyle: {
@@ -43,12 +48,14 @@ function TabNavigator() {
           fontWeight: "600",
           letterSpacing: 0.3,
         },
+
         tabBarIcon: ({ color, size }) => {
           const icons: Record<string, string> = {
             Dashboard: "tachometer-alt",
             Vehicles: "motorcycle",
             Settings: "cog",
           };
+
           return (
             <Icon
               name={icons[route.name] ?? "circle"}
@@ -80,54 +87,24 @@ export default function RootNavigator() {
         component={TabNavigator}
         options={{ animation: "none" }}
       />
-      <Stack.Screen
-        name="AddEntry"
-        component={AddEntryScreen}
-      />
-      <Stack.Screen
-        name="EntryDetail"
-        component={EntryDetailScreen}
-      />
-      <Stack.Screen
-        name="AddVehicle"
-        component={AddVehicleScreen}
-      />
+      <Stack.Screen name="AddEntry" component={AddEntryScreen} />
+      <Stack.Screen name="EntryDetail" component={EntryDetailScreen} />
+      <Stack.Screen name="AddVehicle" component={AddVehicleScreen} />
       <Stack.Screen
         name="ManageServiceTypes"
         component={ManageServiceTypesScreen}
       />
-      <Stack.Screen
-        name="ImageViewer"
-        component={ImageViewerScreen}
-      />
-      <Stack.Screen
-        name="History"
-        component={HistoryScreen}
-      />
-      <Stack.Screen
-        name="VehicleDetail"
-        component={VehicleDetailScreen}
-      />
-      <Stack.Screen
-        name="VehicleCosts"
-        component={VehicleCostsScreen}
-      />
-      <Stack.Screen
-        name="VehicleHistory"
-        component={VehicleHistoryScreen}
-      />
+      <Stack.Screen name="ImageViewer" component={ImageViewerScreen} />
+      <Stack.Screen name="History" component={HistoryScreen} />
+      <Stack.Screen name="VehicleDetail" component={VehicleDetailScreen} />
+      <Stack.Screen name="VehicleCosts" component={VehicleCostsScreen} />
+      <Stack.Screen name="VehicleHistory" component={VehicleHistoryScreen} />
       <Stack.Screen
         name="VehicleFuelHistory"
         component={VehicleFuelHistoryScreen}
       />
-      <Stack.Screen
-        name="VehicleStats"
-        component={VehicleStatsScreen}
-      />
-      <Stack.Screen 
-        name="ExportPdf" 
-        component={ExportPdfScreen} 
-      />
+      <Stack.Screen name="VehicleStats" component={VehicleStatsScreen} />
+      <Stack.Screen name="ExportPdf" component={ExportPdfScreen} />
     </Stack.Navigator>
   );
 }
