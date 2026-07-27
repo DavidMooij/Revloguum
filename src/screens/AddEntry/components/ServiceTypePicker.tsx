@@ -4,6 +4,7 @@ import { FontAwesome5 as Icon } from '@expo/vector-icons';
 import type { ServiceType } from '../../../domain/entities/ServiceType';
 import { colors } from '../../../theme/colors';
 import { spacing, radius } from '../../../theme/spacing';
+import { useServiceTypeLabel } from '../../../hooks/useServiceTypeLabel';
 
 interface Props {
   serviceTypes: ServiceType[];
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export default function ServiceTypePicker({ serviceTypes, selectedId, onSelect }: Props) {
+  const getLabel = useServiceTypeLabel();
   return (
     <ScrollView
       horizontal
@@ -30,7 +32,7 @@ export default function ServiceTypePicker({ serviceTypes, selectedId, onSelect }
             <View style={[styles.iconWrap, active && styles.iconWrapActive]}>
               <Icon name={st.icon} size={13} color={active ? colors.white : colors.text1} />
             </View>
-            <Text style={[styles.label, active && styles.labelActive]}>{st.name}</Text>
+            <Text style={[styles.label, active && styles.labelActive]}>{getLabel(st)}</Text>
           </TouchableOpacity>
         );
       })}

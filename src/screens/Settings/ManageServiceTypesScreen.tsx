@@ -15,6 +15,7 @@ import { colors } from "../../theme/colors";
 import { typography } from "../../theme/typography";
 import { spacing, radius } from "../../theme/spacing";
 import { useServiceTypes } from "../../hooks/useServiceTypes";
+import { useServiceTypeLabel } from "../../hooks/useServiceTypeLabel";
 import type { ServiceType } from "../../domain/entities/ServiceType";
 import ScreenHeader from "../components/ScreenHeader";
 import PrimaryButton from "../components/PrimaryButton";
@@ -46,6 +47,7 @@ export default function ManageServiceTypesScreen() {
   const insets = useSafeAreaInsets();
   const { serviceTypes, addServiceType, updateServiceType, deleteServiceType } =
     useServiceTypes();
+  const getLabel = useServiceTypeLabel();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [editingType, setEditingType] = useState<ServiceType | null>(null);
@@ -123,7 +125,7 @@ export default function ManageServiceTypesScreen() {
             <View style={styles.iconWrap}>
               <Icon name={st.icon} size={14} color={colors.text2} />
             </View>
-            <Text style={[typography.body, { flex: 1 }]}>{st.name}</Text>
+            <Text style={[typography.body, { flex: 1 }]}>{getLabel(st)}</Text>
             <Text style={styles.systemBadge}>{t('serviceTypes.builtIn')}</Text>
           </View>
         ))}
@@ -148,7 +150,7 @@ export default function ManageServiceTypesScreen() {
               <View style={[styles.iconWrap, styles.iconWrapCustom]}>
                 <Icon name={st.icon} size={14} color={colors.accent} />
               </View>
-              <Text style={[typography.body, { flex: 1 }]}>{st.name}</Text>
+              <Text style={[typography.body, { flex: 1 }]}>{getLabel(st)}</Text>
               <TouchableOpacity
                 onPress={() => openEdit(st)}
                 hitSlop={8}

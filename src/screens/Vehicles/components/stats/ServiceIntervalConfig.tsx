@@ -5,6 +5,7 @@ import { FontAwesome5 as Icon } from '@expo/vector-icons';
 import { ServiceType } from '@/domain/entities/ServiceType';
 import { ServiceInterval } from '@/domain/entities/Vehicle';
 import { colors, radius, spacing } from '@/theme';
+import { useServiceTypeLabel } from '@/hooks/useServiceTypeLabel';
 interface Props {
   serviceTypes: ServiceType[];
   intervals: ServiceInterval[];
@@ -13,6 +14,7 @@ interface Props {
 
 export default function ServiceIntervalConfig({ serviceTypes, intervals, onChange }: Props) {
   const { t } = useTranslation();
+  const getLabel = useServiceTypeLabel();
   const [adding, setAdding] = useState(false);
   const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null);
   const [kmInterval, setKmInterval] = useState('');
@@ -36,7 +38,10 @@ export default function ServiceIntervalConfig({ serviceTypes, intervals, onChang
     onChange(intervals.filter(i => i.serviceTypeId !== serviceTypeId));
   };
 
-  const getTypeName = (id: string) => serviceTypes.find(t => t.id === id)?.name ?? id;
+  const getTypeName = (id: string) => {
+    const st = serviceTypes.find((s) => s.id === id);
+    return st ? getLabel(st) : id;
+  };
   const getTypeIcon = (id: string) => serviceTypes.find(t => t.id === id)?.icon ?? 'wrench';
 
   return (
@@ -94,7 +99,7 @@ export default function ServiceIntervalConfig({ serviceTypes, intervals, onChang
                 >
                   <Icon name={st.icon} size={11} color={selectedTypeId === st.id ? colors.white : colors.text2} />
                   <Text style={[styles.typeChipText, selectedTypeId === st.id && styles.typeChipTextActive]}>
-                    {st.name}
+                    {getLabel(st)}
                   </Text>
                 </TouchableOpacity>
               ))}

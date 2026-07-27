@@ -7,6 +7,7 @@ import type { ServiceType } from '../../../domain/entities/ServiceType';
 import type { DateRangePreset } from '../../../utils/date';
 import { colors } from '../../../theme/colors';
 import { spacing, radius } from '../../../theme/spacing';
+import { useServiceTypeLabel } from '../../../hooks/useServiceTypeLabel';
 
 interface Props {
   serviceTypes: ServiceType[];
@@ -32,6 +33,7 @@ export default function FilterBar({
   searchText, onSearchText, onClear,
 }: Props) {
   const { t } = useTranslation();
+  const getLabel = useServiceTypeLabel();
   const [expanded, setExpanded] = useState(false);
   const hasFilter = selectedTypeIds.length > 0 || datePreset !== 'all' || searchText.length > 0;
 
@@ -91,7 +93,7 @@ export default function FilterBar({
                     style={[styles.chip, active && styles.chipActive]}
                     onPress={() => { haptic.selection(); onToggleType(st.id); }}
                   >
-                    <Text style={[styles.chipText, active && styles.chipTextActive]}>{st.name}</Text>
+                    <Text style={[styles.chipText, active && styles.chipTextActive]}>{getLabel(st)}</Text>
                   </TouchableOpacity>
                 );
               })}

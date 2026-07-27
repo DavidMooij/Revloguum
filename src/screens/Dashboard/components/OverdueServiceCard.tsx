@@ -4,6 +4,7 @@ import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import { colors } from "../../../theme/colors";
 import { spacing, radius } from "../../../theme/spacing";
 import type { OverdueItem } from "../DashboardScreen";
+import { useServiceTypeLabel } from "../../../hooks/useServiceTypeLabel";
 
 interface Props {
   item: OverdueItem | null;
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export default function OverdueServiceCard({ item, onPress, t }: Props) {
+  const getLabel = useServiceTypeLabel();
   const hasOverdue = !!item;
 
   let status = "";
@@ -80,7 +82,9 @@ export default function OverdueServiceCard({ item, onPress, t }: Props) {
         )}
 
         <Text style={styles.title}>
-          {hasOverdue ? item.serviceTypeName : t("dashboard.noOverdueServices")}
+          {hasOverdue
+            ? getLabel({ name: item.serviceTypeName, translationKey: item.translationKey })
+            : t("dashboard.noOverdueServices")}
         </Text>
 
         <Text

@@ -33,12 +33,14 @@ import AlertModal from "../components/AlertModal";
 import { haptic } from "@/utils/haptics";
 import { decryptImage } from "@/security/imageEncryption";
 import EncryptedImage from "../components/EncryptedImage";
+import { useServiceTypeLabel } from "@/hooks/useServiceTypeLabel";
 
 type Props = NativeStackScreenProps<RootStackParamList, "EntryDetail">;
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 export default function EntryDetailScreen() {
   const { t } = useTranslation();
+  const getLabel = useServiceTypeLabel();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
   const route = useRoute<Props["route"]>();
@@ -73,10 +75,12 @@ export default function EntryDetailScreen() {
 
   if (!entry) return null;
 
+  const serviceLabel = getLabel({ name: entry.serviceTypeName, translationKey: entry.translationKey });
+
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <ScreenHeader
-        title={entry.serviceTypeName}
+        title={serviceLabel}
         subtitle={entry.vehicleDisplayName}
         showBack
         rightElement={
@@ -107,7 +111,7 @@ export default function EntryDetailScreen() {
               color={colors.accent}
             />
           </View>
-          <Text style={styles.heroTitle}>{entry.serviceTypeName}</Text>
+          <Text style={styles.heroTitle}>{serviceLabel}</Text>
           <Text style={styles.heroDate}>{formatDate(entry.dateTs)}</Text>
           {entry.cost != null && (
             <View style={styles.costBadge}>

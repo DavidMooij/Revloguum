@@ -23,6 +23,7 @@ import FilterBar from "../History/components/FilterBar";
 import FAB from "../components/FAB";
 import EmptyState from "../components/EmptyState";
 import AlertModal from "../components/AlertModal";
+import { useServiceTypeLabel } from "@/hooks/useServiceTypeLabel";
 import ScreenHeader from "../components/ScreenHeader";
 
 type Props = NativeStackScreenProps<RootStackParamList, "VehicleHistory">;
@@ -30,6 +31,7 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 export default function VehicleHistoryScreen() {
   const { t } = useTranslation();
+  const getLabel = useServiceTypeLabel();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
   const route = useRoute<Props["route"]>();
@@ -134,7 +136,7 @@ export default function VehicleHistoryScreen() {
         onClose={() => setActionAlert({ visible: false, entry: null })}
         icon="wrench"
         iconColor={colors.accentText}
-        title={actionAlert.entry?.serviceTypeName ?? ""}
+        title={actionAlert.entry ? getLabel({ name: actionAlert.entry.serviceTypeName, translationKey: actionAlert.entry.translationKey }) : ""}
         message={t('history.whatToDo')}
         actions={[
           {

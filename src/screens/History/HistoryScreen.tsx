@@ -31,12 +31,14 @@ import EmptyState from "../components/EmptyState";
 import AlertModal from "../components/AlertModal";
 import { haptic } from "../../utils/haptics";
 import { useIsFocused } from "@react-navigation/native";
+import { useServiceTypeLabel } from "../../hooks/useServiceTypeLabel";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Props = NativeStackScreenProps<RootStackParamList, "History">;
 
 export default function HistoryScreen() {
   const { t } = useTranslation();
+  const getLabel = useServiceTypeLabel();
   const route = useRoute<Props["route"]>();
   const { vehicleId } = route.params;
   const insets = useSafeAreaInsets();
@@ -169,7 +171,7 @@ export default function HistoryScreen() {
         onClose={() => setActionAlert({ visible: false, entry: null })}
         icon="wrench"
         iconColor={colors.accentText}
-        title={actionAlert.entry?.serviceTypeName ?? ""}
+        title={actionAlert.entry ? getLabel({ name: actionAlert.entry.serviceTypeName, translationKey: actionAlert.entry.translationKey }) : ""}
         message={t('history.whatToDo')}
         actions={[
           {

@@ -33,6 +33,7 @@ import { formatCost } from "@/utils/format";
 import { useFuel } from "@/hooks/useFuel";
 import LastFuelCard from "./components/LastFuelCard";
 import { getVehicleFunFact } from "@/utils/vehicleFunFact";
+import { useServiceTypeLabel } from "@/hooks/useServiceTypeLabel";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -40,6 +41,7 @@ export interface OverdueItem {
   serviceTypeId: string;
   serviceTypeName: string;
   serviceTypeIcon: string;
+  translationKey?: string;
   kmOverdue: number | null;
   daysOverdue: number | null;
   neverDone: boolean;
@@ -49,6 +51,7 @@ export interface NextServiceItem {
   serviceTypeId: string;
   serviceTypeName: string;
   serviceTypeIcon: string;
+  translationKey?: string;
   nextKm: number | null;
   nextDays: number | null;
 }
@@ -85,6 +88,7 @@ function getNextPayment(costs: VehicleCost[]): VehicleCost | null {
 
 export default function DashboardScreen() {
   const { t } = useTranslation();
+  const getLabel = useServiceTypeLabel();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
   const { vehicles, activeVehicleId, setActiveVehicleId, refresh } =
@@ -166,6 +170,7 @@ export default function DashboardScreen() {
               serviceTypeId: interval.serviceTypeId,
               serviceTypeName: st.name,
               serviceTypeIcon: st.icon,
+              translationKey: st.translationKey,
               nextKm,
               nextDays,
             },
@@ -239,6 +244,7 @@ export default function DashboardScreen() {
             serviceTypeId: interval.serviceTypeId,
             serviceTypeName: st.name,
             serviceTypeIcon: st.icon,
+            translationKey: st.translationKey,
             kmOverdue,
             daysOverdue,
             neverDone: !last,
@@ -410,7 +416,7 @@ export default function DashboardScreen() {
             label={t("dashboard.nextService")}
             title={
               data.nextService
-                ? data.nextService.serviceTypeName
+                ? getLabel({ name: data.nextService.serviceTypeName, translationKey: data.nextService.translationKey })
                 : t("dashboard.noServiceDue")
             }
             subtitle={

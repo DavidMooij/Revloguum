@@ -14,6 +14,7 @@ export interface ServiceEntry {
 export interface ServiceEntryWithDetails extends ServiceEntry {
   serviceTypeName: string;
   serviceTypeIcon: string;
+  translationKey?: string;
   vehicleDisplayName: string;
 }
 

@@ -530,7 +530,17 @@
     "save": "Speichern",
     "add": "Hinzufügen",
     "deleteType": "\"%s\" löschen?",
-    "deleteTypeMessage": "Einträge mit diesem Typ behalten ihre Daten."
+    "deleteTypeMessage": "Einträge mit diesem Typ behalten ihre Daten.",
+    "oil": "Ölwechsel",
+    "chain": "Kette schmieren",
+    "wash": "Waschen",
+    "tyre": "Reifenwechsel",
+    "brake": "Bremsenservice",
+    "filter": "Luftfilter",
+    "spark": "Zündkerzen",
+    "coolant": "Kühlmittelwechsel",
+    "valve": "Ventilprüfung",
+    "other": "Sonstiges"
   },
   "chart": {
     "notEnoughData": "Nicht genügend Daten"

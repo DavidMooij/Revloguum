@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { getDatabase } from "../data/db/database";
@@ -10,6 +11,7 @@ import { decryptImage } from "@/security/imageEncryption";
 import { formatDate } from "../utils/date";
 import { formatCost, formatOdometer, formatVehicleName } from "../utils/format";
 import * as FileSystem from "expo-file-system/legacy";
+import { ServiceTypeLabelService } from "../domain/services/ServiceTypeLabelService";
 
 export interface PdfExportOptions {
   vehicleId: string;
@@ -46,6 +48,7 @@ async function imageToDataUri(path: string): Promise<string | null> {
 }
 
 export function usePdfExport() {
+  const { t } = useTranslation();
   const generatePdf = useCallback(
     async (options: PdfExportOptions): Promise<PdfExportResult> => {
       try {
@@ -84,7 +87,7 @@ export function usePdfExport() {
               return `
                 <div class="entry-block">
                   <div class="entry-header">
-                    <span class="entry-title">${escapeHtml(e.serviceTypeName)}</span>
+                    <span class="entry-title">${escapeHtml(ServiceTypeLabelService.getLabel({ name: e.serviceTypeName, translationKey: e.translationKey }, t))}</span>
                     ${options.includeCostValues && e.cost != null ? `<span class="entry-cost">${formatCost(e.cost)}</span>` : ""}
                   </div>
                   <div class="entry-meta">${formatDate(e.dateTs)} · ${formatOdometer(e.odometerKm)}</div>

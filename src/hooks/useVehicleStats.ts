@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useFocusEffect } from "@react-navigation/native";
 import { getDatabase } from "../data/db/database";
 import { SQLiteVehicleRepo } from "../data/repositories/SQLiteVehicleRepo";
@@ -10,6 +11,7 @@ import type { BarChartData } from "../screens/Vehicles/components/charts/BarChar
 import type { DonutSegment } from "../screens/Vehicles/components/charts/DonutChart";
 import { formatDateShort } from "../utils/date";
 import { colors } from "../theme/colors";
+import { ServiceTypeLabelService } from "../domain/services/ServiceTypeLabelService";
 
 const DONUT_OTHER_CATEGORIES = new Set([
   "purchase",
@@ -118,6 +120,7 @@ export interface VehicleStatsData {
 }
 
 export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
+  const { t } = useTranslation();
   const [data, setData] = useState<VehicleStatsData | null>(null);
 
   useFocusEffect(
@@ -175,7 +178,7 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
         const serviceTypeCostData: DonutSegment[] = serviceTypeCosts
           .filter((s) => s.total > 0)
           .map((s, i) => ({
-            label: s.serviceTypeName,
+            label: ServiceTypeLabelService.getLabel(s, t),
             value: s.total,
             color: SERVICE_TYPE_PALETTE[i % SERVICE_TYPE_PALETTE.length],
           }));

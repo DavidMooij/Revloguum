@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import type { ServiceEntryWithDetails } from "../../../domain/entities/ServiceEntry";
@@ -10,6 +11,7 @@ import {
   formatCost,
   truncateNotes,
 } from "../../../utils/format";
+import { useServiceTypeLabel } from "../../../hooks/useServiceTypeLabel";
 
 interface Props {
   entry: ServiceEntryWithDetails;
@@ -19,6 +21,7 @@ interface Props {
 }
 
 export default function EntryListItem({ entry, onPress, onLongPress, showNotes = true }: Props) {
+  const getLabel = useServiceTypeLabel();
   return (
     <TouchableOpacity
       style={styles.item}
@@ -33,7 +36,7 @@ export default function EntryListItem({ entry, onPress, onLongPress, showNotes =
       <View style={styles.content}>
         <View style={styles.topRow}>
           <Text style={styles.typeName} numberOfLines={1}>
-            {entry.serviceTypeName}
+            {getLabel({ name: entry.serviceTypeName, translationKey: entry.translationKey })}
           </Text>
           {entry.cost != null && (
             <Text style={styles.cost}>{formatCost(entry.cost)}</Text>

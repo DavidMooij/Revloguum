@@ -25,6 +25,7 @@ interface EntryRow {
 interface EntryWithDetailsRow extends EntryRow {
   service_type_name: string;
   service_type_icon: string;
+  service_type_translation_key: string | null;
   vehicle_display_name: string;
 }
 
@@ -50,6 +51,7 @@ function rowToEntryWithDetails(
     ...rowToEntry(row),
     serviceTypeName: row.service_type_name,
     serviceTypeIcon: row.service_type_icon,
+    translationKey: row.service_type_translation_key ?? undefined,
     vehicleDisplayName: row.vehicle_display_name,
   };
 }
@@ -60,6 +62,7 @@ const WITH_DETAILS_SELECT = `
     e.cost, e.notes, e.image_paths, e.created_at, e.updated_at,
     st.name AS service_type_name,
     st.icon AS service_type_icon,
+    st.translation_key AS service_type_translation_key,
     COALESCE(m.nickname, m.make || ' ' || m.model) AS vehicle_display_name
   FROM service_entries e
   JOIN service_types st ON st.id = e.service_type_id
@@ -258,9 +261,9 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
 
   async getCostByServiceType(
     vehicleId: string,
-  ): Promise<{ serviceTypeName: string; total: number }[]> {
-    const rows = await this.db.getAllAsync<{ name: string; total: number }>(
-      `SELECT st.name, COALESCE(SUM(e.cost), 0) AS total
+  ): Promise<{ name: string; translationKey?: string; total: number }[]> {
+    const rows = await this.db.getAllAsync<{ name: string; translation_key: string | null; total: number }>(
+      `SELECT st.name, st.translation_key, COALESCE(SUM(e.cost), 0) AS total
        FROM service_entries e
        JOIN service_types st ON st.id = e.service_type_id
        WHERE e.vehicle_id = ? AND e.cost IS NOT NULL
@@ -268,7 +271,7 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
        ORDER BY total DESC;`,
       [vehicleId],
     );
-    return rows.map((r) => ({ serviceTypeName: r.name, total: r.total }));
+    return rows.map((r) => ({ name: r.name, translationKey: r.translation_key ?? undefined, total: r.total }));
   }
 
   async getAllWithDates(

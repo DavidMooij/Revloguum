@@ -530,7 +530,17 @@
     "save": "Save",
     "add": "Add",
     "deleteType": "Delete \"%s\"?",
-    "deleteTypeMessage": "Entries using this type will keep their data."
+    "deleteTypeMessage": "Entries using this type will keep their data.",
+    "oil": "Oil change",
+    "chain": "Chain lube",
+    "wash": "Wash",
+    "tyre": "Tyre change",
+    "brake": "Brake service",
+    "filter": "Air filter",
+    "spark": "Spark plugs",
+    "coolant": "Coolant flush",
+    "valve": "Valve check",
+    "other": "Other"
   },
   "chart": {
     "notEnoughData": "Not enough data"
