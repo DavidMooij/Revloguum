@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import { colors } from "../../../theme/colors";
 import { spacing, radius } from "../../../theme/spacing";
+import { typography, typeScale } from "../../../theme/typography";
 
 interface Props {
   label: string;
@@ -70,29 +71,27 @@ const styles = StyleSheet.create({
   },
 
   value: {
-    fontSize: 15,
+    fontSize: typeScale.body,
     fontWeight: "800",
     color: colors.accent,
   },
 
   label: {
     marginTop: spacing.sm,
-    fontSize: 10,
-    fontWeight: "700",
-    color: colors.text2,
+    ...typography.overline,
     letterSpacing: 0.6,
   },
 
   title: {
     marginTop: 4,
-    fontSize: 15,
+    fontSize: typeScale.body,
     fontWeight: "700",
     color: colors.text0,
   },
 
   status: {
     marginTop: 5,
-    fontSize: 12,
+    fontSize: typeScale.captionLarge,
     color: colors.text2,
   },
   accentBar: {

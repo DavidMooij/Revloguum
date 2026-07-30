@@ -22,6 +22,7 @@ import PrimaryButton from "../components/PrimaryButton";
 import AlertModal from "../components/AlertModal";
 import { radius, spacing } from "@/theme/spacing";
 import { colors } from "@/theme/colors";
+import { typography, typeScale } from "@/theme/typography";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -218,9 +219,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg0 },
   scroll: { padding: spacing.lg, paddingBottom: 40, gap: spacing.sm },
   sectionLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: colors.text2,
+    ...typography.overline,
     letterSpacing: 1,
     marginTop: spacing.md,
     marginBottom: spacing.xs,
@@ -255,7 +254,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: colors.accent,
   },
-  vehicleName: { fontSize: 14, fontWeight: "500", color: colors.text0 },
+  vehicleName: { fontSize: typeScale.bodyMedium, fontWeight: "500", color: colors.text0 },
   optionRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -273,12 +272,12 @@ const styles = StyleSheet.create({
   },
   optionLabel: {
     flex: 1,
-    fontSize: 14,
+    fontSize: typeScale.bodyMedium,
     fontWeight: "500",
     color: colors.text0,
   },
   warning: {
-    fontSize: 12,
+    fontSize: typeScale.captionLarge,
     color: colors.dangerText,
     marginTop: spacing.sm,
     marginLeft: spacing.xs,

@@ -11,6 +11,7 @@ import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import type { Vehicle } from "../../../domain/entities/Vehicle";
 import { colors } from "../../../theme/colors";
 import { spacing, radius } from "../../../theme/spacing";
+import { typeScale } from "../../../theme/typography";
 import { formatVehicleName } from "../../../utils/format";
 import { vehicleTypeIcon } from "../../../utils/vehicleType";
 import EncryptedImage from "@/screens/components/EncryptedImage";
@@ -127,7 +128,7 @@ const styles = StyleSheet.create({
 
   label: {
     flex: 1,
-    fontSize: 14,
+    fontSize: typeScale.bodyMedium,
     fontWeight: "600",
     color: colors.text1,
     textAlign: "left",

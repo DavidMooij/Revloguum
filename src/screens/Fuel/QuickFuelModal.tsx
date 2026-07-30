@@ -16,6 +16,7 @@ import type { Vehicle } from "../../domain/entities/Vehicle";
 import type { FuelEntry } from "../../domain/entities/FuelEntry";
 import { colors } from "../../theme/colors";
 import { spacing, radius } from "../../theme/spacing";
+import { typography, typeScale } from "../../theme/typography";
 import { haptic } from "@/utils/haptics";
 
 interface Props {
@@ -103,7 +104,7 @@ const numStyles = StyleSheet.create({
     justifyContent: "center",
   },
   keyEmpty: { backgroundColor: "transparent", borderWidth: 0 },
-  keyText: { fontSize: 22, fontWeight: "600", color: colors.text0 },
+  keyText: { fontSize: typeScale.titleLarge, fontWeight: "600", color: colors.text0 },
 });
 
 function Dots({ current, total }: { current: number; total: number }) {
@@ -153,9 +154,9 @@ const cfStyles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border0,
   },
-  label: { fontSize: 14, color: colors.text2 },
-  value: { fontSize: 14, fontWeight: "600", color: colors.text0 },
-  accent: { color: colors.accent, fontSize: 17, fontWeight: "700" },
+  label: { fontSize: typeScale.bodyMedium, color: colors.text2 },
+  value: { fontSize: typeScale.bodyMedium, fontWeight: "600", color: colors.text0 },
+  accent: { color: colors.accent, fontSize: typeScale.subtitle, fontWeight: "700" },
 });
 
 function AdjBtn({
@@ -194,7 +195,7 @@ const adjStyles = StyleSheet.create({
     backgroundColor: colors.accentMuted,
     borderColor: colors.accent,
   },
-  text: { fontSize: 15, fontWeight: "700", color: colors.text0 },
+  text: { fontSize: typeScale.body, fontWeight: "700", color: colors.text0 },
   textAccent: { color: colors.accentText },
 });
 
@@ -622,8 +623,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   headerLeft: { flex: 1, marginRight: spacing.md },
-  vehicleName: { fontSize: 17, fontWeight: "700", color: colors.text0 },
-  kmSince: { fontSize: 12, color: colors.text2, marginTop: 2 },
+  vehicleName: { fontSize: typeScale.subtitle, fontWeight: "700", color: colors.text0 },
+  kmSince: { fontSize: typeScale.captionLarge, color: colors.text2, marginTop: 2 },
   closeBtn: {
     width: 32,
     height: 32,
@@ -634,19 +635,14 @@ const styles = StyleSheet.create({
   },
   stepBody: { gap: spacing.md, minHeight: 240 },
   stepLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: colors.text2,
-    letterSpacing: 0.8,
+    ...typography.overline,
   },
   bigNumber: {
-    fontSize: 44,
-    fontWeight: "800",
+    ...typography.showcase,
     color: colors.text0,
-    letterSpacing: -1.5,
     textAlign: "center",
   },
-  hint: { fontSize: 12, color: colors.text2, textAlign: "center" },
+  hint: { fontSize: typeScale.captionLarge, color: colors.text2, textAlign: "center" },
   adjRow: { flexDirection: "row", gap: spacing.sm },
   barTrack: {
     height: 8,
@@ -673,7 +669,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   modeBtnActive: { backgroundColor: colors.accent },
-  modeBtnText: { fontSize: 11, fontWeight: "600", color: colors.text2 },
+  modeBtnText: { fontSize: typeScale.caption, fontWeight: "600", color: colors.text2 },
   modeBtnTextActive: { color: colors.white },
   totalRow: {
     flexDirection: "row",
@@ -683,8 +679,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.md,
   },
-  totalLabel: { fontSize: 14, color: colors.text2 },
-  totalValue: { fontSize: 18, fontWeight: "700", color: colors.accent },
+  totalLabel: { fontSize: typeScale.bodyMedium, color: colors.text2 },
+  totalValue: { fontSize: typeScale.titleSmall, fontWeight: "700", color: colors.accent },
   confirmCard: {
     backgroundColor: colors.bg2,
     borderRadius: radius.md,
@@ -711,9 +707,9 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border1,
   },
-  navBtnBackText: { fontSize: 15, fontWeight: "600", color: colors.text1 },
+  navBtnBackText: { ...typography.button, color: colors.text1 },
   navBtnNext: { backgroundColor: colors.accent },
-  navBtnNextText: { fontSize: 15, fontWeight: "700", color: colors.white },
+  navBtnNextText: { ...typography.button, fontWeight: "700", color: colors.white },
   navBtnInvisible: { opacity: 0 },
   navBtnDisabled: { opacity: 0.4 },
 });

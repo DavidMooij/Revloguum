@@ -2,6 +2,7 @@ import { colors, spacing } from "@/theme";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { typography, typeScale } from "@/theme/typography";
 import Svg, {
   Path,
   Circle,
@@ -225,12 +226,9 @@ export default function LineChart({
 const styles = StyleSheet.create({
   wrapper: { gap: 6 },
   title: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: colors.text2,
+    ...typography.caption,
     letterSpacing: 0.6,
-    textTransform: "uppercase",
   },
   container: { alignItems: "center", justifyContent: "center" },
-  empty: { fontSize: 13, color: colors.text2 },
+  empty: { fontSize: typeScale.bodySmall, color: colors.text2 },
 });

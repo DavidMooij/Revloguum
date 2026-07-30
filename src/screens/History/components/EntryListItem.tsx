@@ -5,6 +5,7 @@ import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import type { ServiceEntryWithDetails } from "../../../domain/entities/ServiceEntry";
 import { colors } from "../../../theme/colors";
 import { spacing, radius } from "../../../theme/spacing";
+import { typography, typeScale } from "../../../theme/typography";
 import { formatDate } from "../../../utils/date";
 import {
   formatOdometer,
@@ -84,16 +85,21 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  typeName: { fontSize: 14, fontWeight: "500", color: colors.text0, flex: 1 },
+  typeName: {
+    ...typography.bodyMedium,
+    fontWeight: "500",
+    color: colors.text0,
+    flex: 1,
+  },
   cost: {
-    fontSize: 13,
+    fontSize: typeScale.bodySmall,
     color: colors.successText,
     marginLeft: spacing.sm,
     fontVariant: ["tabular-nums"],
   },
   meta: { flexDirection: "row", alignItems: "center", gap: 4 },
-  metaText: { fontSize: 12, color: colors.text2 },
-  metaDot: { fontSize: 12, color: colors.text3 },
-  notes: { fontSize: 12, color: colors.text2, fontStyle: "italic" },
+  metaText: { fontSize: typeScale.captionLarge, color: colors.text2 },
+  metaDot: { fontSize: typeScale.captionLarge, color: colors.text3 },
+  notes: { fontSize: typeScale.captionLarge, color: colors.text2, fontStyle: "italic" },
 });
 

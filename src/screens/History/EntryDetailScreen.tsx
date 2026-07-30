@@ -22,6 +22,7 @@ import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import type { RootStackParamList } from "../../app/navigation/routes";
 import { colors } from "../../theme/colors";
 import { spacing, radius } from "../../theme/spacing";
+import { typography, typeScale } from "../../theme/typography";
 import { getDatabase } from "../../data/db/database";
 import { SQLiteServiceEntryRepo } from "../../data/repositories/SQLiteServiceEntryRepo";
 import { useServiceEntryActions } from "../../hooks/useServiceHistory";
@@ -318,8 +319,8 @@ const infoRowStyles = StyleSheet.create({
   },
   rowLast: { borderBottomWidth: 0 },
   iconWrap: { width: 20, alignItems: "center" },
-  label: { flex: 1, fontSize: 13, color: colors.text2 },
-  value: { fontSize: 14, fontWeight: "500", color: colors.text0 },
+  label: { flex: 1, fontSize: typeScale.bodySmall, color: colors.text2 },
+  value: { fontSize: typeScale.bodyMedium, fontWeight: "500", color: colors.text0 },
 });
 
 const styles = StyleSheet.create({
@@ -348,12 +349,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   heroTitle: {
-    fontSize: 20,
-    fontWeight: "700",
+    ...typography.titleMedium,
     color: colors.text0,
     textAlign: "center",
   },
-  heroDate: { fontSize: 13, color: colors.text2 },
+  heroDate: { fontSize: typeScale.bodySmall, color: colors.text2 },
   costBadge: {
     marginTop: spacing.xs,
     backgroundColor: colors.successMuted,
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
-  costBadgeText: { fontSize: 16, fontWeight: "700", color: colors.successText },
+  costBadgeText: { fontSize: typeScale.bodyLarge, fontWeight: "700", color: colors.successText },
 
   section: {
     backgroundColor: colors.bg1,
@@ -373,15 +373,11 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   sectionLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: colors.text2,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
+    ...typography.overline,
     paddingVertical: spacing.xs,
   },
   notesText: {
-    fontSize: 14,
+    fontSize: typeScale.bodyMedium,
     color: colors.text1,
     lineHeight: 22,
     paddingBottom: spacing.sm,
@@ -410,18 +406,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   groupItemLabel: {
-    fontSize: 14,
+    fontSize: typeScale.bodyMedium,
     fontWeight: "600",
     color: colors.text0,
     flex: 1,
   },
   groupItemCost: {
-    fontSize: 13,
+    fontSize: typeScale.bodySmall,
     color: colors.successText,
     marginLeft: spacing.sm,
   },
   groupItemNote: {
-    fontSize: 13,
+    fontSize: typeScale.bodySmall,
     color: colors.text1,
     marginTop: 2,
     lineHeight: 18,
@@ -436,7 +432,7 @@ const styles = StyleSheet.create({
   image: { width: 200, height: 140, borderRadius: radius.md },
 
   metaSection: { paddingVertical: spacing.sm, gap: 4, alignItems: "center" },
-  metaText: { fontSize: 11, color: colors.text3 },
+  metaText: { fontSize: typeScale.caption, color: colors.text3 },
 
   deleteBtn: {
     flexDirection: "row",
@@ -445,5 +441,5 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingVertical: spacing.lg,
   },
-  deleteBtnText: { color: colors.dangerText, fontSize: 13, fontWeight: "600" },
+  deleteBtnText: { color: colors.dangerText, fontSize: typeScale.bodySmall, fontWeight: "600" },
 });

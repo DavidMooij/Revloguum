@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import { colors } from "../../../theme/colors";
 import { spacing, radius } from "../../../theme/spacing";
+import { typography, typeScale } from "../../../theme/typography";
 import type { OverdueItem } from "../DashboardScreen";
 import { useServiceTypeLabel } from "../../../hooks/useServiceTypeLabel";
 
@@ -141,21 +142,19 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    fontSize: 10,
-    fontWeight: "700",
+    ...typography.overline,
     color: colors.warningText,
     letterSpacing: 0.6,
-    textTransform: "uppercase",
   },
 
   title: {
-    fontSize: 16,
+    fontSize: typeScale.bodyLarge,
     fontWeight: "700",
     color: colors.text0,
   },
 
   status: {
-    fontSize: 12,
+    fontSize: typeScale.captionLarge,
     fontWeight: "600",
     color: colors.warningText,
   },

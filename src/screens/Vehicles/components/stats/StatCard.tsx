@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, ViewStyle } from "react-native";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/theme";
+import { typography, typeScale } from "@/theme/typography";
 
 interface Props {
   label: string;
@@ -97,21 +98,16 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   label: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: colors.text2,
+    ...typography.overline,
     letterSpacing: 0.5,
-    textTransform: "uppercase",
   },
   labelAccent: { color: colors.accentText },
   value: {
-    fontSize: 22,
-    fontWeight: "700",
+    ...typography.h2,
     color: colors.text0,
-    letterSpacing: -0.5,
   },
   valueAccent: { color: colors.accent },
-  sub: { fontSize: 11, color: colors.text2 },
+  sub: { fontSize: typeScale.caption, color: colors.text2 },
   subAccent: { color: colors.accentText, opacity: 0.7 },
   trendRow: {
     flexDirection: "row",
@@ -119,5 +115,5 @@ const styles = StyleSheet.create({
     gap: 3,
     marginTop: 2,
   },
-  trendText: { fontSize: 11, fontWeight: "600" },
+  trendText: { fontSize: typeScale.caption, fontWeight: "600" },
 });

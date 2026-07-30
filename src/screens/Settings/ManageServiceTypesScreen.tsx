@@ -12,7 +12,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
-import { typography } from "../../theme/typography";
+import { typography, typeScale } from "../../theme/typography";
 import { spacing, radius } from "../../theme/spacing";
 import { useServiceTypes } from "../../hooks/useServiceTypes";
 import { useServiceTypeLabel } from "../../hooks/useServiceTypeLabel";
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   },
   iconWrapCustom: { backgroundColor: colors.accentMuted },
   systemBadge: {
-    fontSize: 10,
+    fontSize: typeScale.overline,
     color: colors.text3,
     fontWeight: "600",
     letterSpacing: 0.4,
@@ -310,10 +310,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: { textAlign: "center", marginBottom: spacing.sm },
   fieldLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: colors.text2,
-    letterSpacing: 0.8,
+    ...typography.overline,
     marginBottom: spacing.xs,
   },
   input: {
@@ -322,7 +319,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border1,
     color: colors.text0,
-    fontSize: 15,
+    fontSize: typeScale.body,
     paddingHorizontal: spacing.md,
     height: 48,
   },

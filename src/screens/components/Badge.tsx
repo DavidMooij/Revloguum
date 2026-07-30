@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { colors } from '../../theme/colors';
 import { spacing, radius } from '../../theme/spacing';
+import { typography } from '../../theme/typography';
 
 interface Props {
   label: string;
@@ -41,8 +42,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   label: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.3,
+    ...typography.caption,
+    textTransform: 'none',
   },
 });

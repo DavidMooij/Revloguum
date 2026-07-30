@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import { colors } from "../../../theme/colors";
 import { spacing } from "../../../theme/spacing";
+import { typography, typeScale } from "../../../theme/typography";
 
 interface Props {
   width: number;
@@ -75,14 +76,13 @@ const styles = StyleSheet.create({
   },
   title: {
     marginTop: spacing.sm,
-    fontSize: 22,
+    ...typography.h2,
     fontWeight: "800",
     color: colors.text0,
-    letterSpacing: -0.4,
     textAlign: "center",
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: typeScale.bodySmall,
     color: colors.text2,
     textAlign: "center",
   },

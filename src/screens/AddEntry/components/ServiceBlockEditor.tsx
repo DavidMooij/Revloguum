@@ -5,6 +5,7 @@ import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import type { ServiceType } from "../../../domain/entities/ServiceType";
 import { colors } from "../../../theme/colors";
 import { spacing, radius } from "../../../theme/spacing";
+import { typography, typeScale } from "../../../theme/typography";
 import TextInputField from "../../components/TextInputField";
 import ServiceTypePicker from "./ServiceTypePicker";
 
@@ -101,11 +102,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   title: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: colors.text2,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
+    ...typography.caption,
   },
   removeBtn: {
     width: 28,
@@ -117,5 +114,5 @@ const styles = StyleSheet.create({
   },
   row: { flexDirection: "row", gap: spacing.md, alignItems: "flex-start" },
   costField: { width: 120 },
-  error: { color: colors.dangerText, fontSize: 12 },
+  error: { color: colors.dangerText, fontSize: typeScale.captionLarge },
 });

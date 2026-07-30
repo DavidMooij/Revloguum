@@ -20,6 +20,7 @@ import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import type { RootStackParamList } from "../../app/navigation/routes";
 import { colors } from "../../theme/colors";
 import { spacing, radius } from "../../theme/spacing";
+import { typography, typeScale } from "../../theme/typography";
 import {
   COST_CATEGORIES,
   type CostCategory,
@@ -441,19 +442,15 @@ const styles = StyleSheet.create({
   },
 
   summaryLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: colors.text2,
+    ...typography.overline,
     letterSpacing: 1,
-    textTransform: "uppercase",
   },
 
   summaryValue: {
     marginTop: 5,
-    fontSize: 22,
+    ...typography.h2,
     fontWeight: "800",
     color: colors.text0,
-    letterSpacing: -0.6,
   },
 
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
@@ -482,8 +479,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  groupTitle: { flex: 1, fontSize: 13, fontWeight: "600", color: colors.text0 },
-  groupTotal: { fontSize: 13, fontWeight: "600", color: colors.text0 },
+  groupTitle: { flex: 1, fontSize: typeScale.bodySmall, fontWeight: "600", color: colors.text0 },
+  groupTotal: { fontSize: typeScale.bodySmall, fontWeight: "600", color: colors.text0 },
 
   costRow: {
     flexDirection: "row",
@@ -501,18 +498,18 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     flex: 1,
   },
-  costAmount: { fontSize: 15, fontWeight: "600", color: colors.text0 },
+  costAmount: { fontSize: typeScale.body, fontWeight: "600", color: colors.text0 },
   intervalBadge: {
     backgroundColor: colors.bg3,
     borderRadius: radius.full,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
   },
-  intervalText: { fontSize: 10, fontWeight: "600", color: colors.text2 },
+  intervalText: { fontSize: typeScale.overline, fontWeight: "600", color: colors.text2 },
   costRight: { flex: 1, alignItems: "flex-end" },
-  costDate: { fontSize: 12, color: colors.text2 },
+  costDate: { fontSize: typeScale.captionLarge, color: colors.text2 },
   costNotes: {
-    fontSize: 11,
+    fontSize: typeScale.caption,
     color: colors.text2,
     fontStyle: "italic",
     maxWidth: 140,
@@ -539,17 +536,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   sheetTitle: {
-    fontSize: 16,
+    ...typography.buttonLarge,
     fontWeight: "700",
     color: colors.text0,
     textAlign: "center",
     marginBottom: spacing.sm,
   },
   fieldLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: colors.text2,
-    letterSpacing: 0.8,
+    ...typography.overline,
     marginBottom: spacing.xs,
   },
   chipScroll: { marginBottom: spacing.md },
@@ -569,7 +563,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
     borderColor: colors.accentDark,
   },
-  catChipText: { fontSize: 12, fontWeight: "500", color: colors.text1 },
+  catChipText: { fontSize: typeScale.captionLarge, fontWeight: "500", color: colors.text1 },
   catChipTextActive: { color: colors.white, fontWeight: "600" },
   intervalChip: {
     flex: 1,
@@ -584,7 +578,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentMuted,
     borderColor: colors.accent,
   },
-  intervalChipText: { fontSize: 13, fontWeight: "500", color: colors.text1 },
+  intervalChipText: { fontSize: typeScale.bodySmall, fontWeight: "500", color: colors.text1 },
   intervalChipTextActive: { color: colors.accentText, fontWeight: "600" },
   formRow: { flexDirection: "row", gap: spacing.md, marginBottom: spacing.xs },
   formCol: { flex: 1 },
@@ -594,7 +588,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border1,
     color: colors.text0,
-    fontSize: 15,
+    fontSize: typeScale.body,
     paddingHorizontal: spacing.md,
     height: 48,
   },
@@ -615,7 +609,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  cancelText: { fontSize: 15, fontWeight: "600", color: colors.text0 },
+  cancelText: { ...typography.button, color: colors.text0 },
   saveBtn: {
     flex: 1,
     height: 48,
@@ -624,5 +618,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  saveBtnText: { fontSize: 15, fontWeight: "600", color: colors.white },
+  saveBtnText: { ...typography.button, color: colors.white },
 });

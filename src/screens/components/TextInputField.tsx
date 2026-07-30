@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TextInputProps, ViewStyle } from 'react-native';
 import { colors } from '../../theme/colors';
 import { spacing, radius } from '../../theme/spacing';
-import { typography } from '../../theme/typography';
+import { typography, typeScale } from '../../theme/typography';
 
 interface Props extends TextInputProps {
   label: string;
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     color: colors.text0,
-    fontSize: 15,
+    fontSize: typeScale.body,
     fontWeight: '400',
   },
   inputMultiline: {
@@ -74,12 +74,12 @@ const styles = StyleSheet.create({
   },
   suffix: {
     color: colors.text2,
-    fontSize: 14,
+    fontSize: typeScale.bodyMedium,
     marginLeft: spacing.xs,
   },
   error: {
     color: colors.dangerText,
-    fontSize: 12,
+    fontSize: typeScale.captionLarge,
     marginTop: 2,
   },
 });

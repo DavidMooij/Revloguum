@@ -5,6 +5,7 @@ import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import type { ServiceEntryGroup } from "../../../hooks/useServiceHistory";
 import { colors } from "../../../theme/colors";
 import { spacing, radius } from "../../../theme/spacing";
+import { typography, typeScale } from "../../../theme/typography";
 import { formatDate } from "../../../utils/date";
 import {
   formatOdometer,
@@ -114,12 +115,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flexShrink: 0,
   },
-  title: { fontSize: 14, fontWeight: "700", color: colors.text0 },
+  title: { ...typography.bodyMediumStrong, fontWeight: "700", color: colors.text0 },
   meta: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 },
-  metaText: { fontSize: 12, color: colors.text2 },
-  metaDot: { fontSize: 12, color: colors.text3 },
+  metaText: { fontSize: typeScale.captionLarge, color: colors.text2 },
+  metaDot: { fontSize: typeScale.captionLarge, color: colors.text3 },
   cost: {
-    fontSize: 14,
+    fontSize: typeScale.bodyMedium,
     fontWeight: "700",
     color: colors.successText,
     marginLeft: spacing.sm,
@@ -146,15 +147,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  itemLabel: { fontSize: 13, fontWeight: "500", color: colors.text0, flex: 1 },
+  itemLabel: { fontSize: typeScale.bodySmall, fontWeight: "500", color: colors.text0, flex: 1 },
   itemCost: {
-    fontSize: 12,
+    fontSize: typeScale.captionLarge,
     color: colors.successText,
     marginLeft: spacing.sm,
     fontVariant: ["tabular-nums"],
   },
   itemNote: {
-    fontSize: 12,
+    fontSize: typeScale.captionLarge,
     color: colors.text2,
     fontStyle: "italic",
     marginTop: 1,

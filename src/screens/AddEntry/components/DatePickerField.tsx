@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, TextInput } from 'react-native';
 import { colors } from '../../../theme/colors';
 import { spacing, radius } from '../../../theme/spacing';
-import { typography } from '../../../theme/typography';
+import { typography, typeScale } from '../../../theme/typography';
 import { formatDate } from '../../../utils/date';
 import PrimaryButton from '../../components/PrimaryButton';
 
@@ -150,8 +150,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     height: 48,
   },
-  value: { color: colors.text0, fontSize: 15 },
-  chevron: { color: colors.text2, fontSize: 20 },
+  value: { color: colors.text0, fontSize: typeScale.body },
+  chevron: { color: colors.text2, fontSize: typeScale.titleMedium },
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.7)',
@@ -167,16 +167,16 @@ const styles = StyleSheet.create({
     gap: spacing.xl,
   },
   title: { textAlign: 'center' },
-  hint: { fontSize: 11, color: colors.text3, textAlign: 'center', marginTop: -spacing.md },
+  hint: { fontSize: typeScale.caption, color: colors.text3, textAlign: 'center', marginTop: -spacing.md },
   pickerRow: { flexDirection: 'row', justifyContent: 'space-around', gap: spacing.lg },
   col: { alignItems: 'center', gap: spacing.sm, flex: 1 },
-  fieldLabel: { fontSize: 10, fontWeight: '700', color: colors.text2, letterSpacing: 1 },
+  fieldLabel: { ...typography.overline, letterSpacing: 1 },
   arrowBtn: { padding: spacing.sm },
-  arrow: { color: colors.accent, fontSize: 18, fontWeight: '700' },
+  arrow: { color: colors.accent, fontSize: typeScale.titleSmall, fontWeight: '700' },
   valueWrap: { minHeight: 44, alignItems: 'center', justifyContent: 'center', width: '100%' },
-  dateValue: { fontSize: 26, fontWeight: '700', color: colors.text0, textAlign: 'center' },
+  dateValue: { ...typography.heroTitle, color: colors.text0, textAlign: 'center' },
   textInput: {
-    fontSize: 26,
+    fontSize: typeScale.hero,
     fontWeight: '700',
     color: colors.text0,
     textAlign: 'center',

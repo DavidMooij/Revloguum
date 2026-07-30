@@ -18,6 +18,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import type { RootStackParamList } from "../../app/navigation/routes";
 import { colors } from "../../theme/colors";
+import { typography, typeScale } from "../../theme/typography";
 import { spacing, radius } from "../../theme/spacing";
 import { formatCost, formatOdometer } from "../../utils/format";
 import ScreenHeader from "../components/ScreenHeader";
@@ -390,11 +391,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg0 },
   scroll: { padding: spacing.lg, paddingBottom: 60, gap: spacing.lg },
   sectionLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: colors.text2,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
+    ...typography.overline,
   },
   costSummaryCard: {
     backgroundColor: colors.bg1,
@@ -410,18 +407,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cardLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: colors.text2,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
+    ...typography.overline,
   },
   costPeriod: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: colors.text2,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
+    ...typography.overline,
   },
   costOverview: {
     flexDirection: "row",
@@ -440,12 +429,10 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   metricValue: {
-    fontSize: 15,
-    fontWeight: "700",
+    ...typography.bodyStrong,
     color: colors.text0,
-    letterSpacing: -0.3,
   },
-  metricLabel: { fontSize: 10, color: colors.text2, lineHeight: 13 },
+  metricLabel: { fontSize: typeScale.overline, color: colors.text2, lineHeight: 13 },
   chartCard: {
     backgroundColor: colors.bg1,
     borderRadius: radius.md,
@@ -459,7 +446,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     justifyContent: "space-between",
   },
-  chartUnit: { fontSize: 10, color: colors.text2, marginTop: 1 },
+  chartUnit: { fontSize: typeScale.overline, color: colors.text2, marginTop: 1 },
   expandBtn: {
     width: 30,
     height: 30,
@@ -478,14 +465,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border0,
   },
-  fullscreenSubtitle: { fontSize: 11, color: colors.text2, marginTop: 2 },
+  fullscreenSubtitle: { fontSize: typeScale.caption, color: colors.text2, marginTop: 2 },
   fullscreenChartArea: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.lg,
   },
-  fullscreenTitle: { fontSize: 16, fontWeight: "700", color: colors.text0 },
+  fullscreenTitle: { ...typography.buttonLarge, fontWeight: "700", color: colors.text0 },
   closeBtn: {
     width: 34,
     height: 34,

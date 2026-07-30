@@ -18,6 +18,7 @@ import type {
 import type { RootStackParamList } from "../../app/navigation/routes";
 import { colors } from "../../theme/colors";
 import { spacing } from "../../theme/spacing";
+import { typeScale, typography } from "../../theme/typography";
 import { useVehicles } from "../../hooks/useVehicles";
 import { useServiceTypes } from "../../hooks/useServiceTypes";
 import { getDatabase } from "../../data/db/database";
@@ -461,7 +462,7 @@ const styles = StyleSheet.create({
   },
   photo: { width: "100%", height: "100%", borderRadius: 60 },
   placeholder: { alignItems: "center", justifyContent: "center", gap: 6 },
-  placeholderText: { color: colors.text2, fontSize: 12 },
+  placeholderText: { color: colors.text2, fontSize: typeScale.captionLarge },
   badge: {
     position: "absolute",
     bottom: 6,
@@ -479,8 +480,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: -spacing.sm,
   },
-  sectionTitle: { fontSize: 13, fontWeight: "600", color: colors.text0 },
-  sectionHint: { fontSize: 12, color: colors.text2, marginBottom: -spacing.sm },
+  sectionTitle: { ...typography.bodySmall, fontWeight: "600", color: colors.text0 },
+  sectionHint: { fontSize: typeScale.captionLarge, color: colors.text2, marginBottom: -spacing.sm },
   typeSelector: {
     flexDirection: "row",
     gap: spacing.sm,
@@ -501,6 +502,6 @@ const styles = StyleSheet.create({
     borderColor: colors.accent,
     backgroundColor: colors.bg2 ?? colors.bg1,
   },
-  typeLabel: { fontSize: 12, color: colors.text2, fontWeight: "500" },
+  typeLabel: { fontSize: typeScale.captionLarge, color: colors.text2, fontWeight: "500" },
   typeLabelActive: { color: colors.accent, fontWeight: "600" },
 });

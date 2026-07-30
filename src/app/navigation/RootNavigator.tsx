@@ -20,6 +20,7 @@ import VehicleDetailScreen from "@/screens/Vehicles/VehicleDetailScreen";
 import VehicleCostsScreen from "@/screens/Vehicles/VehicleCostsScreen";
 import ExportPdfScreen from "@/screens/Settings/ExportPdfScreen";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { typeScale } from "../../theme/typography";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -44,7 +45,7 @@ function TabNavigator() {
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.text2,
         tabBarLabelStyle: {
-          fontSize: 10,
+          fontSize: typeScale.overline,
           fontWeight: "600",
           letterSpacing: 0.3,
         },

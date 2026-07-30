@@ -5,6 +5,7 @@ import { FontAwesome5, FontAwesome5 as Icon } from "@expo/vector-icons";
 import type { Vehicle } from "../../../domain/entities/Vehicle";
 import { colors } from "../../../theme/colors";
 import { radius } from "../../../theme/spacing";
+import { typeScale } from "../../../theme/typography";
 import { formatOdometer, formatVehicleName } from "../../../utils/format";
 import { vehicleTypeIcon } from "../../../utils/vehicleType";
 import EncryptedImage from "@/screens/components/EncryptedImage";
@@ -149,7 +150,7 @@ const styles = StyleSheet.create({
 
   name: {
     marginTop: 18,
-    fontSize: 24,
+    fontSize: typeScale.titleXL,
     fontWeight: "900",
     color: colors.text0,
     textAlign: "center",
@@ -158,7 +159,7 @@ const styles = StyleSheet.create({
 
   year: {
     marginTop: 5,
-    fontSize: 14,
+    fontSize: typeScale.bodyMedium,
     fontWeight: "600",
     color: colors.text2,
   },
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
   statValue: {
     marginTop: 6,
 
-    fontSize: 15,
+    fontSize: typeScale.body,
     fontWeight: "800",
     color: colors.text0,
 
@@ -198,7 +199,7 @@ const styles = StyleSheet.create({
   statLabel: {
     marginTop: 3,
 
-    fontSize: 9,
+    fontSize: typeScale.micro,
     fontWeight: "800",
 
     color: colors.text2,

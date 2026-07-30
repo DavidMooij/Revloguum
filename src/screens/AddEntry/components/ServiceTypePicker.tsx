@@ -4,6 +4,7 @@ import { FontAwesome5 as Icon } from '@expo/vector-icons';
 import type { ServiceType } from '../../../domain/entities/ServiceType';
 import { colors } from '../../../theme/colors';
 import { spacing, radius } from '../../../theme/spacing';
+import { typeScale } from '../../../theme/typography';
 import { useServiceTypeLabel } from '../../../hooks/useServiceTypeLabel';
 
 interface Props {
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
   label: {
-    fontSize: 13,
+    fontSize: typeScale.bodySmall,
     fontWeight: '500',
     color: colors.text1,
   },

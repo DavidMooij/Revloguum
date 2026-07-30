@@ -2,6 +2,7 @@ import { colors, spacing } from '@/theme';
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Rect, Text as SvgText, Line, Defs, LinearGradient, Stop } from 'react-native-svg';
+import { typography } from '@/theme/typography';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -113,6 +114,6 @@ export default function BarChart({
 
 const styles = StyleSheet.create({
   wrapper: { gap: 6 },
-  title: { fontSize: 11, fontWeight: '700', color: colors.text2, letterSpacing: 0.6, textTransform: 'uppercase' },
+  title: { ...typography.caption, letterSpacing: 0.6 },
 });
 

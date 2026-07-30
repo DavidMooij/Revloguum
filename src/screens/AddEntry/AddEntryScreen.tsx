@@ -17,7 +17,7 @@ import type {
 } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../app/navigation/routes";
 import { colors } from "../../theme/colors";
-import { typography } from "../../theme/typography";
+import { typography, typeScale } from "../../theme/typography";
 import { spacing, radius } from "../../theme/spacing";
 import { useServiceTypes } from "../../hooks/useServiceTypes";
 import { useServiceEntryActions } from "../../hooks/useServiceHistory";
@@ -419,8 +419,8 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
     backgroundColor: colors.bg1,
   },
-  addBlockText: { fontSize: 13, fontWeight: "600", color: colors.accent },
-  error: { color: colors.dangerText, fontSize: 12, marginTop: spacing.xs },
+  addBlockText: { fontSize: typeScale.bodySmall, fontWeight: "600", color: colors.accent },
+  error: { color: colors.dangerText, fontSize: typeScale.captionLarge, marginTop: spacing.xs },
   notesField: { minHeight: 100 },
   footer: {
     padding: spacing.lg,
@@ -430,11 +430,7 @@ const styles = StyleSheet.create({
   },
   imageSection: { marginTop: spacing.md },
   imageLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: colors.text2,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
+    ...typography.caption,
     marginBottom: spacing.sm,
   },
   imageRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
@@ -460,7 +456,7 @@ const styles = StyleSheet.create({
   },
   removeText: {
     color: "white",
-    fontSize: 14,
+    fontSize: typeScale.bodyMedium,
     lineHeight: 14,
     fontWeight: "700",
   },
@@ -475,5 +471,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
   },
-  addText: { fontSize: 11, color: colors.text2, fontWeight: "500" },
+  addText: { fontSize: typeScale.caption, color: colors.text2, fontWeight: "500" },
 });

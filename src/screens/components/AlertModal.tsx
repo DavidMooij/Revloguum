@@ -16,6 +16,7 @@ import Animated, {
 import { FontAwesome5 } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
 import { spacing, radius } from "../../theme/spacing";
+import { typography, typeScale } from "../../theme/typography";
 
 const { width } = Dimensions.get("window");
 
@@ -190,14 +191,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   title: {
-    fontSize: 17,
-    fontWeight: "700",
+    ...typography.titleMedium,
     color: colors.text0,
     textAlign: "center",
-    letterSpacing: -0.3,
   },
   message: {
-    fontSize: 14,
+    fontSize: typeScale.bodyMedium,
     color: colors.text1,
     textAlign: "center",
     lineHeight: 20,
@@ -236,8 +235,6 @@ const styles = StyleSheet.create({
     opacity: 0.35,
   },
   btnText: {
-    fontSize: 15,
-    fontWeight: "600",
-    letterSpacing: -0.1,
+    ...typography.button,
   },
 });

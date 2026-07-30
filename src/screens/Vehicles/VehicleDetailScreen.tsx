@@ -161,19 +161,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   heroName: {
-    fontSize: 22,
-    fontWeight: "700",
+    ...typography.h2,
     color: colors.text0,
-    letterSpacing: -0.3,
   },
-  heroYear: { fontSize: 14, color: colors.text2 },
+  heroYear: { ...typography.bodyMedium, color: colors.text2 },
   heroOdo: {
-    fontSize: 28,
-    fontWeight: "700",
+    ...typography.h1,
     color: colors.accent,
-    letterSpacing: -0.5,
   },
-  heroSub: { fontSize: 13, color: colors.text2 },
+  heroSub: { ...typography.bodySmall, color: colors.text2 },
   navGrid: { gap: spacing.sm },
   navCard: {
     flexDirection: "row",
@@ -194,6 +190,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flexShrink: 0,
   },
-  navLabel: { fontSize: 15, fontWeight: "600", color: colors.text0 },
-  navSub: { fontSize: 12, color: colors.text2, marginTop: 2 },
+  navLabel: { ...typography.bodyStrong, color: colors.text0 },
+  navSub: { ...typography.labelSmall, color: colors.text2, marginTop: 2 },
 });

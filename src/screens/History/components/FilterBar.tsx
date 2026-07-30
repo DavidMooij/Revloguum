@@ -7,6 +7,7 @@ import type { ServiceType } from '../../../domain/entities/ServiceType';
 import type { DateRangePreset } from '../../../utils/date';
 import { colors } from '../../../theme/colors';
 import { spacing, radius } from '../../../theme/spacing';
+import { typography, typeScale } from '../../../theme/typography';
 import { useServiceTypeLabel } from '../../../hooks/useServiceTypeLabel';
 
 interface Props {
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   searchIcon: { flexShrink: 0 },
-  searchInput: { flex: 1, color: colors.text0, fontSize: 14 },
+  searchInput: { flex: 1, color: colors.text0, fontSize: typeScale.bodyMedium },
   filterBtn: {
     width: 40,
     height: 40,
@@ -158,10 +159,7 @@ const styles = StyleSheet.create({
   },
   expanded: { gap: spacing.md },
   filterLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.text2,
-    letterSpacing: 0.8,
+    ...typography.overline,
   },
   chipRow: { flexDirection: 'row', gap: spacing.xs, flexWrap: 'wrap' },
   chip: {
@@ -173,8 +171,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border1,
   },
   chipActive: { backgroundColor: colors.accentMuted, borderColor: colors.accent },
-  chipText: { fontSize: 12, fontWeight: '500', color: colors.text1 },
+  chipText: { fontSize: typeScale.captionLarge, fontWeight: '500', color: colors.text1 },
   chipTextActive: { color: colors.accentText, fontWeight: '600' },
   clearBtn: { alignSelf: 'center', paddingVertical: spacing.sm },
-  clearText: { color: colors.accent, fontSize: 13, fontWeight: '600' },
+  clearText: { color: colors.accent, fontSize: typeScale.bodySmall, fontWeight: '600' },
 });

@@ -1,4 +1,5 @@
 import { colors } from "@/theme";
+import { typeScale } from "@/theme/typography";
 import { formatCost } from "@/utils/format";
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
@@ -108,12 +109,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   centerLabel: {
-    fontSize: 16,
+    fontSize: typeScale.bodyLarge,
     fontWeight: "700",
     color: colors.text0,
     letterSpacing: -0.3,
   },
-  centerSub: { fontSize: 11, color: colors.text2, marginTop: 2 },
+  centerSub: { fontSize: typeScale.caption, color: colors.text2, marginTop: 2 },
   legend: { flex: 1, gap: 8 },
   legendItem: {
     flexDirection: "row",
@@ -127,19 +128,19 @@ const styles = StyleSheet.create({
   },
 
   legendLabel: {
-    fontSize: 12,
+    fontSize: typeScale.captionLarge,
     fontWeight: "600",
     color: colors.text1,
   },
 
   legendAmount: {
-    fontSize: 11,
+    fontSize: typeScale.caption,
     color: colors.text2,
     marginTop: 1,
   },
 
   legendValue: {
-    fontSize: 12,
+    fontSize: typeScale.captionLarge,
     fontWeight: "700",
     color: colors.text0,
   },

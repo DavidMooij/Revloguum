@@ -3,6 +3,7 @@ import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle } from
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { colors } from '../../theme/colors';
 import { spacing, radius } from '../../theme/spacing';
+import { typography } from '../../theme/typography';
 
 interface Props {
   label: string;
@@ -53,9 +54,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xxl,
   },
   label: {
-    fontSize: 16,
-    fontWeight: '600',
-    letterSpacing: -0.1,
+    ...typography.buttonLarge,
   },
   disabled: {
     opacity: 0.45,

@@ -5,6 +5,7 @@ import { FontAwesome5 as Icon } from '@expo/vector-icons';
 import { ServiceType } from '@/domain/entities/ServiceType';
 import { ServiceInterval } from '@/domain/entities/Vehicle';
 import { colors, radius, spacing } from '@/theme';
+import { typography, typeScale } from '@/theme/typography';
 import { useServiceTypeLabel } from '@/hooks/useServiceTypeLabel';
 
 interface Props {
@@ -137,23 +138,23 @@ export default function ServiceIntervalConfig({ serviceTypes, intervals, onChang
 const styles = StyleSheet.create({
   container: { gap: spacing.sm },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontSize: 13, fontWeight: '600', color: colors.text0 },
+  title: { ...typography.bodySmall, fontWeight: '600', color: colors.text0 },
   addBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.accentMuted, borderWidth: 1, borderColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
   addBtnDisabled: { opacity: 0.4 },
-  hint: { fontSize: 12, color: colors.text2, marginTop: -spacing.xs },
-  empty: { fontSize: 13, color: colors.text2, fontStyle: 'italic' },
+  hint: { fontSize: typeScale.captionLarge, color: colors.text2, marginTop: -spacing.xs },
+  empty: { fontSize: typeScale.bodySmall, color: colors.text2, fontStyle: 'italic' },
   intervalCard: { backgroundColor: colors.bg2, borderRadius: radius.md, padding: spacing.md, gap: spacing.md, borderWidth: 1, borderColor: colors.border1 },
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   intervalIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.accentMuted, alignItems: 'center', justifyContent: 'center' },
-  intervalName: { flex: 1, fontSize: 13, fontWeight: '600', color: colors.text0 },
+  intervalName: { flex: 1, fontSize: typeScale.bodySmall, fontWeight: '600', color: colors.text0 },
   removeBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.bg3, alignItems: 'center', justifyContent: 'center' },
   typeRow: { flexDirection: 'row', gap: spacing.sm },
   typeChip: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.xs + 2, borderRadius: radius.full, backgroundColor: colors.bg3, borderWidth: 1, borderColor: colors.border1 },
   typeChipActive: { backgroundColor: colors.accent, borderColor: colors.accentDark },
   typeChipDisabled: { opacity: 0.35 },
-  typeChipText: { fontSize: 12, fontWeight: '500', color: colors.text1 },
+  typeChipText: { fontSize: typeScale.captionLarge, fontWeight: '500', color: colors.text1 },
   typeChipTextActive: { color: colors.white, fontWeight: '600' },
-  fieldLabel: { fontSize: 10, fontWeight: '700', color: colors.text2, letterSpacing: 0.8, marginBottom: spacing.xs },
+  fieldLabel: { ...typography.overline, marginBottom: spacing.xs },
   formRow: { flexDirection: 'row', gap: spacing.md },
-  input: { backgroundColor: colors.bg3, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border1, color: colors.text0, fontSize: 14, paddingHorizontal: spacing.md, height: 44 },
+  input: { backgroundColor: colors.bg3, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border1, color: colors.text0, fontSize: typeScale.bodyMedium, paddingHorizontal: spacing.md, height: 44 },
 });

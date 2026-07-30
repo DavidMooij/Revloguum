@@ -4,6 +4,7 @@ import { View, Text, StyleSheet } from "react-native";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import { colors } from "../../../../theme/colors";
 import { spacing, radius } from "../../../../theme/spacing";
+import { typography, typeScale } from "../../../../theme/typography";
 import { formatOdometer } from "../../../../utils/format";
 import { formatDate } from "../../../../utils/date";
 import type { TyreDataPoint } from "../../../../hooks/useVehicleStats";
@@ -95,11 +96,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   sectionLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: colors.text2,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
+    ...typography.overline,
   },
   summaryRow: {
     flexDirection: "row",
@@ -112,13 +109,12 @@ const styles = StyleSheet.create({
   summaryItem: { flex: 1, alignItems: "center", gap: 2 },
   summaryDiv: { width: 1, backgroundColor: colors.border0 },
   summaryValue: {
-    fontSize: 15,
+    ...typography.bodyStrong,
     fontWeight: "700",
     color: colors.text0,
-    letterSpacing: -0.3,
   },
   summaryLabel: {
-    fontSize: 10,
+    fontSize: typeScale.overline,
     color: colors.text2,
     textTransform: "uppercase",
     letterSpacing: 0.4,
@@ -136,21 +132,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  entryOdo: { fontSize: 15, fontWeight: "700", color: colors.text0 },
+  entryOdo: { ...typography.bodyStrong, fontWeight: "700", color: colors.text0 },
   badge: {
     backgroundColor: colors.accentMuted,
     borderRadius: radius.full,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
   },
-  badgeText: { fontSize: 11, fontWeight: "600", color: colors.accentText },
+  badgeText: { fontSize: typeScale.caption, fontWeight: "600", color: colors.accentText },
   badgeMuted: {
     backgroundColor: colors.bg3,
     borderRadius: radius.full,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
   },
-  badgeMutedText: { fontSize: 11, color: colors.text2 },
-  entryDate: { fontSize: 12, color: colors.text2 },
-  entryNotes: { fontSize: 12, color: colors.text1, fontStyle: "italic" },
+  badgeMutedText: { fontSize: typeScale.caption, color: colors.text2 },
+  entryDate: { fontSize: typeScale.captionLarge, color: colors.text2 },
+  entryNotes: { fontSize: typeScale.captionLarge, color: colors.text1, fontStyle: "italic" },
 });

@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import { colors } from "../../../theme/colors";
 import { spacing, radius } from "../../../theme/spacing";
+import { typography } from "../../../theme/typography";
 import { formatCost } from "../../../utils/format";
 
 export type VehicleNavScreen =
@@ -123,17 +124,14 @@ const styles = StyleSheet.create({
   },
   tileText: { gap: 2 },
   value: {
-    fontSize: 19,
+    ...typography.titleCard,
     fontWeight: "800",
     color: colors.text0,
-    letterSpacing: -0.4,
   },
   label: {
-    fontSize: 11,
+    ...typography.caption,
     fontWeight: "700",
     color: colors.text2,
-    letterSpacing: 0.4,
-    textTransform: "uppercase",
   },
 });
 

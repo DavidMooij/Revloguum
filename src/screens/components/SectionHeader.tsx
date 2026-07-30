@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
+import { typography } from '../../theme/typography';
 
 interface Props {
   title: string;
@@ -30,14 +31,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   title: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.text2,
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
+    ...typography.overline,
   },
   action: {
-    fontSize: 13,
+    ...typography.bodySmall,
     fontWeight: '600',
     color: colors.accent,
   },

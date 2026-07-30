@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { colors } from "../../theme/colors";
 import { spacing, radius } from "../../theme/spacing";
+import { typography } from "../../theme/typography";
 
 export interface ToggleOption<T extends string> {
   label: string;
@@ -60,10 +61,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
   },
   label: {
-    fontSize: 11,
-    fontWeight: "700",
+    ...typography.caption,
     color: colors.text2,
-    letterSpacing: 0.5,
   },
   labelActive: {
     color: colors.white,

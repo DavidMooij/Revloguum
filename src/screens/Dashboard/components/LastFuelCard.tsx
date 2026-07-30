@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import { colors } from "../../../theme/colors";
 import { spacing, radius } from "../../../theme/spacing";
+import { typography, typeScale } from "../../../theme/typography";
 import { formatCost, formatOdometer } from "../../../utils/format";
 import { formatDateRelative } from "../../../utils/date";
 import type { FuelEntry } from "../../../domain/entities/FuelEntry";
@@ -111,11 +112,7 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: colors.text2,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
+    ...typography.overline,
   },
 
   mainRow: {
@@ -125,13 +122,13 @@ const styles = StyleSheet.create({
   },
 
   big: {
-    fontSize: 24,
+    fontSize: typeScale.titleXL,
     fontWeight: "800",
     color: colors.text0,
   },
 
   money: {
-    fontSize: 18,
+    fontSize: typeScale.titleSmall,
     fontWeight: "700",
     color: colors.successText,
     textAlign: "right",
@@ -142,13 +139,13 @@ const styles = StyleSheet.create({
   },
 
   sub: {
-    fontSize: 12,
+    fontSize: typeScale.captionLarge,
     color: colors.text2,
     marginTop: 2,
   },
 
   empty: {
     color: colors.text2,
-    fontSize: 13,
+    fontSize: typeScale.bodySmall,
   },
 });

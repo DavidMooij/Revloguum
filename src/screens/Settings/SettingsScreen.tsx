@@ -17,7 +17,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import type { RootStackParamList } from "../../app/navigation/routes";
 import { colors } from "../../theme/colors";
-import { typography } from "../../theme/typography";
+import { typography, typeScale } from "../../theme/typography";
 import { spacing, radius } from "../../theme/spacing";
 import { useExport } from "../../hooks/useExport";
 import Divider from "../components/Divider";
@@ -559,9 +559,7 @@ const styles = StyleSheet.create({
   },
   scroll: { padding: spacing.lg, paddingBottom: 60, gap: spacing.sm },
   sectionLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: colors.text2,
+    ...typography.overline,
     letterSpacing: 1,
     marginTop: spacing.md,
     marginBottom: spacing.xs,
@@ -596,9 +594,9 @@ const styles = StyleSheet.create({
   },
   rowIconDanger: { backgroundColor: colors.dangerMuted },
   rowContent: { flex: 1 },
-  rowLabel: { fontSize: 15, fontWeight: "500", color: colors.text0 },
+  rowLabel: { ...typography.body, fontWeight: "500", color: colors.text0 },
   rowLabelDanger: { color: colors.dangerText },
-  rowSub: { fontSize: 12, color: colors.text2, marginTop: 2 },
+  rowSub: { ...typography.labelSmall, color: colors.text2, marginTop: 2 },
   pill: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
@@ -606,10 +604,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg3,
   },
   pillText: {
-    fontSize: 10,
-    fontWeight: "700",
+    ...typography.overline,
     color: colors.text2,
-    letterSpacing: 0.5,
   },
   pillGood: { backgroundColor: colors.successMuted },
   pillTextGood: { color: colors.successText },
@@ -626,7 +622,7 @@ const styles = StyleSheet.create({
   },
   noticeText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: typeScale.bodySmall,
     color: colors.successText,
     lineHeight: 18,
   },
@@ -650,12 +646,12 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
   },
   copyBtnText: {
-    fontSize: 11,
+    fontSize: typeScale.caption,
     fontWeight: "600",
     color: colors.accent,
   },
   keyText: {
-    fontSize: 11,
+    fontSize: typeScale.caption,
     fontFamily: "monospace",
     color: colors.accent,
     letterSpacing: 0.5,
@@ -667,7 +663,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border1,
     color: colors.text0,
-    fontSize: 12,
+    fontSize: typeScale.captionLarge,
     padding: spacing.md,
     fontFamily: "monospace",
     marginTop: spacing.sm,
@@ -688,7 +684,7 @@ const styles = StyleSheet.create({
     width: "90%",
   },
   deleteCode: {
-    fontSize: 20,
+    fontSize: typeScale.titleMedium,
     fontFamily: "monospace",
     color: colors.dangerText,
     fontWeight: "700",

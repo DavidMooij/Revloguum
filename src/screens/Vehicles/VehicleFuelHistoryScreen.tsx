@@ -17,6 +17,7 @@ import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import type { RootStackParamList } from "../../app/navigation/routes";
 import { colors } from "../../theme/colors";
 import { spacing, radius } from "../../theme/spacing";
+import { typography, typeScale } from "../../theme/typography";
 import { useFuel } from "../../hooks/useFuel";
 import { useVehicles } from "../../hooks/useVehicles";
 import {
@@ -323,7 +324,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentMuted,
     borderColor: colors.accent,
   },
-  presetText: { fontSize: 12, fontWeight: "500", color: colors.text1 },
+  presetText: { fontSize: typeScale.captionLarge, fontWeight: "500", color: colors.text1 },
   presetTextActive: { color: colors.accentText, fontWeight: "600" },
   statsRow: {
     flexDirection: "row",
@@ -338,13 +339,11 @@ const styles = StyleSheet.create({
   stat: { flex: 1, alignItems: "center", gap: 2 },
   statDiv: { width: 1, backgroundColor: colors.border0 },
   statValue: {
-    fontSize: 14,
-    fontWeight: "700",
+    ...typography.bodyMediumStrong,
     color: colors.text0,
-    letterSpacing: -0.3,
   },
   statLabel: {
-    fontSize: 10,
+    fontSize: typeScale.overline,
     color: colors.text2,
     textTransform: "uppercase",
     letterSpacing: 0.4,
@@ -373,10 +372,10 @@ const styles = StyleSheet.create({
   },
   entryContent: { flex: 1, gap: 3 },
   entryTop: { flexDirection: "row", justifyContent: "space-between" },
-  entryTitle: { fontSize: 15, fontWeight: "600", color: colors.text0 },
-  entryCost: { fontSize: 14, fontWeight: "600", color: colors.successText },
+  entryTitle: { ...typography.bodyStrong, color: colors.text0 },
+  entryCost: { fontSize: typeScale.bodyMedium, fontWeight: "600", color: colors.successText },
   entryBottom: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
-  entrySub: { fontSize: 12, color: colors.text2 },
-  entryDot: { fontSize: 12, color: colors.text3 },
-  entryNotes: { fontSize: 12, color: colors.text2, fontStyle: "italic" },
+  entrySub: { fontSize: typeScale.captionLarge, color: colors.text2 },
+  entryDot: { fontSize: typeScale.captionLarge, color: colors.text3 },
+  entryNotes: { fontSize: typeScale.captionLarge, color: colors.text2, fontStyle: "italic" },
 });

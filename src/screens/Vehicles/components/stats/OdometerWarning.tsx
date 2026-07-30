@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { FontAwesome5 as Icon } from '@expo/vector-icons';
 import { colors, radius, spacing } from '@/theme';
+import { typeScale } from '@/theme/typography';
 
 interface Props {
   currentValue: number;
@@ -36,7 +37,7 @@ const styles = StyleSheet.create({
   },
   text: {
     flex: 1,
-    fontSize: 12,
+    fontSize: typeScale.captionLarge,
     color: colors.warningText,
     lineHeight: 17,
   },

@@ -15,7 +15,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import type { RootStackParamList } from "../../app/navigation/routes";
 import { colors } from "../../theme/colors";
-import { typography } from "../../theme/typography";
+import { typography, typeScale } from "../../theme/typography";
 import { spacing, radius } from "../../theme/spacing";
 import { useVehicles } from "../../hooks/useVehicles";
 import { getDatabase } from "../../data/db/database";
@@ -540,23 +540,19 @@ const styles = StyleSheet.create({
   },
 
   odoLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: colors.text2,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
+    ...typography.overline,
   },
 
   odoValue: {
     marginTop: 3,
-    fontSize: 32,
+    fontSize: typeScale.numericLarge,
     fontWeight: "800",
     color: colors.text0,
     letterSpacing: -0.8,
   },
   odoJoke: {
     marginTop: spacing.xs,
-    fontSize: 13,
+    fontSize: typeScale.bodySmall,
     color: colors.text2,
     fontStyle: "italic",
     lineHeight: 18,
@@ -584,7 +580,7 @@ const styles = StyleSheet.create({
   infoHalf: {
     flex: 1,
   },
-  addBtnText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+  addBtnText: { color: colors.white, fontWeight: "600", fontSize: typeScale.body },
   fab: {
     position: "absolute",
     bottom: 90,
