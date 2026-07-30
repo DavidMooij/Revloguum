@@ -1,8 +1,10 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { colors } from "../../theme/colors";
+import { readableColor, readableSize } from "../../theme/readability";
 import { spacing, radius } from "../../theme/spacing";
-import { typography } from "../../theme/typography";
+import { typeScale } from "../../theme/typography";
+import { useAppStore } from "../../store/appStore";
 
 export interface ToggleOption<T extends string> {
   label: string;
@@ -20,18 +22,38 @@ export function SettingsToggle<T extends string>({
   value,
   onChange,
 }: Props<T>) {
+  const readabilityMode = useAppStore((s) => s.readabilityMode);
+
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: readableColor("bg3", readabilityMode) },
+      ]}
+    >
       {options.map((opt) => {
         const active = opt.value === value;
         return (
           <TouchableOpacity
             key={opt.value}
-            style={[styles.option, active && styles.optionActive]}
+            style={[
+              styles.option,
+              readabilityMode && styles.optionReadable,
+              active && styles.optionActive,
+            ]}
             onPress={() => onChange(opt.value)}
             activeOpacity={0.7}
           >
-            <Text style={[styles.label, active && styles.labelActive]}>
+            <Text
+              style={[
+                styles.label,
+                {
+                  color: readableColor("text2", readabilityMode),
+                  fontSize: readableSize(typeScale.caption, readabilityMode, 1),
+                },
+                active && styles.labelActive,
+              ]}
+            >
               {opt.label}
             </Text>
           </TouchableOpacity>
@@ -57,12 +79,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minWidth: 36,
   },
+  optionReadable: {
+    minWidth: 42,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+  },
   optionActive: {
     backgroundColor: colors.accent,
   },
   label: {
-    ...typography.caption,
-    color: colors.text2,
+    fontWeight: "700",
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
   },
   labelActive: {
     color: colors.white,

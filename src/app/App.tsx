@@ -10,12 +10,21 @@ import { StatusBar } from "expo-status-bar";
 import { getDatabase } from "../data/db/database";
 import { useAppStore } from "../store/appStore";
 import { colors } from "../theme/colors";
+import { readableColor } from "../theme/readability";
 import { typography } from "../theme/typography";
 import RootNavigator from "./navigation/RootNavigator";
 
 export default function App() {
-  const { isDbReady, setDbReady } = useAppStore();
+  const isDbReady = useAppStore((s) => s.isDbReady);
+  const arePrefsReady = useAppStore((s) => s.arePrefsReady);
+  const readabilityMode = useAppStore((s) => s.readabilityMode);
+  const setDbReady = useAppStore((s) => s.setDbReady);
+  const hydratePreferences = useAppStore((s) => s.hydratePreferences);
   const [initError, setInitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    hydratePreferences();
+  }, [hydratePreferences]);
 
   useEffect(() => {
     getDatabase()
@@ -25,13 +34,25 @@ export default function App() {
 
   if (initError) {
     return (
-      <View style={styles.center}>
+      <View
+        style={[
+          styles.center,
+          { backgroundColor: readableColor("bg0", readabilityMode) },
+        ]}
+      >
         <StatusBar style="light" />
-        <Text style={[typography.h3, { color: colors.danger }]}>
+        <Text style={[typography.h3, { color: readableColor("danger", readabilityMode) }]}>
           Database error
         </Text>
         <Text
-          style={[typography.bodySmall, { marginTop: 8, textAlign: "center" }]}
+          style={[
+            typography.bodySmall,
+            {
+              marginTop: 8,
+              textAlign: "center",
+              color: readableColor("text1", readabilityMode),
+            },
+          ]}
         >
           {initError}
         </Text>
@@ -39,11 +60,19 @@ export default function App() {
     );
   }
 
-  if (!isDbReady) {
+  if (!isDbReady || !arePrefsReady) {
     return (
-      <View style={styles.center}>
+      <View
+        style={[
+          styles.center,
+          { backgroundColor: readableColor("bg0", readabilityMode) },
+        ]}
+      >
         <StatusBar style="light" />
-        <ActivityIndicator size="large" color={colors.accent} />
+        <ActivityIndicator
+          size="large"
+          color={readableColor("accent", readabilityMode)}
+        />
       </View>
     );
   }
@@ -56,12 +85,12 @@ export default function App() {
           theme={{
             dark: true,
             colors: {
-              primary: colors.accent,
-              background: colors.bg0,
-              card: colors.bg1,
-              text: colors.text0,
-              border: colors.border1,
-              notification: colors.accent,
+              primary: readableColor("accent", readabilityMode),
+              background: readableColor("bg0", readabilityMode),
+              card: readableColor("bg1", readabilityMode),
+              text: readableColor("text0", readabilityMode),
+              border: readableColor("border1", readabilityMode),
+              notification: readableColor("accent", readabilityMode),
             },
             fonts: {
               regular: { fontFamily: "System", fontWeight: "400" },

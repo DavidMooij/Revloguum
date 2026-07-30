@@ -9,7 +9,7 @@ const fontFamily = Platform.select({
 
 export const typeScale = {
   micro: 9,
-  overline: 10,
+  overline: 11,
   caption: 11,
   captionLarge: 12,
   bodySmall: 13,
@@ -76,7 +76,7 @@ export const typography = StyleSheet.create({
     fontWeight: '500',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
-    color: colors.text2,
+    color: colors.text1,
   },
   overline: {
     fontFamily,
@@ -84,7 +84,7 @@ export const typography = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
-    color: colors.text2,
+    color: colors.text1,
   },
   mono: {
     fontFamily: Platform.select({ ios: 'Courier New', android: 'monospace' }),

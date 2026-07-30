@@ -12,7 +12,7 @@ export const colors = {
 
   text0: "#F2F2F5",
   text1: "#9898A8",
-  text2: "#5A5A6A",
+  text2: "#7A7A8D",
   text3: "#38383F",
 
   accent: "#8B5CF6",

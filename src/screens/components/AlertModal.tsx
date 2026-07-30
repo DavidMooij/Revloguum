@@ -15,8 +15,15 @@ import Animated, {
 } from "react-native-reanimated";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
+import {
+  readableColor,
+  readableLineHeight,
+  readableSize,
+  readableTouchSize,
+} from "../../theme/readability";
 import { spacing, radius } from "../../theme/spacing";
 import { typography, typeScale } from "../../theme/typography";
+import { useAppStore } from "../../store/appStore";
 
 const { width } = Dimensions.get("window");
 
@@ -48,6 +55,7 @@ export default function AlertModal({
   onClose,
   children,
 }: Props) {
+  const readabilityMode = useAppStore((s) => s.readabilityMode);
   const scale = useSharedValue(0.85);
   const opacity = useSharedValue(0);
 
@@ -73,18 +81,18 @@ export default function AlertModal({
   const variantStyle = (variant: AlertAction["variant"] = "secondary") => ({
     bg: {
       primary: colors.accent,
-      secondary: colors.bg3,
+      secondary: readableColor("bg3", readabilityMode),
       danger: colors.dangerMuted,
     }[variant],
     border: {
       primary: colors.accent,
-      secondary: colors.border1,
+      secondary: readableColor("border1", readabilityMode),
       danger: colors.danger,
     }[variant],
     text: {
       primary: colors.white,
-      secondary: colors.text0,
-      danger: colors.dangerText,
+      secondary: readableColor("text0", readabilityMode),
+      danger: readableColor("dangerText", readabilityMode),
     }[variant],
   });
 
@@ -106,22 +114,56 @@ export default function AlertModal({
             <View
               style={[
                 styles.iconWrap,
-                { borderColor: iconColor ?? colors.border2 },
+                {
+                  borderColor: iconColor ?? readableColor("border2", readabilityMode),
+                  backgroundColor: readableColor("bg3", readabilityMode),
+                  width: readableTouchSize(64, readabilityMode, 6),
+                  height: readableTouchSize(64, readabilityMode, 6),
+                  borderRadius: readableTouchSize(32, readabilityMode, 3),
+                },
               ]}
             >
               <FontAwesome5
                 name={icon}
-                size={24}
-                color={iconColor ?? colors.text1}
+                size={readableSize(24, readabilityMode, 2)}
+                color={iconColor ?? readableColor("text1", readabilityMode)}
               />
             </View>
           )}
 
-          <Text style={styles.title}>{title}</Text>
-          {message ? <Text style={styles.message}>{message}</Text> : null}
+          <Text
+            style={[
+              styles.title,
+              {
+                color: readableColor("text0", readabilityMode),
+                fontSize: readableSize(typeScale.titleMedium, readabilityMode, 2),
+              },
+            ]}
+          >
+            {title}
+          </Text>
+          {message ? (
+            <Text
+              style={[
+                styles.message,
+                {
+                  color: readableColor("text1", readabilityMode),
+                  fontSize: readableSize(typeScale.bodyMedium, readabilityMode, 1),
+                  lineHeight: readableLineHeight(20, readabilityMode, 3),
+                },
+              ]}
+            >
+              {message}
+            </Text>
+          ) : null}
           {children}
 
-          <View style={styles.divider} />
+          <View
+            style={[
+              styles.divider,
+              { backgroundColor: readableColor("border0", readabilityMode) },
+            ]}
+          />
 
           <View
             style={[styles.actions, actions.length === 2 && styles.actionsRow]}
@@ -134,7 +176,11 @@ export default function AlertModal({
                   style={[
                     styles.btn,
                     actions.length === 2 && styles.btnHalf,
-                    { backgroundColor: v.bg, borderColor: v.border },
+                    {
+                      backgroundColor: v.bg,
+                      borderColor: v.border,
+                      minHeight: readableTouchSize(52, readabilityMode, 4),
+                    },
                     action.disabled && styles.btnDisabled,
                   ]}
                   onPress={() => {

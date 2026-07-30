@@ -489,6 +489,8 @@
     "networkAccessHint": "Keine Netzwerkberechtigungen angefordert",
     "analytics": "Analyse & Telemetrie",
     "analyticsHint": "Vollständig deaktiviert — kein Tracking",
+    "clearViewMode": "Klare Sicht",
+    "clearViewModeHint": "Hellere Texte, größere Schrift und ruhigerer Kontrast für besseres Lesen",
     "hapticFeedback": "Haptisches Feedback",
     "language": "Sprache",
     "languageHint": "App-Sprache",

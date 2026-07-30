@@ -491,6 +491,8 @@
     "networkAccessHint": "Zero network permissions requested",
     "analytics": "Analytics & telemetry",
     "analyticsHint": "Completely disabled — no tracking",
+    "clearViewMode": "Clear View mode",
+    "clearViewModeHint": "Brighter text, larger type and calmer contrast for easier reading",
     "hapticFeedback": "Haptic feedback",
     "language": "Language",
     "languageHint": "App language",

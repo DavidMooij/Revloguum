@@ -30,6 +30,11 @@ import { useAppStore } from "../../store/appStore";
 import { getDatabase } from "../../data/db/database";
 import { SQLiteVehicleRepo } from "../../data/repositories/SQLiteVehicleRepo";
 import { haptic, setHapticsEnabled } from "@/utils/haptics";
+import {
+  readableColor,
+  readableLineHeight,
+  readableSize,
+} from "../../theme/readability";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -59,29 +64,74 @@ function SettingsRow({
   right,
   danger,
 }: SettingsRowProps) {
+  const readabilityMode = useAppStore((s) => s.readabilityMode);
+
   return (
     <TouchableOpacity
-      style={styles.row}
+      style={[styles.row, readabilityMode && styles.rowReadable]}
       onPress={onPress}
       activeOpacity={onPress ? 0.7 : 1}
       disabled={!onPress}
     >
-      <View style={[styles.rowIcon, danger && styles.rowIconDanger]}>
+      <View
+        style={[
+          styles.rowIcon,
+          danger && styles.rowIconDanger,
+          {
+            backgroundColor: danger
+              ? readableColor("dangerMuted", readabilityMode)
+              : readableColor("bg3", readabilityMode),
+          },
+        ]}
+      >
         <Icon
           name={icon}
           size={14}
-          color={danger ? colors.dangerText : colors.text1}
+          color={
+            danger
+              ? readableColor("dangerText", readabilityMode)
+              : readableColor("text1", readabilityMode)
+          }
         />
       </View>
       <View style={styles.rowContent}>
-        <Text style={[styles.rowLabel, danger && styles.rowLabelDanger]}>
+        <Text
+          style={[
+            styles.rowLabel,
+            danger && styles.rowLabelDanger,
+            {
+              color: danger
+                ? readableColor("dangerText", readabilityMode)
+                : readableColor("text0", readabilityMode),
+              fontSize: readableSize(typeScale.body, readabilityMode, 1),
+              lineHeight: readableLineHeight(22, readabilityMode, 2),
+            },
+          ]}
+        >
           {label}
         </Text>
-        {sublabel ? <Text style={styles.rowSub}>{sublabel}</Text> : null}
+        {sublabel ? (
+          <Text
+            style={[
+              styles.rowSub,
+              {
+                color: readableColor("text1", readabilityMode),
+                fontSize: readableSize(typeScale.captionLarge, readabilityMode, 1),
+                lineHeight: readableLineHeight(16, readabilityMode, 3),
+              },
+            ]}
+          >
+            {sublabel}
+          </Text>
+        ) : null}
       </View>
       {right ??
         (onPress ? (
-          <Icon name="chevron-right" size={11} color={colors.text3} />
+          <Icon
+            name="chevron-right"
+            size={readableSize(11, readabilityMode, 1)}
+            color={readableColor("text2", readabilityMode)}
+          />
         ) : null)}
     </TouchableOpacity>
   );
@@ -102,6 +152,8 @@ export default function SettingsScreen() {
   const { exportDatabase, shareExportFile, importDatabase, clearAllData } =
     useExport();
   const setVehicles = useAppStore((s) => s.setVehicles);
+  const readabilityMode = useAppStore((s) => s.readabilityMode);
+  const setReadabilityMode = useAppStore((s) => s.setReadabilityMode);
   const [aboutVisible, setAboutVisible] = useState(false);
   const [hapticsOn, setHapticsOn] = useState(true);
 
@@ -269,13 +321,33 @@ export default function SettingsScreen() {
         </Text>
         <View style={styles.section}>
           <SettingsRow
+            icon="eye"
+            label={t("settings.clearViewMode")}
+            sublabel={t("settings.clearViewModeHint")}
+            right={
+              <Switch
+                value={readabilityMode}
+                onValueChange={setReadabilityMode}
+                trackColor={{
+                  false: readableColor("bg4", readabilityMode),
+                  true: readableColor("accent", readabilityMode),
+                }}
+                thumbColor={colors.white}
+              />
+            }
+          />
+          <Divider />
+          <SettingsRow
             icon="mobile-alt"
             label={t("settings.hapticFeedback")}
             right={
               <Switch
                 value={hapticsOn}
                 onValueChange={toggleHaptics}
-                trackColor={{ false: colors.bg4, true: colors.accent }}
+                trackColor={{
+                  false: readableColor("bg4", readabilityMode),
+                  true: readableColor("accent", readabilityMode),
+                }}
                 thumbColor={colors.white}
               />
             }
@@ -408,7 +480,7 @@ export default function SettingsScreen() {
             value={keyInput}
             onChangeText={setKeyInput}
             placeholder={t("settings.passwordPlaceholder")}
-            placeholderTextColor={colors.text3}
+            placeholderTextColor={readableColor("text2", readabilityMode)}
             autoCapitalize="none"
             autoCorrect={false}
             secureTextEntry
@@ -464,7 +536,7 @@ export default function SettingsScreen() {
             value={keyInput}
             onChangeText={setKeyInput}
             placeholder={t("settings.passwordPlaceholder")}
-            placeholderTextColor={colors.text3}
+            placeholderTextColor={readableColor("text2", readabilityMode)}
             autoCapitalize="none"
             autoCorrect={false}
             secureTextEntry
@@ -509,7 +581,7 @@ export default function SettingsScreen() {
             value={deleteInput}
             onChangeText={setDeleteInput}
             placeholder={t("settings.deleteAllDataConfirmPlaceholder")}
-            placeholderTextColor={colors.text3}
+            placeholderTextColor={readableColor("text2", readabilityMode)}
             autoCapitalize="characters"
             autoCorrect={false}
           />
@@ -582,6 +654,9 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.md,
     minHeight: 56,
+  },
+  rowReadable: {
+    minHeight: 62,
   },
   rowIcon: {
     width: 34,
