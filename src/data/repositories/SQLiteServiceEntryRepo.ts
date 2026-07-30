@@ -283,4 +283,17 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
     );
     return rows.map((r) => ({ dateTs: r.date_ts, cost: r.cost }));
   }
+
+  async getAllByTypeForVehicle(
+    vehicleId: string,
+    serviceTypeId: string,
+  ): Promise<ServiceEntry[]> {
+    const rows = await this.db.getAllAsync<EntryRow>(
+      `SELECT * FROM service_entries
+       WHERE vehicle_id = ? AND service_type_id = ?
+       ORDER BY odometer_km ASC, date_ts ASC;`,
+      [vehicleId, serviceTypeId],
+    );
+    return rows.map(rowToEntry);
+  }
 }

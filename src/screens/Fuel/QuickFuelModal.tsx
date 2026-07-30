@@ -29,6 +29,7 @@ interface Props {
   }) => Promise<void>;
   vehicle: Vehicle;
   lastEntry: FuelEntry | null;
+  editEntry?: FuelEntry | null;
 }
 
 const { width } = Dimensions.get("window");
@@ -205,6 +206,7 @@ export default function QuickFuelModal({
   onSave,
   vehicle,
   lastEntry,
+  editEntry,
 }: Props) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -214,6 +216,7 @@ export default function QuickFuelModal({
   const [pricePerLiter, setPricePerLiter] = useState(0);
   const [priceMode, setPriceMode] = useState<PriceMode>("total");
   const [totalInput, setTotalInput] = useState("");
+  const [notes, setNotes] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const defaultLiters = vehicle.defaultTankLiters ?? 15;
@@ -227,17 +230,29 @@ export default function QuickFuelModal({
   useEffect(() => {
     if (visible) {
       setStep(0);
-      setOdometer("");
-      setLiters(defaultLiters);
-      const initialPrice = Math.round(defaultPrice * 100) / 100;
-      setPricePerLiter(initialPrice);
-      setPriceMode("total");
-      setTotalInput(
-        (Math.round(defaultLiters * initialPrice * 100) / 100).toFixed(2),
-      );
+      if (editEntry) {
+        setOdometer(String(editEntry.odometerKm));
+        setLiters(editEntry.liters);
+        const perLiter =
+          editEntry.liters > 0 ? editEntry.cost / editEntry.liters : defaultPrice;
+        setPricePerLiter(Math.round(perLiter * 100) / 100);
+        setPriceMode("total");
+        setTotalInput(editEntry.cost.toFixed(2));
+        setNotes(editEntry.notes);
+      } else {
+        setOdometer("");
+        setLiters(defaultLiters);
+        const initialPrice = Math.round(defaultPrice * 100) / 100;
+        setPricePerLiter(initialPrice);
+        setPriceMode("total");
+        setTotalInput(
+          (Math.round(defaultLiters * initialPrice * 100) / 100).toFixed(2),
+        );
+        setNotes(null);
+      }
       setSaving(false);
     }
-  }, [visible]);
+  }, [visible, editEntry]);
 
   const totalCost =
     priceMode === "total"
@@ -258,13 +273,13 @@ export default function QuickFuelModal({
         odometerKm: parseInt(odometer, 10),
         liters: Math.round(liters * 10) / 10,
         cost: totalCost,
-        notes: null,
+        notes,
       });
       onClose();
     } finally {
       setSaving(false);
     }
-  }, [odometer, liters, totalCost, onSave, onClose]);
+  }, [odometer, liters, totalCost, notes, onSave, onClose]);
 
   const adjustLiters = (delta: number) => {
     haptic.selection();
@@ -278,17 +293,21 @@ export default function QuickFuelModal({
   };
 
   const enteredOdometer = parseInt(odometer || "0", 10);
-  const canNext = odometer !== "" && enteredOdometer >= vehicle.currentOdometer;
+  const canNext = editEntry
+    ? odometer !== ""
+    : odometer !== "" && enteredOdometer >= vehicle.currentOdometer;
   const goNext = () => {
     if (!canNext) {
       haptic.error();
 
-      Alert.alert(
-        t("fuel.invalidOdometerTitle"),
-        t("fuel.invalidOdometerMessage", {
-          km: vehicle.currentOdometer.toLocaleString(),
-        }),
-      );
+      if (!editEntry) {
+        Alert.alert(
+          t("fuel.invalidOdometerTitle"),
+          t("fuel.invalidOdometerMessage", {
+            km: vehicle.currentOdometer.toLocaleString(),
+          }),
+        );
+      }
 
       return;
     }

@@ -234,6 +234,7 @@
   "vehicles": {
     "noVehicle": "Noch kein Fahrzeug",
     "addFirstVehicle": "Tippe + um dein erstes Fahrzeug hinzuzufügen",
+    "addAnotherVehicle": "Füge ein weiteres Fahrzeug zu deiner Garage hinzu",
     "addVehicle": "Fahrzeug hinzufügen",
     "editVehicle": "Fahrzeug bearbeiten",
     "deleteVehicle": "Fahrzeug löschen?",
@@ -284,6 +285,8 @@
     "vehicleTypeCar": "Auto",
     "vehicleTypeOther": "Fahrzeug",
     "fuel": "Tanken",
+    "fuelHistory": "Tank-Historie",
+    "analytics": "Auswertung",
     "costAndConsumption": "Kosten & Verbrauch",
     "costAndCharts": "Kosten & Diagramme"
   },
@@ -439,6 +442,11 @@
     "monthlyKmChart": "KM PRO MONAT",
     "monthlyTotalCostChart": "GESAMTKOSTEN PRO MONAT",
     "serviceTypeCostChart": "KOSTEN NACH SERVICE-TYP",
+    "tyreSection": "REIFEN",
+    "tyreChangeCount": "Wechsel",
+    "avgTyreLife": "Ø Laufleistung",
+    "tyreSincePrev": "+{{km}} km",
+    "tyreFirstRecord": "Erster Eintrag",
     "km": "km"
   },
   "settings": {

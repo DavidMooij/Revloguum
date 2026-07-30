@@ -24,6 +24,7 @@ import ScreenHeader from "../components/ScreenHeader";
 import LineChart from "./components/charts/LineChart";
 import BarChart from "./components/charts/BarChart";
 import DonutChart from "./components/charts/DonutChart";
+import TyreAnalysisSection from "./components/stats/TyreAnalysisSection";
 import { useVehicleStats } from "../../hooks/useVehicleStats";
 
 type Props = NativeStackScreenProps<RootStackParamList, "VehicleStats">;
@@ -62,6 +63,7 @@ export default function VehicleStatsScreen() {
     monthlyFuelCostBarData,
     monthlyTotalCostBarData,
     monthlyKmLineData,
+    tyreData,
   } = stats;
 
   const metrics = [
@@ -269,6 +271,8 @@ export default function VehicleStatsScreen() {
             />
           </ChartCard>
         )}
+
+        {tyreData.length >= 1 && <TyreAnalysisSection data={tyreData} />}
       </ScrollView>
 
       <Modal

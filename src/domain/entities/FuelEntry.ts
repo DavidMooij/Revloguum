@@ -11,6 +11,8 @@ export interface FuelEntry {
 
 export type CreateFuelEntryInput = Omit<FuelEntry, 'id' | 'createdAt'>;
 
+export type UpdateFuelEntryInput = Partial<Omit<FuelEntry, 'id' | 'vehicleId' | 'createdAt'>>;
+
 export interface FuelFilter {
   vehicleId?: string;
   dateFrom?: number;

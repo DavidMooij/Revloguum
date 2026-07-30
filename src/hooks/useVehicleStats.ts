@@ -102,6 +102,13 @@ function buildMonthlyKmData(fuelEntries: any[], monthCount: number): LineChartPo
   return points;
 }
 
+export interface TyreDataPoint {
+  dateTs: number;
+  odometerKm: number;
+  kmSincePrev: number | null;
+  notes: string | null;
+}
+
 export interface VehicleStatsData {
   moto: any;
   count: number;
@@ -117,6 +124,7 @@ export interface VehicleStatsData {
   monthlyFuelCostBarData: BarChartData[];
   monthlyTotalCostBarData: BarChartData[];
   monthlyKmLineData: LineChartPoint[];
+  tyreData: TyreDataPoint[];
 }
 
 export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
@@ -145,6 +153,7 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
           serviceTypeCosts,
           allServiceDates,
           allVehicleCostDates,
+          tyreEntries,
         ] = await Promise.all([
           serviceRepo.getCountForVehicle(vehicleId),
           serviceRepo.getTotalCostForVehicle(vehicleId),
@@ -155,6 +164,7 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
           serviceRepo.getCostByServiceType(vehicleId),
           serviceRepo.getAllWithDates(vehicleId),
           costRepo.getAllWithDates(vehicleId),
+          serviceRepo.getAllByTypeForVehicle(vehicleId, "sys_tyre"),
         ]);
 
         const fuelEntries = [...allFuel].reverse();
@@ -229,6 +239,13 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
 
         const monthlyKmLineData = buildMonthlyKmData(fuelEntries, 6);
 
+        const tyreData: TyreDataPoint[] = tyreEntries.map((e, i) => ({
+          dateTs: e.dateTs,
+          odometerKm: e.odometerKm,
+          kmSincePrev: i > 0 ? e.odometerKm - tyreEntries[i - 1].odometerKm : null,
+          notes: e.notes,
+        }));
+
         setData({
           moto,
           count,
@@ -244,6 +261,7 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
           monthlyFuelCostBarData,
           monthlyTotalCostBarData,
           monthlyKmLineData,
+          tyreData,
         });
       })();
     }, [vehicleId]),

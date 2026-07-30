@@ -1,12 +1,13 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
   View,
   Text,
-  ScrollView,
   StyleSheet,
-  RefreshControl,
-  TouchableOpacity,
+  FlatList,
+  Dimensions,
+  type NativeSyntheticEvent,
+  type NativeScrollEvent,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
@@ -18,37 +19,57 @@ import { spacing } from "../../theme/spacing";
 import { useVehicles } from "../../hooks/useVehicles";
 import { getDatabase } from "../../data/db/database";
 import { SQLiteServiceEntryRepo } from "../../data/repositories/SQLiteServiceEntryRepo";
+import { SQLiteFuelRepo } from "../../data/repositories/SQLiteFuelRepo";
+import { SQLiteVehicleCostRepo } from "../../data/repositories/SQLiteVehicleCostRepo";
 import { formatDate } from "../../utils/date";
-import VehicleCard from "./components/VehicleCard";
-import EmptyState from "../components/EmptyState";
-import { FontAwesome5 as Icon } from "@expo/vector-icons";
+import VehicleGarageCard from "./components/VehicleGarageCard";
+import AddVehicleCard from "./components/AddVehicleCard";
+import type { Vehicle } from "../../domain/entities/Vehicle";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+const ADD_CARD_ID = "__add_vehicle__";
+
+interface VehicleStats {
+  count: number;
+  lastDate: string | null;
+  fuelLiters: number;
+  otherCost: number;
+}
 
 export default function VehicleScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
-  const { vehicles, refresh } = useVehicles();
-  const [stats, setStats] = useState<
-    Record<string, { count: number; lastDate: string | null }>
-  >({});
-  const [refreshing, setRefreshing] = useState(false);
+  const { vehicles } = useVehicles();
+  const [stats, setStats] = useState<Record<string, VehicleStats>>({});
+  const [activeIndex, setActiveIndex] = useState(0);
+  const listRef = useRef<FlatList>(null);
+
+  const pages = [...vehicles, { id: ADD_CARD_ID } as Vehicle];
 
   const loadStats = useCallback(async () => {
     if (vehicles.length === 0) return;
     const db = await getDatabase();
-    const repo = new SQLiteServiceEntryRepo(db);
-    const results: typeof stats = {};
+    const serviceRepo = new SQLiteServiceEntryRepo(db);
+    const fuelRepo = new SQLiteFuelRepo(db);
+    const costRepo = new SQLiteVehicleCostRepo(db);
+    const results: Record<string, VehicleStats> = {};
     await Promise.all(
       vehicles.map(async (m) => {
-        const [count, last] = await Promise.all([
-          repo.getCountForVehicle(m.id),
-          repo.getLastForVehicle(m.id),
+        const [count, last, fuelStats, otherCost] = await Promise.all([
+          serviceRepo.getCountForVehicle(m.id),
+          serviceRepo.getLastForVehicle(m.id),
+          fuelRepo.getStats({ vehicleId: m.id }),
+          costRepo.getTotalCost(m.id),
         ]);
         results[m.id] = {
           count,
           lastDate: last ? formatDate(last.dateTs) : null,
+          fuelLiters: fuelStats.totalLiters,
+          otherCost,
         };
       }),
     );
@@ -61,67 +82,75 @@ export default function VehicleScreen() {
     }, [loadStats]),
   );
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await refresh();
-    await loadStats();
-    setRefreshing(false);
-  }, [refresh, loadStats]);
+  const onScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+      if (index !== activeIndex) setActiveIndex(index);
+    },
+    [activeIndex],
+  );
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={typography.h2}>{t('vehicles.garageTitle')}</Text>
+          <Text style={typography.h2}>{t("vehicles.garageTitle")}</Text>
           <Text style={typography.bodySmall}>
-            {t('vehicles.garageSubtitle', { count: vehicles.length })}
+            {t("vehicles.garageSubtitle", { count: vehicles.length })}
           </Text>
         </View>
-        <TouchableOpacity
-          style={styles.addBtn}
-          onPress={() => navigation.navigate("AddVehicle", {})}
-          hitSlop={8}
-        >
-          <Icon name="plus" size={14} color={colors.white} />
-        </TouchableOpacity>
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.accent}
-          />
-        }
-      >
-        {vehicles.length === 0 ? (
-          <EmptyState
-            icon="motorcycle"
-            title={t("vehicles.noVehicle")}
-            subtitle={t("vehicles.addFirstVehicle")}
-          />
-        ) : (
-          vehicles.map((moto) => (
-            <VehicleCard
-              key={moto.id}
-              vehicle={moto}
-              onPress={() =>
-                navigation.navigate("VehicleDetail", {
-                  vehicleId: moto.id,
-                })
-              }
-              onEdit={() =>
-                navigation.navigate("AddVehicle", { editId: moto.id })
-              }
-              serviceCount={stats[moto.id]?.count ?? 0}
-              lastServiceDate={stats[moto.id]?.lastDate ?? null}
+      <FlatList
+        ref={listRef}
+        data={pages}
+        keyExtractor={(item) => item.id}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={onScroll}
+        getItemLayout={(_, index) => ({
+          length: SCREEN_WIDTH,
+          offset: SCREEN_WIDTH * index,
+          index,
+        })}
+        renderItem={({ item }) =>
+          item.id === ADD_CARD_ID ? (
+            <AddVehicleCard
+              width={SCREEN_WIDTH}
+              hasVehicles={vehicles.length > 0}
+              onPress={() => navigation.navigate("AddVehicle", {})}
             />
-          ))
-        )}
-      </ScrollView>
+          ) : (
+            <VehicleGarageCard
+              vehicle={item}
+              width={SCREEN_WIDTH}
+              serviceCount={stats[item.id]?.count ?? 0}
+              lastServiceDate={stats[item.id]?.lastDate ?? null}
+              totalFuelLiters={stats[item.id]?.fuelLiters ?? 0}
+              totalOtherCost={stats[item.id]?.otherCost ?? 0}
+              onEdit={() =>
+                navigation.navigate("AddVehicle", { editId: item.id })
+              }
+              onNavigate={(screen) =>
+                navigation.navigate(screen, { vehicleId: item.id })
+              }
+            />
+          )
+        }
+      />
+      {pages.length > 1 && (
+        <View
+          style={[styles.dots, { paddingBottom: insets.bottom + spacing.md }]}
+        >
+          {pages.map((p, i) => (
+            <View
+              key={p.id}
+              style={[styles.dot, i === activeIndex && styles.dotActive]}
+            />
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -137,13 +166,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   headerLeft: { flex: 1 },
-  addBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: colors.accent,
-    alignItems: "center",
+  dots: {
+    flexDirection: "row",
     justifyContent: "center",
+    alignItems: "center",
+    gap: 6,
+    paddingTop: spacing.md,
   },
-  scroll: { padding: spacing.lg, paddingBottom: 40 },
+  dot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: colors.bg3,
+  },
+  dotActive: { width: 22, backgroundColor: colors.accent },
 });

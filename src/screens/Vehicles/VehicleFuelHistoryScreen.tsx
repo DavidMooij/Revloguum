@@ -31,6 +31,7 @@ import EmptyState from "../components/EmptyState";
 import AlertModal from "../components/AlertModal";
 import QuickFuelModal from "../Fuel/QuickFuelModal";
 import LineChart, { LineChartPoint } from "./components/charts/LineChart";
+import type { FuelEntry } from "../../domain/entities/FuelEntry";
 
 type Props = NativeStackScreenProps<RootStackParamList, "VehicleFuelHistory">;
 
@@ -54,12 +55,15 @@ export default function VehicleFuelHistoryScreen() {
   const [fuelModal, setFuelModal] = useState(false);
   const [preset, setPreset] = useState<DateRangePreset>("all");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [actionTarget, setActionTarget] = useState<FuelEntry | null>(null);
+  const [editTarget, setEditTarget] = useState<FuelEntry | null>(null);
   const dateRange = useMemo(() => dateRangeFromPreset(preset), [preset]);
   const filter = useMemo(
     () => ({ vehicleId, dateFrom: dateRange.from, dateTo: dateRange.to }),
     [vehicleId, dateRange.from, dateRange.to],
   );
-  const { entries, stats, loading, deleteEntry, addEntry } = useFuel(filter);
+  const { entries, stats, loading, deleteEntry, addEntry, updateEntry } =
+    useFuel(filter);
 
   const chronological = [...entries].reverse();
 
@@ -165,7 +169,7 @@ export default function VehicleFuelHistoryScreen() {
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.entry}
-              onLongPress={() => setDeleteTarget(item.id)}
+              onLongPress={() => setActionTarget(item)}
               activeOpacity={0.8}
             >
               <View style={styles.entryIcon}>
@@ -204,6 +208,35 @@ export default function VehicleFuelHistoryScreen() {
         />
       )}
       <AlertModal
+        visible={!!actionTarget}
+        onClose={() => setActionTarget(null)}
+        icon="gas-pump"
+        iconColor={colors.accentText}
+        title={
+          actionTarget
+            ? t("fuel.litersDisplay", { liters: actionTarget.liters.toFixed(2) })
+            : ""
+        }
+        message={t("history.whatToDo")}
+        actions={[
+          {
+            label: t("common.edit"),
+            variant: "primary",
+            onPress: () => setEditTarget(actionTarget),
+          },
+          {
+            label: t("common.delete"),
+            variant: "danger",
+            onPress: () => setDeleteTarget(actionTarget?.id ?? null),
+          },
+          {
+            label: t("common.cancel"),
+            variant: "secondary",
+            onPress: () => {},
+          },
+        ]}
+      />
+      <AlertModal
         visible={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         icon="trash-alt"
@@ -227,21 +260,35 @@ export default function VehicleFuelHistoryScreen() {
       />
       {vehicle && (
         <QuickFuelModal
-          visible={fuelModal}
-          onClose={() => setFuelModal(false)}
-          onSave={async (data) => {
-            await addEntry({
-              vehicleId,
-              odometerKm: data.odometerKm,
-              liters: data.liters,
-              cost: data.cost,
-              notes: data.notes,
-              dateTs: Date.now(),
-            });
+          visible={fuelModal || !!editTarget}
+          editEntry={editTarget}
+          onClose={() => {
             setFuelModal(false);
+            setEditTarget(null);
+          }}
+          onSave={async (data) => {
+            if (editTarget) {
+              await updateEntry(editTarget.id, {
+                odometerKm: data.odometerKm,
+                liters: data.liters,
+                cost: data.cost,
+                notes: data.notes,
+              });
+            } else {
+              await addEntry({
+                vehicleId,
+                odometerKm: data.odometerKm,
+                liters: data.liters,
+                cost: data.cost,
+                notes: data.notes,
+                dateTs: Date.now(),
+              });
+            }
+            setFuelModal(false);
+            setEditTarget(null);
           }}
           vehicle={vehicle}
-          lastEntry={entries[0] ?? null}
+          lastEntry={editTarget ? null : (entries[0] ?? null)}
         />
       )}
     </View>

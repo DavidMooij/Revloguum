@@ -5,6 +5,7 @@ import { SQLiteFuelRepo } from "../data/repositories/SQLiteFuelRepo";
 import type {
   FuelEntry,
   CreateFuelEntryInput,
+  UpdateFuelEntryInput,
   FuelFilter,
   FuelStats,
 } from "../domain/entities/FuelEntry";
@@ -74,5 +75,27 @@ export function useFuel(filter: FuelFilter) {
     [load],
   );
 
-  return { entries, stats, loading, refresh: load, addEntry, deleteEntry };
+  const updateEntry = useCallback(
+    async (id: string, input: UpdateFuelEntryInput) => {
+      const db = await getDatabase();
+      const fuelRepo = new SQLiteFuelRepo(db);
+
+      await fuelRepo.update(id, input);
+
+      if (filter.vehicleId && input.odometerKm !== undefined) {
+        const vehicleRepo = new SQLiteVehicleRepo(db);
+        const vehicle = await vehicleRepo.getById(filter.vehicleId);
+        if (vehicle && input.odometerKm > vehicle.currentOdometer) {
+          await vehicleRepo.update(vehicle.id, {
+            currentOdometer: input.odometerKm,
+          });
+        }
+      }
+
+      await load();
+    },
+    [load, filter.vehicleId],
+  );
+
+  return { entries, stats, loading, refresh: load, addEntry, updateEntry, deleteEntry };
 }

@@ -1,5 +1,5 @@
 import type * as SQLite from 'expo-sqlite';
-import type { FuelEntry, CreateFuelEntryInput, FuelFilter, FuelStats } from '../../domain/entities/FuelEntry';
+import type { FuelEntry, CreateFuelEntryInput, UpdateFuelEntryInput, FuelFilter, FuelStats } from '../../domain/entities/FuelEntry';
 import { generateUUID } from '../../utils/uuid';
 
 export class SQLiteFuelRepo {
@@ -63,6 +63,19 @@ export class SQLiteFuelRepo {
       avgCostPerLiter: totalLiters > 0 ? totalCost / totalLiters : 0,
       avgConsumption:  kmRange > 0 ? (totalLiters / kmRange) * 100 : 0,
     };
+  }
+
+  async update(id: string, input: UpdateFuelEntryInput): Promise<void> {
+    const sets: string[] = [];
+    const params: SQLite.SQLiteBindValue[] = [];
+    if (input.dateTs !== undefined) { sets.push('date_ts = ?'); params.push(input.dateTs); }
+    if (input.odometerKm !== undefined) { sets.push('odometer_km = ?'); params.push(input.odometerKm); }
+    if (input.liters !== undefined) { sets.push('liters = ?'); params.push(input.liters); }
+    if (input.cost !== undefined) { sets.push('cost = ?'); params.push(input.cost); }
+    if (input.notes !== undefined) { sets.push('notes = ?'); params.push(input.notes ?? null); }
+    if (sets.length === 0) return;
+    params.push(id);
+    await this.db.runAsync(`UPDATE fuel_entries SET ${sets.join(', ')} WHERE id = ?;`, params);
   }
 
   async delete(id: string): Promise<void> {

@@ -235,6 +235,7 @@
     "title": "Vehicles",
     "noVehicle": "No vehicles yet",
     "addFirstVehicle": "Tap + to add your first vehicle",
+    "addAnotherVehicle": "Add another ride to your garage",
     "addVehicle": "Add Vehicle",
     "editVehicle": "Edit Vehicle",
     "deleteVehicle": "Delete Vehicle?",
@@ -285,6 +286,8 @@
     "vehicleTypeCar": "Car",
     "vehicleTypeOther": "Vehicle",
     "fuel": "Fuel",
+    "fuelHistory": "Tank history",
+    "analytics": "Analytics",
     "costAndConsumption": "Cost & consumption",
     "costAndCharts": "Cost & charts"
   },
@@ -441,6 +444,11 @@
     "monthlyKmChart": "KM RIDDEN PER MONTH",
     "monthlyTotalCostChart": "TOTAL COSTS PER MONTH",
     "serviceTypeCostChart": "COSTS BY SERVICE TYPE",
+    "tyreSection": "TYRES",
+    "tyreChangeCount": "Changes",
+    "avgTyreLife": "Ø Lifespan",
+    "tyreSincePrev": "+{{km}} km",
+    "tyreFirstRecord": "First record",
     "km": "km"
   },
   "settings": {

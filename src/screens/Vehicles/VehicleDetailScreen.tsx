@@ -31,13 +31,13 @@ import { SQLiteVehicleCostRepo } from "../../data/repositories/SQLiteVehicleCost
 import type { Vehicle } from "../../domain/entities/Vehicle";
 import {
   formatOdometer,
-  formatCost,
   formatVehicleName,
 } from "../../utils/format";
 import { formatDate } from "../../utils/date";
 import ScreenHeader from "../components/ScreenHeader";
 import { vehicleTypeIcon } from "@/utils/vehicleType";
 import EncryptedImage from "../components/EncryptedImage";
+import VehicleNavGrid from "./components/VehicleNavGrid";
 
 type Props = NativeStackScreenProps<RootStackParamList, "VehicleDetail">;
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -82,33 +82,6 @@ export default function VehicleDetailScreen() {
   );
 
   if (!vehicle) return null;
-
-  const navItems = [
-    {
-      label: t("history.title"),
-      icon: "history",
-      screen: "VehicleHistory" as const,
-      sub: `${stats.totalServices} ${t("costs.serviceEntries").toLowerCase()}`,
-    },
-    {
-      label: t("vehicles.fuel"),
-      icon: "gas-pump",
-      screen: "VehicleFuelHistory" as const,
-      sub: `${stats.totalFuelLiters.toFixed(0)} L total`,
-    },
-    {
-      label: t("costs.title"),
-      icon: "receipt",
-      screen: "VehicleCosts" as const,
-      sub: formatCost(stats.totalOtherCost),
-    },
-    {
-      label: t("stats.title"),
-      icon: "chart-bar",
-      screen: "VehicleStats" as const,
-      sub: t("vehicles.costAndCharts"),
-    },
-  ];
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -155,25 +128,12 @@ export default function VehicleDetailScreen() {
           )}
         </View>
 
-        <View style={styles.navGrid}>
-          {navItems.map((item) => (
-            <TouchableOpacity
-              key={item.screen}
-              style={styles.navCard}
-              onPress={() => navigation.navigate(item.screen, { vehicleId })}
-              activeOpacity={0.75}
-            >
-              <View style={styles.navIcon}>
-                <Icon name={item.icon} size={18} color={colors.accent} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.navLabel}>{item.label}</Text>
-                <Text style={styles.navSub}>{item.sub}</Text>
-              </View>
-              <Icon name="chevron-right" size={11} color={colors.text3} />
-            </TouchableOpacity>
-          ))}
-        </View>
+        <VehicleNavGrid
+          totalServices={stats.totalServices}
+          totalFuelLiters={stats.totalFuelLiters}
+          totalOtherCost={stats.totalOtherCost}
+          onNavigate={(screen) => navigation.navigate(screen, { vehicleId })}
+        />
       </View>
     </View>
   );
