@@ -6,10 +6,11 @@ import { migrateV3 } from './v3_costs_fuel';
 import { migrateV4 } from './v4_fuel_defaults';
 import { migrateV5 } from './v5_vehicle_type';
 import { migrateV6 } from './v6_serviceTypeTranslationKey';
+import { migrateV7 } from './v7_service_group';
 
 type Migration = (db: SQLite.SQLiteDatabase) => Promise<void>;
 
-const MIGRATIONS: Migration[] = [migrateV1, migrateV2, migrateV3, migrateV4, migrateV5, migrateV6];
+const MIGRATIONS: Migration[] = [migrateV1, migrateV2, migrateV3, migrateV4, migrateV5, migrateV6, migrateV7];
 
 export async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
   await db.execAsync(`

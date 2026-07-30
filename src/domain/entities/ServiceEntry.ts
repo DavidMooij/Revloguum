@@ -7,6 +7,7 @@ export interface ServiceEntry {
   cost: number | null;
   notes: string | null;
   imagePaths: string[]; 
+  groupId: string | null;
   createdAt: number;
   updatedAt: number;
 }
@@ -18,7 +19,10 @@ export interface ServiceEntryWithDetails extends ServiceEntry {
   vehicleDisplayName: string;
 }
 
-export type CreateServiceEntryInput = Omit<ServiceEntry, 'id' | 'createdAt' | 'updatedAt'>;
+export type CreateServiceEntryInput = Omit<
+  ServiceEntry,
+  'id' | 'createdAt' | 'updatedAt' | 'groupId'
+> & { groupId?: string | null };
 export type UpdateServiceEntryInput = Partial<Omit<ServiceEntry, 'id' | 'vehicleId' | 'createdAt' | 'updatedAt'>>;
 
 export interface ServiceEntryFilter {

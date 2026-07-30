@@ -284,8 +284,8 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
       await db.runAsync(
         `INSERT OR REPLACE INTO service_entries
            (id,vehicle_id,service_type_id,date_ts,odometer_km,cost,
-            notes,image_paths,created_at,updated_at)
-         VALUES (?,?,?,?,?,?,?,?,?,?);`,
+            notes,image_paths,group_id,created_at,updated_at)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?);`,
         [
           e.id,
           e.vehicle_id ?? e.vehicleId,
@@ -295,6 +295,7 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
           e.cost ?? null,
           e.notes ?? null,
           JSON.stringify(newPaths),
+          e.group_id ?? e.groupId ?? null,
           e.created_at ?? e.createdAt ?? Date.now(),
           e.updated_at ?? e.updatedAt ?? Date.now(),
         ],

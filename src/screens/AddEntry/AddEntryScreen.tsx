@@ -18,13 +18,16 @@ import type {
 import type { RootStackParamList } from "../../app/navigation/routes";
 import { colors } from "../../theme/colors";
 import { typography } from "../../theme/typography";
-import { spacing } from "../../theme/spacing";
+import { spacing, radius } from "../../theme/spacing";
 import { useServiceTypes } from "../../hooks/useServiceTypes";
 import { useServiceEntryActions } from "../../hooks/useServiceHistory";
 import { useVehicles } from "../../hooks/useVehicles";
 import { getDatabase } from "../../data/db/database";
 import { SQLiteServiceEntryRepo } from "../../data/repositories/SQLiteServiceEntryRepo";
-import ServiceTypePicker from "./components/ServiceTypePicker";
+import { generateUUID } from "../../utils/uuid";
+import ServiceBlockEditor, {
+  type ServiceBlock,
+} from "./components/ServiceBlockEditor";
 import DatePickerField from "./components/DatePickerField";
 import TextInputField from "../components/TextInputField";
 import PrimaryButton from "../components/PrimaryButton";
@@ -47,18 +50,18 @@ export default function AddEntryScreen() {
   const { vehicleId, editEntryId } = route.params ?? {};
 
   const { serviceTypes } = useServiceTypes();
-  const { addEntry, updateEntry } = useServiceEntryActions();
+  const { addGroup, deleteGroup, deleteEntry } = useServiceEntryActions();
   const { vehicles, activeVehicleId } = useVehicles();
 
   const resolvedMotoId = vehicleId ?? activeVehicleId ?? vehicles[0]?.id ?? "";
 
-  const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null);
+  const [blocks, setBlocks] = useState<ServiceBlock[]>([
+    { key: generateUUID(), serviceTypeId: null, cost: "", notes: "" },
+  ]);
   const [dateTs, setDateTs] = useState(Date.now());
   const [odometer, setOdometer] = useState("");
-  const [cost, setCost] = useState("");
-  const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState<{ type?: string; odometer?: string }>(
+  const [errors, setErrors] = useState<{ blocks?: string; odometer?: string }>(
     {},
   );
   const [images, setImages] = useState<string[]>([]);
@@ -66,6 +69,24 @@ export default function AddEntryScreen() {
   const [cameraAlert, setCameraAlert] = useState(false);
   const isEditing = !!editEntryId;
   const [displayUris, setDisplayUris] = useState<Record<string, string>>({});
+  const [editGroupId, setEditGroupId] = useState<string | null>(null);
+  const [editVehicleId, setEditVehicleId] = useState<string | null>(null);
+
+  const updateBlock = useCallback(
+    (key: string, patch: Partial<ServiceBlock>) => {
+      setBlocks((prev) =>
+        prev.map((b) => (b.key === key ? { ...b, ...patch } : b)),
+      );
+    },
+    [],
+  );
+  const addBlock = () =>
+    setBlocks((prev) => [
+      ...prev,
+      { key: generateUUID(), serviceTypeId: null, cost: "", notes: "" },
+    ]);
+  const removeBlock = (key: string) =>
+    setBlocks((prev) => prev.filter((b) => b.key !== key));
 
   useEffect(() => {
     if (isEditing || !resolvedMotoId) return;
@@ -90,12 +111,31 @@ export default function AddEntryScreen() {
       const repo = new SQLiteServiceEntryRepo(db);
       const entry = await repo.getById(editEntryId);
       if (!entry) return;
-      setSelectedTypeId(entry.serviceTypeId);
       setDateTs(entry.dateTs);
       setOdometer(String(entry.odometerKm));
-      setCost(entry.cost != null ? String(entry.cost) : "");
-      setNotes(entry.notes ?? "");
       setImages(entry.imagePaths ?? []);
+      setEditVehicleId(entry.vehicleId);
+      if (entry.groupId) {
+        const groupItems = await repo.getGroup(entry.groupId);
+        setEditGroupId(entry.groupId);
+        setBlocks(
+          groupItems.map((g) => ({
+            key: g.id,
+            serviceTypeId: g.serviceTypeId,
+            cost: g.cost != null ? String(g.cost) : "",
+            notes: g.notes ?? "",
+          })),
+        );
+      } else {
+        setBlocks([
+          {
+            key: entry.id,
+            serviceTypeId: entry.serviceTypeId,
+            cost: entry.cost != null ? String(entry.cost) : "",
+            notes: entry.notes ?? "",
+          },
+        ]);
+      }
     })();
   }, [editEntryId]);
 
@@ -153,14 +193,15 @@ export default function AddEntryScreen() {
   };
 
   const validate = useCallback(() => {
-    const errs: typeof errors = {};
-    if (!selectedTypeId) errs.type = t("addEntry.errorTypeRequired");
+    const errs: { blocks?: string; odometer?: string } = {};
+    if (!blocks.some((b) => b.serviceTypeId))
+      errs.blocks = t("addEntry.errorTypeRequired");
     const odo = parseInt(odometer, 10);
     if (!odometer || isNaN(odo) || odo < 0)
       errs.odometer = t("addEntry.errorOdometerRequired");
     setErrors(errs);
     return Object.keys(errs).length === 0;
-  }, [selectedTypeId, odometer]);
+  }, [blocks, odometer, t]);
 
   const handleSave = useCallback(async () => {
     if (!validate()) {
@@ -171,28 +212,31 @@ export default function AddEntryScreen() {
     setSaving(true);
     try {
       const parsedOdo = parseInt(odometer, 10);
-      const parsedCost = cost.trim() ? parseFloat(cost) : null;
       const encryptedImages = await getEncryptedImages(images);
-      if (isEditing && editEntryId) {
-        await updateEntry(editEntryId, {
-          serviceTypeId: selectedTypeId!,
-          dateTs,
-          odometerKm: parsedOdo,
-          cost: parsedCost,
-          notes: notes.trim() || null,
-          imagePaths: encryptedImages,
-        });
-      } else {
-        await addEntry({
-          vehicleId: resolvedMotoId,
-          serviceTypeId: selectedTypeId!,
-          dateTs,
-          odometerKm: parsedOdo,
-          cost: parsedCost,
-          notes: notes.trim() || null,
-          imagePaths: encryptedImages,
-        });
+      const items = blocks
+        .filter((b) => b.serviceTypeId)
+        .map((b) => ({
+          serviceTypeId: b.serviceTypeId!,
+          cost: b.cost.trim() ? parseFloat(b.cost) : null,
+          notes: b.notes.trim() || null,
+        }));
+
+      if (isEditing) {
+        if (editGroupId) await deleteGroup(editGroupId);
+        else if (editEntryId) await deleteEntry(editEntryId);
       }
+
+      await addGroup(
+        {
+          vehicleId: isEditing
+            ? (editVehicleId ?? resolvedMotoId)
+            : resolvedMotoId,
+          dateTs,
+          odometerKm: parsedOdo,
+          imagePaths: encryptedImages,
+        },
+        items,
+      );
       haptic.success();
       navigation.goBack();
     } catch (e) {
@@ -204,18 +248,19 @@ export default function AddEntryScreen() {
   }, [
     validate,
     odometer,
-    cost,
-    notes,
-    selectedTypeId,
-    dateTs,
-    resolvedMotoId,
-    isEditing,
-    editEntryId,
-    addEntry,
-    updateEntry,
-    navigation,
+    blocks,
     images,
     getEncryptedImages,
+    isEditing,
+    editGroupId,
+    editEntryId,
+    editVehicleId,
+    resolvedMotoId,
+    dateTs,
+    addGroup,
+    deleteGroup,
+    deleteEntry,
+    navigation,
   ]);
 
   return (
@@ -237,48 +282,44 @@ export default function AddEntryScreen() {
           <Text style={[typography.caption, styles.sectionLabel]}>
             {t("entryDetail.service")}
           </Text>
-          <ServiceTypePicker
-            serviceTypes={serviceTypes}
-            selectedId={selectedTypeId}
-            onSelect={setSelectedTypeId}
-          />
-          {errors.type ? <Text style={styles.error}>{errors.type}</Text> : null}
 
-          <View style={styles.row}>
-            <View style={{ flex: 1 }}>
-              <TextInputField
-                label={t("addEntry.odometer")}
-                value={odometer}
-                onChangeText={setOdometer}
-                keyboardType="numeric"
-                placeholder={t("addEntry.placeholderOdometer")}
-                suffix="km"
-                error={errors.odometer}
+          <View style={styles.blocks}>
+            {blocks.map((block, i) => (
+              <ServiceBlockEditor
+                key={block.key}
+                index={i}
+                block={block}
+                serviceTypes={serviceTypes}
+                canRemove={blocks.length > 1}
+                onChange={(patch) => updateBlock(block.key, patch)}
+                onRemove={() => removeBlock(block.key)}
               />
-            </View>
-            <View style={{ flex: 1 }}>
-              <TextInputField
-                label={t("addEntry.cost")}
-                value={cost}
-                onChangeText={setCost}
-                keyboardType="decimal-pad"
-                placeholder={t("addEntry.placeholderCost")}
-                suffix="CHF"
-              />
-            </View>
+            ))}
           </View>
 
-          <DatePickerField value={dateTs} onChange={setDateTs} />
+          <TouchableOpacity
+            style={styles.addBlock}
+            onPress={addBlock}
+            activeOpacity={0.7}
+          >
+            <Icon name="plus" size={13} color={colors.accent} />
+            <Text style={styles.addBlockText}>{t("addEntry.addService")}</Text>
+          </TouchableOpacity>
+          {errors.blocks ? (
+            <Text style={styles.error}>{errors.blocks}</Text>
+          ) : null}
 
           <TextInputField
-            label={t("addEntry.notes")}
-            value={notes}
-            onChangeText={setNotes}
-            placeholder={t("addEntry.placeholderNotes")}
-            multiline
-            numberOfLines={3}
-            containerStyle={styles.notesField}
+            label={t("addEntry.odometer")}
+            value={odometer}
+            onChangeText={setOdometer}
+            keyboardType="numeric"
+            placeholder={t("addEntry.placeholderOdometer")}
+            suffix="km"
+            error={errors.odometer}
           />
+
+          <DatePickerField value={dateTs} onChange={setDateTs} />
 
           <View style={styles.imageSection}>
             <Text style={styles.imageLabel}>{t("addEntry.photos")}</Text>
@@ -365,6 +406,20 @@ const styles = StyleSheet.create({
   scroll: { padding: spacing.lg, gap: spacing.xl, paddingBottom: 40 },
   sectionLabel: { marginBottom: spacing.sm },
   row: { flexDirection: "row", gap: spacing.md },
+  blocks: { gap: spacing.md },
+  addBlock: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border1,
+    borderStyle: "dashed",
+    backgroundColor: colors.bg1,
+  },
+  addBlockText: { fontSize: 13, fontWeight: "600", color: colors.accent },
   error: { color: colors.dangerText, fontSize: 12, marginTop: spacing.xs },
   notesField: { minHeight: 100 },
   footer: {

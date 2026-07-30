@@ -18,6 +18,7 @@ interface EntryRow {
   cost: number | null;
   notes: string | null;
   image_paths: string;
+  group_id: string | null;
   created_at: number;
   updated_at: number;
 }
@@ -39,6 +40,7 @@ function rowToEntry(row: EntryRow): ServiceEntry {
     cost: row.cost,
     notes: row.notes,
     imagePaths: JSON.parse(row.image_paths ?? "[]"),
+    groupId: row.group_id ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -59,7 +61,7 @@ function rowToEntryWithDetails(
 const WITH_DETAILS_SELECT = `
   SELECT
     e.id, e.vehicle_id, e.service_type_id, e.date_ts, e.odometer_km,
-    e.cost, e.notes, e.image_paths, e.created_at, e.updated_at,
+    e.cost, e.notes, e.image_paths, e.group_id, e.created_at, e.updated_at,
     st.name AS service_type_name,
     st.icon AS service_type_icon,
     st.translation_key AS service_type_translation_key,
@@ -163,8 +165,8 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
     const now = Date.now();
     await this.db.runAsync(
       `INSERT INTO service_entries
-         (id, vehicle_id, service_type_id, date_ts, odometer_km, cost, notes, image_paths, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+         (id, vehicle_id, service_type_id, date_ts, odometer_km, cost, notes, image_paths, group_id, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       [
         id,
         input.vehicleId,
@@ -176,6 +178,7 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
         input.imagePaths
           ? JSON.stringify(input.imagePaths)
           : JSON.stringify([]),
+        input.groupId ?? null,
         now,
         now,
       ],
@@ -197,6 +200,7 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
       cost: input.cost ?? null,
       notes: input.notes ?? null,
       imagePaths: input.imagePaths ?? [],
+      groupId: input.groupId ?? null,
     };
   }
 
@@ -228,6 +232,10 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
       sets.push("image_paths = ?");
       values.push(JSON.stringify(input.imagePaths ?? []));
     }
+    if (input.groupId !== undefined) {
+      sets.push("group_id = ?");
+      values.push(input.groupId ?? null);
+    }
 
     if (sets.length === 0) return;
     sets.push("updated_at = ?");
@@ -240,6 +248,22 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
 
   async delete(id: string): Promise<void> {
     await this.db.runAsync("DELETE FROM service_entries WHERE id = ?;", [id]);
+  }
+
+  async getGroup(groupId: string): Promise<ServiceEntryWithDetails[]> {
+    const rows = await this.db.getAllAsync<EntryWithDetailsRow>(
+      `${WITH_DETAILS_SELECT}
+       WHERE e.group_id = ?
+       ORDER BY st.sort_order ASC, e.created_at ASC;`,
+      [groupId],
+    );
+    return rows.map(rowToEntryWithDetails);
+  }
+
+  async deleteGroup(groupId: string): Promise<void> {
+    await this.db.runAsync("DELETE FROM service_entries WHERE group_id = ?;", [
+      groupId,
+    ]);
   }
 
   async getTotalCostForVehicle(vehicleId: string): Promise<number> {

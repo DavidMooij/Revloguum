@@ -13,14 +13,23 @@ interface Props extends TextInputProps {
 
 export default function TextInputField({ label, error, containerStyle, suffix, ...rest }: Props) {
   const [focused, setFocused] = useState(false);
+  const isMultiline = !!rest.multiline;
 
   return (
     <View style={[styles.container, containerStyle]}>
       <Text style={[typography.label, styles.label]}>{label}</Text>
-      <View style={[styles.inputRow, focused && styles.focused, !!error && styles.errored]}>
+      <View
+        style={[
+          styles.inputRow,
+          isMultiline && styles.inputRowMultiline,
+          focused && styles.focused,
+          !!error && styles.errored,
+        ]}
+      >
         <TextInput
-          style={styles.input}
+          style={[styles.input, isMultiline && styles.inputMultiline]}
           placeholderTextColor={colors.text2}
+          textAlignVertical={isMultiline ? "top" : "center"}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           {...rest}
@@ -45,6 +54,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     height: 48,
   },
+  inputRowMultiline: {
+    height: undefined,
+    minHeight: 48,
+    alignItems: 'flex-start',
+    paddingVertical: spacing.sm + 2,
+  },
   focused: { borderColor: colors.accent },
   errored: { borderColor: colors.danger },
   input: {
@@ -52,6 +67,10 @@ const styles = StyleSheet.create({
     color: colors.text0,
     fontSize: 15,
     fontWeight: '400',
+  },
+  inputMultiline: {
+    paddingTop: 0,
+    lineHeight: 21,
   },
   suffix: {
     color: colors.text2,

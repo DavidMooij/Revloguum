@@ -19,12 +19,13 @@ import { spacing } from "../../theme/spacing";
 import {
   useServiceHistory,
   useServiceEntryActions,
+  groupServiceEntries,
+  type ServiceEntryGroup,
 } from "../../hooks/useServiceHistory";
 import { useServiceTypes } from "../../hooks/useServiceTypes";
 import { useAppStore } from "../../store/appStore";
 import { dateRangeFromPreset, type DateRangePreset } from "../../utils/date";
-import type { ServiceEntryWithDetails } from "../../domain/entities/ServiceEntry";
-import EntryListItem from "./components/EntryListItem";
+import ServiceGroupCard from "./components/ServiceGroupCard";
 import FilterBar from "./components/FilterBar";
 import FAB from "../components/FAB";
 import EmptyState from "../components/EmptyState";
@@ -45,7 +46,7 @@ export default function HistoryScreen() {
   const navigation = useNavigation<Nav>();
   const { activeVehicleId } = useAppStore();
   const { serviceTypes } = useServiceTypes();
-  const { deleteEntry } = useServiceEntryActions();
+  const { deleteEntry, deleteGroup } = useServiceEntryActions();
   const isFocused = useIsFocused();
 
   const [selectedTypeIds, setSelectedTypeIds] = useState<string[]>([]);
@@ -53,8 +54,8 @@ export default function HistoryScreen() {
   const [searchText, setSearchText] = useState("");
   const [actionAlert, setActionAlert] = useState<{
     visible: boolean;
-    entry: ServiceEntryWithDetails | null;
-  }>({ visible: false, entry: null });
+    group: ServiceEntryGroup | null;
+  }>({ visible: false, group: null });
 
   const dateRange = useMemo(
     () => dateRangeFromPreset(datePreset),
@@ -73,6 +74,8 @@ export default function HistoryScreen() {
   );
 
   const { entries, loading, loadingMore, refresh, loadMore } = useServiceHistory(filter);
+
+  const groups = useMemo(() => groupServiceEntries(entries), [entries]);
 
   useFocusEffect(
     useCallback(() => {
@@ -126,8 +129,8 @@ export default function HistoryScreen() {
         </View>
       ) : (
         <FlashList
-          data={entries}
-          keyExtractor={(item) => item.id}
+          data={groups}
+          keyExtractor={(item) => item.key}
           contentContainerStyle={styles.list}
           onEndReached={loadMore}
           onEndReachedThreshold={0.3}
@@ -144,14 +147,14 @@ export default function HistoryScreen() {
             ) : null
           }
           renderItem={({ item }) => (
-            <EntryListItem
-              entry={item}
+            <ServiceGroupCard
+              group={item}
               onPress={() =>
-                navigation.navigate("EntryDetail", { entryId: item.id })
+                navigation.navigate("EntryDetail", { entryId: item.items[0].id })
               }
               onLongPress={() => {
                 haptic.heavy();
-                setActionAlert({ visible: true, entry: item });
+                setActionAlert({ visible: true, group: item });
               }}
             />
           )}
@@ -168,19 +171,30 @@ export default function HistoryScreen() {
 
       <AlertModal
         visible={actionAlert.visible}
-        onClose={() => setActionAlert({ visible: false, entry: null })}
+        onClose={() => setActionAlert({ visible: false, group: null })}
         icon="wrench"
         iconColor={colors.accentText}
-        title={actionAlert.entry ? getLabel({ name: actionAlert.entry.serviceTypeName, translationKey: actionAlert.entry.translationKey }) : ""}
+        title={
+          actionAlert.group
+            ? actionAlert.group.items.length > 1
+              ? t("history.servicesCount", {
+                  count: actionAlert.group.items.length,
+                })
+              : getLabel({
+                  name: actionAlert.group.items[0].serviceTypeName,
+                  translationKey: actionAlert.group.items[0].translationKey,
+                })
+            : ""
+        }
         message={t('history.whatToDo')}
         actions={[
           {
             label: t('common.edit'),
             variant: "primary",
             onPress: () => {
-              if (actionAlert.entry) {
+              if (actionAlert.group) {
                 navigation.navigate("AddEntry", {
-                  editEntryId: actionAlert.entry.id,
+                  editEntryId: actionAlert.group.items[0].id,
                 });
               }
             },
@@ -189,10 +203,11 @@ export default function HistoryScreen() {
             label: t('common.delete'),
             variant: "danger",
             onPress: async () => {
-              if (actionAlert.entry) {
-                await deleteEntry(actionAlert.entry.id);
-                refresh();
-              }
+              const g = actionAlert.group;
+              if (!g) return;
+              if (g.groupId) await deleteGroup(g.groupId);
+              else await deleteEntry(g.items[0].id);
+              refresh();
             },
           },
           {

@@ -292,6 +292,8 @@
   },
   "history": {
     "title": "Service-Historie",
+    "servicesCount_one": "{{count}} Service",
+    "servicesCount_other": "{{count}} Services",
     "noEntries": "Keine Einträge gefunden",
     "noEntriesHint": "Filter anpassen oder neuen Serviceeintrag hinzufügen",
     "noServices": "Keine Services",
@@ -305,6 +307,7 @@
   },
   "entryDetail": {
     "service": "Service",
+    "servicesTitle": "Services",
     "date": "Datum",
     "odometer": "Kilometerstand",
     "cost": "Kosten",
@@ -317,6 +320,20 @@
   "addEntry": {
     "title": "Neuer Serviceeintrag",
     "editTitle": "Eintrag bearbeiten",
+    "serviceBlock": "Service {{index}}",
+    "addService": "Weiterer Service",
+    "noteExamples": {
+      "oil": "z.B. Motul 5W-40, 3,5 L",
+      "chain": "z.B. Kette gereinigt & geölt",
+      "wash": "z.B. Komplettwäsche & Wachs",
+      "tyre": "z.B. Michelin Road 6, vorne & hinten",
+      "brake": "z.B. Neue Bremsbeläge vorne, entlüftet",
+      "filter": "z.B. K&N Luftfilter ersetzt",
+      "spark": "z.B. NGK Iridium Zündkerzen x4",
+      "coolant": "z.B. Kühlmittel gespült & aufgefüllt",
+      "valve": "z.B. Ventilspiel geprüft & eingestellt",
+      "other": "z.B. Notizen zu diesem Service"
+    },
     "odometer": "Kilometerstand",
     "cost": "Kosten (optional)",
     "notes": "Notizen (optional)",

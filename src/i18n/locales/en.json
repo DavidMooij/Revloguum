@@ -293,6 +293,8 @@
   },
   "history": {
     "title": "Service History",
+    "servicesCount_one": "{{count}} service",
+    "servicesCount_other": "{{count}} services",
     "noEntries": "No entries found",
     "noEntriesHint": "Try adjusting your filters or add a new service entry",
     "noServices": "No Services",
@@ -306,6 +308,7 @@
   },
   "entryDetail": {
     "service": "Service",
+    "servicesTitle": "Services",
     "date": "Date",
     "odometer": "Odometer",
     "cost": "Cost",
@@ -318,6 +321,20 @@
   "addEntry": {
     "title": "New service entry",
     "editTitle": "Edit entry",
+    "serviceBlock": "Service {{index}}",
+    "addService": "Add service",
+    "noteExamples": {
+      "oil": "e.g. Motul 5W-40, 3.5L",
+      "chain": "e.g. Cleaned & lubed the chain",
+      "wash": "e.g. Full wash & wax",
+      "tyre": "e.g. Michelin Road 6, front & rear",
+      "brake": "e.g. New front pads, fluid bled",
+      "filter": "e.g. K&N air filter replaced",
+      "spark": "e.g. NGK Iridium plugs x4",
+      "coolant": "e.g. Coolant flushed & refilled",
+      "valve": "e.g. Valve clearance checked & adjusted",
+      "other": "e.g. Notes about this service"
+    },
     "odometer": "Odometer",
     "cost": "Cost (optional)",
     "notes": "Notes (optional)",

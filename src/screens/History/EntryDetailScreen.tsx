@@ -45,9 +45,10 @@ export default function EntryDetailScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Props["route"]>();
   const { entryId } = route.params;
-  const { deleteEntry } = useServiceEntryActions();
+  const { deleteEntry, deleteGroup } = useServiceEntryActions();
 
   const [entry, setEntry] = useState<ServiceEntryWithDetails | null>(null);
+  const [groupItems, setGroupItems] = useState<ServiceEntryWithDetails[]>([]);
   const [deleteAlert, setDeleteAlert] = useState(false);
 
   useFocusEffect(
@@ -57,12 +58,23 @@ export default function EntryDetailScreen() {
         const db = await getDatabase();
         const repo = new SQLiteServiceEntryRepo(db);
         const e = await repo.getById(entryId);
-        if (isActive) setEntry(e);
+        if (!isActive) return;
+        if (!e) {
+          navigation.goBack();
+          return;
+        }
+        setEntry(e);
+        if (e.groupId) {
+          const items = await repo.getGroup(e.groupId);
+          if (isActive) setGroupItems(items);
+        } else {
+          setGroupItems([e]);
+        }
       })();
       return () => {
         isActive = false;
       };
-    }, [entryId]),
+    }, [entryId, navigation]),
   );
 
   const openImage = (index: number) => {
@@ -76,11 +88,22 @@ export default function EntryDetailScreen() {
   if (!entry) return null;
 
   const serviceLabel = getLabel({ name: entry.serviceTypeName, translationKey: entry.translationKey });
+  const isGroup = !!entry.groupId && groupItems.length > 1;
+  const totalCost = (() => {
+    const costs = groupItems
+      .map((i) => i.cost)
+      .filter((c): c is number => c != null);
+    return costs.length ? costs.reduce((a, b) => a + b, 0) : null;
+  })();
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <ScreenHeader
-        title={serviceLabel}
+        title={
+          isGroup
+            ? t("history.servicesCount", { count: groupItems.length })
+            : serviceLabel
+        }
         subtitle={entry.vehicleDisplayName}
         showBack
         rightElement={
@@ -106,16 +129,20 @@ export default function EntryDetailScreen() {
         <View style={styles.hero}>
           <View style={styles.heroIcon}>
             <Icon
-              name={entry.serviceTypeIcon}
+              name={isGroup ? "layer-group" : entry.serviceTypeIcon}
               size={36}
               color={colors.accent}
             />
           </View>
-          <Text style={styles.heroTitle}>{serviceLabel}</Text>
+          <Text style={styles.heroTitle}>
+            {isGroup
+              ? t("history.servicesCount", { count: groupItems.length })
+              : serviceLabel}
+          </Text>
           <Text style={styles.heroDate}>{formatDate(entry.dateTs)}</Text>
-          {entry.cost != null && (
+          {totalCost != null && (
             <View style={styles.costBadge}>
-              <Text style={styles.costBadgeText}>{formatCost(entry.cost)}</Text>
+              <Text style={styles.costBadgeText}>{formatCost(totalCost)}</Text>
             </View>
           )}
         </View>
@@ -134,7 +161,48 @@ export default function EntryDetailScreen() {
           />
         </View>
 
-        {entry.notes ? (
+        {isGroup ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>
+              {t("entryDetail.servicesTitle")}
+            </Text>
+            {groupItems.map((it, i) => (
+              <View
+                key={it.id}
+                style={[
+                  styles.groupItem,
+                  i === groupItems.length - 1 && styles.groupItemLast,
+                ]}
+              >
+                <View style={styles.groupItemIcon}>
+                  <Icon
+                    name={it.serviceTypeIcon}
+                    size={12}
+                    color={colors.accent}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <View style={styles.groupItemTop}>
+                    <Text style={styles.groupItemLabel}>
+                      {getLabel({
+                        name: it.serviceTypeName,
+                        translationKey: it.translationKey,
+                      })}
+                    </Text>
+                    {it.cost != null && (
+                      <Text style={styles.groupItemCost}>
+                        {formatCost(it.cost)}
+                      </Text>
+                    )}
+                  </View>
+                  {it.notes ? (
+                    <Text style={styles.groupItemNote}>{it.notes}</Text>
+                  ) : null}
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : entry.notes ? (
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>{t("entryDetail.notes")}</Text>
             <Text style={styles.notesText}>{entry.notes}</Text>
@@ -206,7 +274,8 @@ export default function EntryDetailScreen() {
             label: t("common.delete"),
             variant: "danger",
             onPress: async () => {
-              await deleteEntry(entryId);
+              if (entry.groupId) await deleteGroup(entry.groupId);
+              else await deleteEntry(entryId);
               navigation.goBack();
             },
           },
@@ -316,6 +385,46 @@ const styles = StyleSheet.create({
     color: colors.text1,
     lineHeight: 22,
     paddingBottom: spacing.sm,
+  },
+
+  groupItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+    paddingVertical: spacing.sm + 2,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border0,
+  },
+  groupItemLast: { borderBottomWidth: 0 },
+  groupItemIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: radius.sm,
+    backgroundColor: colors.accentMuted,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  groupItemTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  groupItemLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.text0,
+    flex: 1,
+  },
+  groupItemCost: {
+    fontSize: 13,
+    color: colors.successText,
+    marginLeft: spacing.sm,
+  },
+  groupItemNote: {
+    fontSize: 13,
+    color: colors.text1,
+    marginTop: 2,
+    lineHeight: 18,
   },
 
   imageScroll: { marginHorizontal: -spacing.md },
