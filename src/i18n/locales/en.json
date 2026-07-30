@@ -424,6 +424,8 @@
     "yearly": "Yearly",
     "monthlyShort": "mo.",
     "yearlyShort": "yr.",
+    "dateLabel": "Date",
+    "recurringFromLabel": "Recurring from",
     "datumLabel": "Date",
     "placeholderCost": "0.00",
     "placeholderNotes": "e.g. Allianz liability 2025",

@@ -194,7 +194,11 @@ export default function CostEditModal({
                   />
                 </View>
                 <View style={styles.formCol}>
-                  <Text style={styles.fieldLabel}>{t("common.date")}</Text>
+                  <Text style={styles.fieldLabel}>
+                    {intervalType === null
+                      ? t("costs.dateLabel")
+                      : t("costs.recurringFromLabel")}
+                  </Text>
                   <DatePickerField
                     value={dateTs}
                     onChange={setDateTs}

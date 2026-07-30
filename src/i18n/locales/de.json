@@ -420,6 +420,8 @@
     "yearly": "Jährlich",
     "monthlyShort": "mtl.",
     "yearlyShort": "jährl.",
+    "dateLabel": "Datum",
+    "recurringFromLabel": "Wiederkehrend ab",
     "datumLabel": "Datum",
     "placeholderCost": "0.00",
     "placeholderNotes": "z.B. Allianz Haftpflicht 2025",
