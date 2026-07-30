@@ -15,7 +15,6 @@ interface Props {
   vehicle: Vehicle;
   width: number;
   serviceCount: number;
-  lastServiceDate: string | null;
   totalFuelLiters: number;
   totalOtherCost: number;
   onEdit: () => void;
@@ -26,7 +25,6 @@ export default function VehicleGarageCard({
   vehicle,
   width,
   serviceCount,
-  lastServiceDate,
   totalFuelLiters,
   totalOtherCost,
   onEdit,
@@ -66,11 +64,6 @@ export default function VehicleGarageCard({
               {formatOdometer(vehicle.currentOdometer)}
             </Text>
           </View>
-          {lastServiceDate ? (
-            <Text style={styles.sub}>
-              {t("vehicles.lastService")} · {lastServiceDate}
-            </Text>
-          ) : null}
         </View>
 
         <VehicleNavGrid
@@ -179,5 +172,4 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: colors.accentText,
   },
-  sub: { ...typography.labelSmall, color: colors.text2 },
 });

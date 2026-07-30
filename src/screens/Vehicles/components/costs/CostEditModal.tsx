@@ -194,10 +194,11 @@ export default function CostEditModal({
                   />
                 </View>
                 <View style={styles.formCol}>
+                  <Text style={styles.fieldLabel}>{t("common.date")}</Text>
                   <DatePickerField
                     value={dateTs}
                     onChange={setDateTs}
-                    label={t("costs.datumLabel")}
+                    showLabel={false}
                   />
                 </View>
               </View>

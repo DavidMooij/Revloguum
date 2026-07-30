@@ -21,7 +21,6 @@ import { getDatabase } from "../../data/db/database";
 import { SQLiteServiceEntryRepo } from "../../data/repositories/SQLiteServiceEntryRepo";
 import { SQLiteFuelRepo } from "../../data/repositories/SQLiteFuelRepo";
 import { SQLiteVehicleCostRepo } from "../../data/repositories/SQLiteVehicleCostRepo";
-import { formatDate } from "../../utils/date";
 import VehicleGarageCard from "./components/VehicleGarageCard";
 import AddVehicleCard from "./components/AddVehicleCard";
 import type { Vehicle } from "../../domain/entities/Vehicle";
@@ -34,7 +33,6 @@ const ADD_CARD_ID = "__add_vehicle__";
 
 interface VehicleStats {
   count: number;
-  lastDate: string | null;
   fuelLiters: number;
   otherCost: number;
 }
@@ -59,15 +57,13 @@ export default function VehicleScreen() {
     const results: Record<string, VehicleStats> = {};
     await Promise.all(
       vehicles.map(async (m) => {
-        const [count, last, fuelStats, otherCost] = await Promise.all([
+        const [count, fuelStats, otherCost] = await Promise.all([
           serviceRepo.getCountForVehicle(m.id),
-          serviceRepo.getLastForVehicle(m.id),
           fuelRepo.getStats({ vehicleId: m.id }),
           costRepo.getTotalCost(m.id),
         ]);
         results[m.id] = {
           count,
-          lastDate: last ? formatDate(last.dateTs) : null,
           fuelLiters: fuelStats.totalLiters,
           otherCost,
         };
@@ -126,7 +122,6 @@ export default function VehicleScreen() {
               vehicle={item}
               width={SCREEN_WIDTH}
               serviceCount={stats[item.id]?.count ?? 0}
-              lastServiceDate={stats[item.id]?.lastDate ?? null}
               totalFuelLiters={stats[item.id]?.fuelLiters ?? 0}
               totalOtherCost={stats[item.id]?.otherCost ?? 0}
               onEdit={() =>

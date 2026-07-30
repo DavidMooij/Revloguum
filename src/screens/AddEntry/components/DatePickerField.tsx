@@ -11,11 +11,12 @@ interface Props {
   value: number;
   onChange: (ts: number) => void;
   label?: string;
+  showLabel?: boolean;
 }
 
 type Field = 'day' | 'month' | 'year';
 
-export default function DatePickerField({ value, onChange, label }: Props) {
+export default function DatePickerField({ value, onChange, label, showLabel = true }: Props) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [tempDate, setTempDate] = useState(new Date(value));
@@ -77,7 +78,9 @@ export default function DatePickerField({ value, onChange, label }: Props) {
 
   return (
     <View>
-      <Text style={[typography.label, styles.label]}>{label ?? t('common.date')}</Text>
+      {showLabel ? (
+        <Text style={[typography.label, styles.label]}>{label ?? t('common.date')}</Text>
+      ) : null}
       <TouchableOpacity style={styles.field} onPress={openPicker}>
         <Text style={styles.value}>{formatDate(value)}</Text>
         <Text style={styles.chevron}>›</Text>
