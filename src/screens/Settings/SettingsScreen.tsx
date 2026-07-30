@@ -24,17 +24,14 @@ import Divider from "../components/Divider";
 import AlertModal from "../components/AlertModal";
 import LoadingOverlay from "../components/LoadingOverlay";
 import { SettingsToggle } from "../components/SettingsToggle";
+import SettingsRow from "../components/SettingsRow";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
 import { useAppStore } from "../../store/appStore";
 import { getDatabase } from "../../data/db/database";
 import { SQLiteVehicleRepo } from "../../data/repositories/SQLiteVehicleRepo";
 import { haptic, setHapticsEnabled } from "@/utils/haptics";
-import {
-  readableColor,
-  readableLineHeight,
-  readableSize,
-} from "../../theme/readability";
+import { readableColor } from "../../theme/readability";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -45,96 +42,6 @@ function generateConfirmCode(): string {
     code += chars[Math.floor(Math.random() * chars.length)];
   }
   return code;
-}
-
-interface SettingsRowProps {
-  icon: string;
-  label: string;
-  sublabel?: string;
-  onPress?: () => void;
-  right?: React.ReactNode;
-  danger?: boolean;
-}
-
-function SettingsRow({
-  icon,
-  label,
-  sublabel,
-  onPress,
-  right,
-  danger,
-}: SettingsRowProps) {
-  const readabilityMode = useAppStore((s) => s.readabilityMode);
-
-  return (
-    <TouchableOpacity
-      style={[styles.row, readabilityMode && styles.rowReadable]}
-      onPress={onPress}
-      activeOpacity={onPress ? 0.7 : 1}
-      disabled={!onPress}
-    >
-      <View
-        style={[
-          styles.rowIcon,
-          danger && styles.rowIconDanger,
-          {
-            backgroundColor: danger
-              ? readableColor("dangerMuted", readabilityMode)
-              : readableColor("bg3", readabilityMode),
-          },
-        ]}
-      >
-        <Icon
-          name={icon}
-          size={14}
-          color={
-            danger
-              ? readableColor("dangerText", readabilityMode)
-              : readableColor("text1", readabilityMode)
-          }
-        />
-      </View>
-      <View style={styles.rowContent}>
-        <Text
-          style={[
-            styles.rowLabel,
-            danger && styles.rowLabelDanger,
-            {
-              color: danger
-                ? readableColor("dangerText", readabilityMode)
-                : readableColor("text0", readabilityMode),
-              fontSize: readableSize(typeScale.body, readabilityMode, 1),
-              lineHeight: readableLineHeight(22, readabilityMode, 2),
-            },
-          ]}
-        >
-          {label}
-        </Text>
-        {sublabel ? (
-          <Text
-            style={[
-              styles.rowSub,
-              {
-                color: readableColor("text1", readabilityMode),
-                fontSize: readableSize(typeScale.captionLarge, readabilityMode, 1),
-                lineHeight: readableLineHeight(16, readabilityMode, 3),
-              },
-            ]}
-          >
-            {sublabel}
-          </Text>
-        ) : null}
-      </View>
-      {right ??
-        (onPress ? (
-          <Icon
-            name="chevron-right"
-            size={readableSize(11, readabilityMode, 1)}
-            color={readableColor("text2", readabilityMode)}
-          />
-        ) : null)}
-    </TouchableOpacity>
-  );
 }
 
 type ModalState =
@@ -648,30 +555,6 @@ const styles = StyleSheet.create({
   sectionDanger: {
     borderColor: colors.danger,
   },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: spacing.md,
-    gap: spacing.md,
-    minHeight: 56,
-  },
-  rowReadable: {
-    minHeight: 62,
-  },
-  rowIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: colors.bg3,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-  rowIconDanger: { backgroundColor: colors.dangerMuted },
-  rowContent: { flex: 1 },
-  rowLabel: { ...typography.body, fontWeight: "500", color: colors.text0 },
-  rowLabelDanger: { color: colors.dangerText },
-  rowSub: { ...typography.labelSmall, color: colors.text2, marginTop: 2 },
   pill: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
