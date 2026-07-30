@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
   },
   image: { width: 200, height: 140, borderRadius: radius.md },
 
-  metaSection: { paddingVertical: spacing.sm, gap: 4, alignItems: "center" },
+  metaSection: { paddingTop: spacing.xs, paddingBottom: spacing.xs, gap: 4, alignItems: "center" },
   metaText: { fontSize: typeScale.caption, color: colors.text3 },
 
   deleteBtn: {
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: spacing.sm,
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.md,
   },
   deleteBtnText: { color: colors.dangerText, fontSize: typeScale.bodySmall, fontWeight: "600" },
 });
