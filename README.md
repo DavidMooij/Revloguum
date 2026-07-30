@@ -1,124 +1,90 @@
 # RevLog
 
-> **Your Garage. Locally stored.**
+Your garage memory, finally in one place.
 
-A vehicle is more than transportation.
+RevLog is a local-first vehicle journal for people who care about maintenance, running costs, and clean history.
 
-It has a history.  
-It requires maintenance.  
-It costs money.
-
-RevLog makes that history visible.
-
-Because the best time to remember your last service is not after your engine fails.
-
-**Everything your vehicle has been through.  
-Everything it will need.  
-One place.**
+No spreadsheets. No forgotten service dates. No "where did I save that receipt" moments.
 
 ## The Problem
 
-Owning a vehicle is easy.
+Vehicle ownership gets messy over time.
 
-Keeping track of it isn't.
+- Service entries live in notes, photos, receipts, and chat messages
+- Fuel history disappears unless you track it consistently
+- Real monthly ownership cost is hard to estimate
+- Important history gets lost right when you need it
 
-Every owner eventually asks:
+## The RevLog Approach
 
-- When was my last oil change?
-- How much have I spent on this vehicle?
-- When is my next service due?
-- Did I already replace the brakes?
-- Where is that repair invoice?
-- What does this vehicle actually cost me?
+RevLog keeps your full vehicle story structured, searchable, and private.
 
-The information exists everywhere:
+- Service history in clear, practical timelines
+- Fuel tracking with quick input and edit support
+- One-time and recurring costs in one timeline
+- Useful statistics without visual clutter
+- Encrypted backup export and restore
 
-- Receipts
-- Bank statements
-- Photos
-- Notes
-- Calendar reminders
+## What You Can Track
 
-Until it doesn't.
-
-Maintenance gets forgotten.  
-Service history gets lost.  
-Costs become impossible to understand.
-
-## The Solution
-
-**RevLog puts your entire vehicle history in one place.**
-
-Track:
-
-| | |
-|-|-|
-| Vehicle history | Fuel tracking |
-| Maintenance | Repairs |
-| Services | Expenses |
-| Reminders | Cost analysis |
-| Ownership statistics | Documents |
-
-No spreadsheets.  
-No paper records.  
-No guessing.
-
-## Features
-
-- Multiple vehicle management
-- Cars, motorcycles, trucks, trailers and more
+### Garage
+- Multiple vehicles
 - Vehicle photos
-- Fast fuel entries
-- Maintenance and repair tracking
-- Service reminders
-- Complete expense history
-- Statistics and cost analysis
-- Data import and export
-- Clean and intuitive interface
+- Odometer-focused overview
 
-## Privacy First
+### Service
+- System and custom service types
+- Single services and combined workshop sessions
+- Detailed history and entry editing
 
-**Your data belongs to you.**
+### Fuel
+- Fast step-by-step logging
+- Fuel history per vehicle
+- Cost and consumption trends
 
-RevLog is built around privacy:
+### Costs
+- One-time costs
+- Recurring monthly/yearly costs
+- Category totals and monthly estimate
 
-- Local storage
-- Encrypted database
-- No accounts
-- No cloud dependency
-- No internet required
-- No analytics
-- No tracking
-- No data collection
+### Accessibility
+- Optional Clear View mode for improved readability
 
-Your vehicle data stays private on your device.  
-When you export your data, it remains encrypted and protected.
+## Privacy by Default
+
+RevLog is designed to keep your data on your device.
+
+- No account required
+- No cloud dependency for core use
+- No telemetry backend for personal vehicle data
+- Encryption for local storage and backups
+
+See [SECURITY.md](SECURITY.md) for full technical details and threat model.
+
+## Documentation
+
+- Security model and controls: [SECURITY.md](SECURITY.md)
+- Technical reference for contributors: [TECHNICAL_REFERENCE.md](TECHNICAL_REFERENCE.md)
 
 ## Built For
 
-- Car enthusiasts
-- Motorcycle riders
-- Daily drivers
-- Collectors
-- Fleet owners
-- Anyone who cares about their vehicles
+- Motorcycle and car enthusiasts
+- Daily drivers who want clean records
+- Owners preparing resale documentation
+- Anyone who wants less guesswork and better maintenance discipline
 
-## Why RevLog?
+## Why It Matters
 
-Vehicles tell a story.
+Maintenance is expensive when it is forgotten.
 
-Every fuel stop.  
-Every road trip.  
-Every repair.  
-Every service.  
-Every modification.
+RevLog helps you stay ahead with:
+- better service memory
+- clearer cost visibility
+- cleaner ownership history
+- stronger privacy by default
 
-RevLog preserves that story while showing the true cost of ownership.
+## License
 
-No forgotten maintenance.  
-No missing service history.  
-No lost records.
+No license file is currently declared in this repository.
 
-Just one place for everything.
-
-**Built for people who care about their vehicles.**
+If public distribution is planned, add an explicit license.
