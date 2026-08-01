@@ -33,6 +33,7 @@ import AlertModal from "../components/AlertModal";
 import QuickFuelModal from "../Fuel/QuickFuelModal";
 import LineChart, { LineChartPoint } from "./components/charts/LineChart";
 import type { FuelEntry } from "../../domain/entities/FuelEntry";
+import { useFeedback } from "../components/feedback/Feedbackprovider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "VehicleFuelHistory">;
 
@@ -52,6 +53,7 @@ export default function VehicleFuelHistoryScreen() {
   const route = useRoute<Props["route"]>();
   const { vehicleId } = route.params;
   const { vehicles } = useVehicles();
+  const { showToast } = useFeedback();
   const vehicle = vehicles.find((v) => v.id === vehicleId) ?? null;
   const [fuelModal, setFuelModal] = useState(false);
   const [preset, setPreset] = useState<DateRangePreset>("all");
@@ -65,30 +67,6 @@ export default function VehicleFuelHistoryScreen() {
   );
   const { entries, stats, loading, deleteEntry, addEntry, updateEntry } =
     useFuel(filter);
-
-  const chronological = [...entries].reverse();
-
-  const priceLineData: LineChartPoint[] = chronological
-    .filter((e) => e.liters > 0)
-    .map((e) => ({
-      x: e.dateTs,
-      y: parseFloat((e.cost / e.liters).toFixed(3)),
-      label: formatDateShort(e.dateTs),
-    }));
-
-  const consumptionLineData: LineChartPoint[] = chronological
-    .slice(1)
-    .map((e, i) => {
-      const prev = chronological[i];
-      const km = e.odometerKm - prev.odometerKm;
-      if (km <= 0) return null;
-      return {
-        x: e.dateTs,
-        y: parseFloat(((e.liters / km) * 100).toFixed(2)),
-        label: formatDateShort(e.dateTs),
-      };
-    })
-    .filter(Boolean) as LineChartPoint[];
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -215,7 +193,9 @@ export default function VehicleFuelHistoryScreen() {
         iconColor={colors.accentText}
         title={
           actionTarget
-            ? t("fuel.litersDisplay", { liters: actionTarget.liters.toFixed(2) })
+            ? t("fuel.litersDisplay", {
+                liters: actionTarget.liters.toFixed(2),
+              })
             : ""
         }
         message={t("history.whatToDo")}
@@ -287,6 +267,7 @@ export default function VehicleFuelHistoryScreen() {
             }
             setFuelModal(false);
             setEditTarget(null);
+            showToast({ titleKey: "toast.fuelAdded", variant: "success" });
           }}
           vehicle={vehicle}
           lastEntry={editTarget ? null : (entries[0] ?? null)}
@@ -324,7 +305,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentMuted,
     borderColor: colors.accent,
   },
-  presetText: { fontSize: typeScale.captionLarge, fontWeight: "500", color: colors.text1 },
+  presetText: {
+    fontSize: typeScale.captionLarge,
+    fontWeight: "500",
+    color: colors.text1,
+  },
   presetTextActive: { color: colors.accentText, fontWeight: "600" },
   statsRow: {
     flexDirection: "row",
@@ -373,9 +358,17 @@ const styles = StyleSheet.create({
   entryContent: { flex: 1, gap: 3 },
   entryTop: { flexDirection: "row", justifyContent: "space-between" },
   entryTitle: { ...typography.bodyStrong, color: colors.text0 },
-  entryCost: { fontSize: typeScale.bodyMedium, fontWeight: "600", color: colors.successText },
+  entryCost: {
+    fontSize: typeScale.bodyMedium,
+    fontWeight: "600",
+    color: colors.successText,
+  },
   entryBottom: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
   entrySub: { fontSize: typeScale.captionLarge, color: colors.text2 },
   entryDot: { fontSize: typeScale.captionLarge, color: colors.text3 },
-  entryNotes: { fontSize: typeScale.captionLarge, color: colors.text2, fontStyle: "italic" },
+  entryNotes: {
+    fontSize: typeScale.captionLarge,
+    color: colors.text2,
+    fontStyle: "italic",
+  },
 });

@@ -4,17 +4,12 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Switch,
   TextInput,
-  ToastAndroid,
-  Platform,
-  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import type { RootStackParamList } from "../../app/navigation/routes";
 import { colors } from "../../theme/colors";
 import { typography, typeScale } from "../../theme/typography";

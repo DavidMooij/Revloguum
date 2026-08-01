@@ -573,5 +573,61 @@
   },
   "chart": {
     "notEnoughData": "Not enough data"
+  },
+  "toast": {
+    "serviceAdded": "Service saved",
+    "serviceUpdated": "Service updated",
+    "serviceDeleted": "Service deleted",
+    "vehicleAdded": "Vehicle added",
+    "vehicleUpdated": "Vehicle saved",
+    "vehicleDeleted": "Vehicle deleted",
+    "fuelAdded": "Fuel entry saved",
+    "costAdded": "Cost added",
+    "costUpdated": "Cost updated",
+    "costDeleted": "Cost deleted",
+    "exportReady": "Export ready",
+    "exportFailed": "Export failed",
+    "importSuccess": "Data restored",
+    "importFailed": "Import failed",
+    "pdfGenerated": "PDF created",
+    "pdfFailed": "PDF could not be created",
+    "photoAdded": "Photo added",
+    "settingsSaved": "Settings saved",
+    "copiedToClipboard": "Copied to clipboard",
+    "connectionError": "No connection available"
+  },
+  "celebration": {
+    "firstVehicle": {
+      "title": "First vehicle! 🏍️",
+      "subtitle": "Your garage is open."
+    },
+    "firstService": {
+      "title": "First entry! 🎉",
+      "subtitle": "You logged your first service entry."
+    },
+    "firstFuel": {
+      "title": "First fill-up",
+      "subtitle": "You can now track your fuel consumption."
+    },
+    "serviceStreak": {
+      "title": "{{count}} services in a row",
+      "subtitle": "Your vehicle is well maintained."
+    },
+    "milestone10kKm": {
+      "title": "10,000 km reached",
+      "subtitle": "A nice milestone for {{vehicle}}."
+    },
+    "yearComplete": {
+      "title": "One year in",
+      "subtitle": "You've been tracking {{vehicle}} for a year."
+    },
+    "backupCreated": {
+      "title": "Backup saved",
+      "subtitle": "Your data is safely exported."
+    },
+    "allCategoriesTracked": {
+      "title": "Fully tracked",
+      "subtitle": "Service, fuel, and costs are all logged."
+    }
   }
 }

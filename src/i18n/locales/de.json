@@ -573,5 +573,61 @@
   },
   "chart": {
     "notEnoughData": "Nicht genügend Daten"
+  },
+  "toast": {
+    "serviceAdded": "Service gespeichert",
+    "serviceUpdated": "Service aktualisiert",
+    "serviceDeleted": "Service gelöscht",
+    "vehicleAdded": "Fahrzeug hinzugefügt",
+    "vehicleUpdated": "Fahrzeug gespeichert",
+    "vehicleDeleted": "Fahrzeug gelöscht",
+    "fuelAdded": "Tankvorgang gespeichert",
+    "costAdded": "Kosten hinzugefügt",
+    "costUpdated": "Kosten aktualisiert",
+    "costDeleted": "Kosten gelöscht",
+    "exportReady": "Export bereit",
+    "exportFailed": "Export fehlgeschlagen",
+    "importSuccess": "Daten wiederhergestellt",
+    "importFailed": "Import fehlgeschlagen",
+    "pdfGenerated": "PDF erstellt",
+    "pdfFailed": "PDF konnte nicht erstellt werden",
+    "photoAdded": "Foto hinzugefügt",
+    "settingsSaved": "Einstellungen gespeichert",
+    "copiedToClipboard": "In Zwischenablage kopiert",
+    "connectionError": "Keine Verbindung möglich"
+  },
+  "celebration": {
+    "firstVehicle": {
+      "title": "Erstes Fahrzeug! 🏍️",
+      "subtitle": "Dein Fuhrpark ist eröffnet."
+    },
+    "firstService": {
+      "title": "Erster Eintrag! 🎉",
+      "subtitle": "Du hast deinen ersten Serviceeintrag erfasst."
+    },
+    "firstFuel": {
+      "title": "Erster Tankstopp",
+      "subtitle": "Ab jetzt behältst du den Verbrauch im Blick."
+    },
+    "serviceStreak": {
+      "title": "{{count}} Services in Folge",
+      "subtitle": "Dein Fahrzeug wird gut gepflegt."
+    },
+    "milestone10kKm": {
+      "title": "10'000 km erreicht",
+      "subtitle": "Ein runder Meilenstein für {{vehicle}}."
+    },
+    "yearComplete": {
+      "title": "Ein Jahr dabei",
+      "subtitle": "Du trackst {{vehicle}} seit einem Jahr."
+    },
+    "backupCreated": {
+      "title": "Backup gesichert",
+      "subtitle": "Deine Daten sind jetzt sicher exportiert."
+    },
+    "allCategoriesTracked": {
+      "title": "Vollständig erfasst",
+      "subtitle": "Service, Tanken und Kosten sind alle eingetragen."
+    }
   }
 }

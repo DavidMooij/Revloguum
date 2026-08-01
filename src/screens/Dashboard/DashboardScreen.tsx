@@ -34,6 +34,7 @@ import { useFuel } from "@/hooks/useFuel";
 import LastFuelCard from "./components/LastFuelCard";
 import { getVehicleFunFact } from "@/utils/vehicleFunFact";
 import { useServiceTypeLabel } from "@/hooks/useServiceTypeLabel";
+import { useFeedback } from "../components/feedback/Feedbackprovider";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -91,6 +92,7 @@ export default function DashboardScreen() {
   const getLabel = useServiceTypeLabel();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
+  const { showToast } = useFeedback();
   const { vehicles, activeVehicleId, setActiveVehicleId, refresh } =
     useVehicles();
   const activeVehicle =
@@ -101,7 +103,6 @@ export default function DashboardScreen() {
     nextService: null,
     nextPayment: null,
   });
-  const [refreshing, setRefreshing] = useState(false);
   const [fuelModalVisible, setFuelModalVisible] = useState(false);
 
   const loadData = useCallback(async () => {
@@ -271,12 +272,6 @@ export default function DashboardScreen() {
     vehicleId: activeVehicle?.id,
   });
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadData();
-    setRefreshing(false);
-  }, [loadData]);
-
   const handleQuickFuelSave = useCallback(
     async (entry: {
       odometerKm: number;
@@ -416,7 +411,10 @@ export default function DashboardScreen() {
             label={t("dashboard.nextService")}
             title={
               data.nextService
-                ? getLabel({ name: data.nextService.serviceTypeName, translationKey: data.nextService.translationKey })
+                ? getLabel({
+                    name: data.nextService.serviceTypeName,
+                    translationKey: data.nextService.translationKey,
+                  })
                 : t("dashboard.noServiceDue")
             }
             subtitle={
@@ -494,7 +492,10 @@ export default function DashboardScreen() {
       <QuickFuelModal
         visible={fuelModalVisible}
         onClose={() => setFuelModalVisible(false)}
-        onSave={handleQuickFuelSave}
+        onSave={async (data) => {
+          await handleQuickFuelSave(data);
+          showToast({ titleKey: "toast.fuelAdded", variant: "success" });
+        }}
         vehicle={activeVehicle}
         lastEntry={data.lastFuel}
       />
@@ -580,7 +581,11 @@ const styles = StyleSheet.create({
   infoHalf: {
     flex: 1,
   },
-  addBtnText: { color: colors.white, fontWeight: "600", fontSize: typeScale.body },
+  addBtnText: {
+    color: colors.white,
+    fontWeight: "600",
+    fontSize: typeScale.body,
+  },
   fab: {
     position: "absolute",
     bottom: 90,

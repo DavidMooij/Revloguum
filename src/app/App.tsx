@@ -13,6 +13,7 @@ import { colors } from "../theme/colors";
 import { readableColor } from "../theme/readability";
 import { typography } from "../theme/typography";
 import RootNavigator from "./navigation/RootNavigator";
+import { FeedbackProvider } from "@/screens/components/feedback/Feedbackprovider";
 
 export default function App() {
   const isDbReady = useAppStore((s) => s.isDbReady);
@@ -41,7 +42,12 @@ export default function App() {
         ]}
       >
         <StatusBar style="light" />
-        <Text style={[typography.h3, { color: readableColor("danger", readabilityMode) }]}>
+        <Text
+          style={[
+            typography.h3,
+            { color: readableColor("danger", readabilityMode) },
+          ]}
+        >
           Database error
         </Text>
         <Text
@@ -80,28 +86,30 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <StatusBar style="light" />
-        <NavigationContainer
-          theme={{
-            dark: true,
-            colors: {
-              primary: readableColor("accent", readabilityMode),
-              background: readableColor("bg0", readabilityMode),
-              card: readableColor("bg1", readabilityMode),
-              text: readableColor("text0", readabilityMode),
-              border: readableColor("border1", readabilityMode),
-              notification: readableColor("accent", readabilityMode),
-            },
-            fonts: {
-              regular: { fontFamily: "System", fontWeight: "400" },
-              medium: { fontFamily: "System", fontWeight: "500" },
-              bold: { fontFamily: "System", fontWeight: "600" },
-              heavy: { fontFamily: "System", fontWeight: "700" },
-            },
-          }}
-        >
-          <RootNavigator />
-        </NavigationContainer>
+        <FeedbackProvider>
+          <StatusBar style="light" />
+          <NavigationContainer
+            theme={{
+              dark: true,
+              colors: {
+                primary: readableColor("accent", readabilityMode),
+                background: readableColor("bg0", readabilityMode),
+                card: readableColor("bg1", readabilityMode),
+                text: readableColor("text0", readabilityMode),
+                border: readableColor("border1", readabilityMode),
+                notification: readableColor("accent", readabilityMode),
+              },
+              fonts: {
+                regular: { fontFamily: "System", fontWeight: "400" },
+                medium: { fontFamily: "System", fontWeight: "500" },
+                bold: { fontFamily: "System", fontWeight: "600" },
+                heavy: { fontFamily: "System", fontWeight: "700" },
+              },
+            }}
+          >
+            <RootNavigator />
+          </NavigationContainer>
+        </FeedbackProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

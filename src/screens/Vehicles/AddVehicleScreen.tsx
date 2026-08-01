@@ -36,6 +36,7 @@ import type { VehicleType } from "../../domain/entities/Vehicle";
 import { vehicleTypeIcon } from "../../utils/vehicleType";
 import ServiceIntervalConfig from "./components/stats/ServiceIntervalConfig";
 import { decryptImage, encryptImage } from "@/security/imageEncryption";
+import { useFeedback } from "../components/feedback/Feedbackprovider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "AddVehicle">;
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -48,7 +49,9 @@ export default function AddVehicleScreen() {
   const editId = route.params?.editId;
   const isEditing = !!editId;
 
-  const { addVehicle, deleteVehicle, updateVehicle } = useVehicles();
+  const { vehicles, addVehicle, deleteVehicle, updateVehicle } = useVehicles();
+  const { showToast, showCelebration } = useFeedback();
+
   const { serviceTypes } = useServiceTypes();
 
   const [make, setMake] = useState("");
@@ -167,12 +170,25 @@ export default function AddVehicleScreen() {
         vehicleType,
       };
 
+      const wasFirstVehicle = !isEditing && vehicles.length === 0;
+
       if (isEditing && editId) {
         await updateVehicle(editId, payload);
+        haptic.success();
+        showToast({ titleKey: "toast.vehicleUpdated", variant: "success" });
       } else {
         await addVehicle(payload);
+        haptic.success();
+        if (wasFirstVehicle) {
+          showCelebration({
+            titleKey: "celebration.firstVehicle.title",
+            subtitleKey: "celebration.firstVehicle.subtitle",
+            variant: "milestone",
+          });
+        } else {
+          showToast({ titleKey: "toast.vehicleAdded", variant: "success" });
+        }
       }
-      haptic.success();
       navigation.goBack();
     } catch (e) {
       haptic.error();
@@ -193,11 +209,14 @@ export default function AddVehicleScreen() {
     vehicleType,
     isEditing,
     editId,
+    vehicles,
     addVehicle,
     updateVehicle,
     navigation,
     newPhotoUri,
     photoPath,
+    showToast,
+    showCelebration,
   ]);
 
   return (
@@ -411,6 +430,7 @@ export default function AddVehicleScreen() {
             onPress: async () => {
               haptic.error();
               await deleteVehicle(editId!);
+              showToast({ titleKey: "toast.vehicleDeleted", variant: "info" });
               navigation.goBack();
             },
           },
@@ -480,8 +500,16 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: -spacing.sm,
   },
-  sectionTitle: { ...typography.bodySmall, fontWeight: "600", color: colors.text0 },
-  sectionHint: { fontSize: typeScale.captionLarge, color: colors.text2, marginBottom: -spacing.sm },
+  sectionTitle: {
+    ...typography.bodySmall,
+    fontWeight: "600",
+    color: colors.text0,
+  },
+  sectionHint: {
+    fontSize: typeScale.captionLarge,
+    color: colors.text2,
+    marginBottom: -spacing.sm,
+  },
   typeSelector: {
     flexDirection: "row",
     gap: spacing.sm,
@@ -502,6 +530,10 @@ const styles = StyleSheet.create({
     borderColor: colors.accent,
     backgroundColor: colors.bg2 ?? colors.bg1,
   },
-  typeLabel: { fontSize: typeScale.captionLarge, color: colors.text2, fontWeight: "500" },
+  typeLabel: {
+    fontSize: typeScale.captionLarge,
+    color: colors.text2,
+    fontWeight: "500",
+  },
   typeLabelActive: { color: colors.accent, fontWeight: "600" },
 });

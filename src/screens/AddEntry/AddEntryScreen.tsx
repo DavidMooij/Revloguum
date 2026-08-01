@@ -38,6 +38,7 @@ import * as ImagePicker from "expo-image-picker";
 import { Image } from "expo-image";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import { decryptImage, encryptImage } from "@/security/imageEncryption";
+import { useFeedback } from "../components/feedback/Feedbackprovider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "AddEntry">;
 
@@ -71,6 +72,7 @@ export default function AddEntryScreen() {
   const [displayUris, setDisplayUris] = useState<Record<string, string>>({});
   const [editGroupId, setEditGroupId] = useState<string | null>(null);
   const [editVehicleId, setEditVehicleId] = useState<string | null>(null);
+  const { showToast, showCelebration } = useFeedback();
 
   const updateBlock = useCallback(
     (key: string, patch: Partial<ServiceBlock>) => {
@@ -226,6 +228,15 @@ export default function AddEntryScreen() {
         else if (editEntryId) await deleteEntry(editEntryId);
       }
 
+      let isFirstServiceEver = false;
+      if (!isEditing) {
+        const db = await getDatabase();
+        const countRow = await db.getFirstAsync<{ c: number }>(
+          "SELECT COUNT(*) as c FROM service_entries;",
+        );
+        isFirstServiceEver = (countRow?.c ?? 0) === 0;
+      }
+
       await addGroup(
         {
           vehicleId: isEditing
@@ -238,6 +249,19 @@ export default function AddEntryScreen() {
         items,
       );
       haptic.success();
+
+      if (isFirstServiceEver) {
+        showCelebration({
+          titleKey: "celebration.firstService.title",
+          subtitleKey: "celebration.firstService.subtitle",
+          variant: "milestone",
+        });
+      } else {
+        showToast({
+          titleKey: isEditing ? "toast.serviceUpdated" : "toast.serviceAdded",
+          variant: "success",
+        });
+      }
       navigation.goBack();
     } catch (e) {
       haptic.error();
@@ -261,6 +285,8 @@ export default function AddEntryScreen() {
     deleteGroup,
     deleteEntry,
     navigation,
+    showToast,
+    showCelebration,
   ]);
 
   return (
@@ -419,8 +445,16 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
     backgroundColor: colors.bg1,
   },
-  addBlockText: { fontSize: typeScale.bodySmall, fontWeight: "600", color: colors.accent },
-  error: { color: colors.dangerText, fontSize: typeScale.captionLarge, marginTop: spacing.xs },
+  addBlockText: {
+    fontSize: typeScale.bodySmall,
+    fontWeight: "600",
+    color: colors.accent,
+  },
+  error: {
+    color: colors.dangerText,
+    fontSize: typeScale.captionLarge,
+    marginTop: spacing.xs,
+  },
   notesField: { minHeight: 100 },
   footer: {
     padding: spacing.lg,
@@ -471,5 +505,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
   },
-  addText: { fontSize: typeScale.caption, color: colors.text2, fontWeight: "500" },
+  addText: {
+    fontSize: typeScale.caption,
+    color: colors.text2,
+    fontWeight: "500",
+  },
 });
