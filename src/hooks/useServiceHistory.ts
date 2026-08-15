@@ -8,6 +8,7 @@ import type {
   CreateServiceEntryInput,
   UpdateServiceEntryInput,
 } from "../domain/entities/ServiceEntry";
+import { updateVehicleOdometerIfHigher } from "@/utils/updateVehicleOdometer";
 
 const PAGE_SIZE = 50;
 
@@ -142,14 +143,25 @@ export function useServiceEntryActions() {
   const addEntry = useCallback(async (input: CreateServiceEntryInput) => {
     const db = await getDatabase();
     const repo = new SQLiteServiceEntryRepo(db);
-    return repo.insert(input);
+    await repo.insert(input);
+    await updateVehicleOdometerIfHigher(db, input.vehicleId, input.odometerKm);
   }, []);
 
   const updateEntry = useCallback(
     async (id: string, input: UpdateServiceEntryInput) => {
       const db = await getDatabase();
       const repo = new SQLiteServiceEntryRepo(db);
-      return repo.update(id, input);
+      await repo.update(id, input);
+      if (input.odometerKm !== undefined) {
+        const entry = await repo.getById(id);
+        if (entry) {
+          await updateVehicleOdometerIfHigher(
+            db,
+            entry.vehicleId,
+            input.odometerKm,
+          );
+        }
+      }
     },
     [],
   );
@@ -177,6 +189,13 @@ export function useServiceEntryActions() {
           groupId,
         });
       }
+
+      await updateVehicleOdometerIfHigher(
+        db,
+        common.vehicleId,
+        common.odometerKm,
+      );
+
       return groupId;
     },
     [],

@@ -1,9 +1,24 @@
-import type * as SQLite from 'expo-sqlite';
-import type { FuelEntry, CreateFuelEntryInput, UpdateFuelEntryInput, FuelFilter, FuelStats } from '../../domain/entities/FuelEntry';
-import { generateUUID } from '../../utils/uuid';
+import type * as SQLite from "expo-sqlite";
+import type {
+  FuelEntry,
+  CreateFuelEntryInput,
+  UpdateFuelEntryInput,
+  FuelFilter,
+  FuelStats,
+} from "../../domain/entities/FuelEntry";
+import { generateUUID } from "../../utils/uuid";
 
 export class SQLiteFuelRepo {
   constructor(private db: SQLite.SQLiteDatabase) {}
+
+  async getById(id: string): Promise<FuelEntry | null> {
+    const row = await this.db.getFirstAsync<any>(
+      `SELECT * FROM fuel_entries WHERE id = ? LIMIT 1;`,
+      [id],
+    );
+
+    return row ? this.rowToEntity(row) : null;
+  }
 
   async insert(input: CreateFuelEntryInput): Promise<FuelEntry> {
     const id = generateUUID();
@@ -11,7 +26,16 @@ export class SQLiteFuelRepo {
     await this.db.runAsync(
       `INSERT INTO fuel_entries (id, vehicle_id, date_ts, odometer_km, liters, cost, notes, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
-      [id, input.vehicleId, input.dateTs, input.odometerKm, input.liters, input.cost, input.notes ?? null, now],
+      [
+        id,
+        input.vehicleId,
+        input.dateTs,
+        input.odometerKm,
+        input.liters,
+        input.cost,
+        input.notes ?? null,
+        now,
+      ],
     );
     return { id, createdAt: now, ...input };
   }
@@ -20,11 +44,20 @@ export class SQLiteFuelRepo {
     const conditions: string[] = [];
     const params: SQLite.SQLiteBindValue[] = [];
 
-    if (filter.vehicleId) { conditions.push('vehicle_id = ?'); params.push(filter.vehicleId); }
-    if (filter.dateFrom)     { conditions.push('date_ts >= ?');      params.push(filter.dateFrom); }
-    if (filter.dateTo)       { conditions.push('date_ts <= ?');      params.push(filter.dateTo); }
+    if (filter.vehicleId) {
+      conditions.push("vehicle_id = ?");
+      params.push(filter.vehicleId);
+    }
+    if (filter.dateFrom) {
+      conditions.push("date_ts >= ?");
+      params.push(filter.dateFrom);
+    }
+    if (filter.dateTo) {
+      conditions.push("date_ts <= ?");
+      params.push(filter.dateTo);
+    }
 
-    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
     const rows = await this.db.getAllAsync<any>(
       `SELECT * FROM fuel_entries ${where} ORDER BY date_ts DESC LIMIT ? OFFSET ?;`,
       [...params, filter.limit ?? 100, filter.offset ?? 0],
@@ -35,10 +68,19 @@ export class SQLiteFuelRepo {
   async getStats(filter: FuelFilter): Promise<FuelStats> {
     const conditions: string[] = [];
     const params: SQLite.SQLiteBindValue[] = [];
-    if (filter.vehicleId) { conditions.push('vehicle_id = ?'); params.push(filter.vehicleId); }
-    if (filter.dateFrom)     { conditions.push('date_ts >= ?');      params.push(filter.dateFrom); }
-    if (filter.dateTo)       { conditions.push('date_ts <= ?');      params.push(filter.dateTo); }
-    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    if (filter.vehicleId) {
+      conditions.push("vehicle_id = ?");
+      params.push(filter.vehicleId);
+    }
+    if (filter.dateFrom) {
+      conditions.push("date_ts >= ?");
+      params.push(filter.dateFrom);
+    }
+    if (filter.dateTo) {
+      conditions.push("date_ts <= ?");
+      params.push(filter.dateTo);
+    }
+    const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
     const row = await this.db.getFirstAsync<any>(
       `SELECT
@@ -61,25 +103,43 @@ export class SQLiteFuelRepo {
       totalCost,
       totalEntries,
       avgCostPerLiter: totalLiters > 0 ? totalCost / totalLiters : 0,
-      avgConsumption:  kmRange > 0 ? (totalLiters / kmRange) * 100 : 0,
+      avgConsumption: kmRange > 0 ? (totalLiters / kmRange) * 100 : 0,
     };
   }
 
   async update(id: string, input: UpdateFuelEntryInput): Promise<void> {
     const sets: string[] = [];
     const params: SQLite.SQLiteBindValue[] = [];
-    if (input.dateTs !== undefined) { sets.push('date_ts = ?'); params.push(input.dateTs); }
-    if (input.odometerKm !== undefined) { sets.push('odometer_km = ?'); params.push(input.odometerKm); }
-    if (input.liters !== undefined) { sets.push('liters = ?'); params.push(input.liters); }
-    if (input.cost !== undefined) { sets.push('cost = ?'); params.push(input.cost); }
-    if (input.notes !== undefined) { sets.push('notes = ?'); params.push(input.notes ?? null); }
+    if (input.dateTs !== undefined) {
+      sets.push("date_ts = ?");
+      params.push(input.dateTs);
+    }
+    if (input.odometerKm !== undefined) {
+      sets.push("odometer_km = ?");
+      params.push(input.odometerKm);
+    }
+    if (input.liters !== undefined) {
+      sets.push("liters = ?");
+      params.push(input.liters);
+    }
+    if (input.cost !== undefined) {
+      sets.push("cost = ?");
+      params.push(input.cost);
+    }
+    if (input.notes !== undefined) {
+      sets.push("notes = ?");
+      params.push(input.notes ?? null);
+    }
     if (sets.length === 0) return;
     params.push(id);
-    await this.db.runAsync(`UPDATE fuel_entries SET ${sets.join(', ')} WHERE id = ?;`, params);
+    await this.db.runAsync(
+      `UPDATE fuel_entries SET ${sets.join(", ")} WHERE id = ?;`,
+      params,
+    );
   }
 
   async delete(id: string): Promise<void> {
-    await this.db.runAsync('DELETE FROM fuel_entries WHERE id = ?;', [id]);
+    await this.db.runAsync("DELETE FROM fuel_entries WHERE id = ?;", [id]);
   }
 
   private rowToEntity(row: any): FuelEntry {

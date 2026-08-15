@@ -1,4 +1,5 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback } from "react";
+import { updateVehicleOdometerIfHigher } from "../utils/updateVehicleOdometer";
 import { useFocusEffect } from "@react-navigation/native";
 import { getDatabase } from "../data/db/database";
 import { SQLiteFuelRepo } from "../data/repositories/SQLiteFuelRepo";
@@ -9,7 +10,6 @@ import type {
   FuelFilter,
   FuelStats,
 } from "../domain/entities/FuelEntry";
-import { SQLiteVehicleRepo } from "@/data/repositories/SQLiteVehicleRepo";
 
 export function useFuel(filter: FuelFilter) {
   const [entries, setEntries] = useState<FuelEntry[]>([]);
@@ -47,19 +47,14 @@ export function useFuel(filter: FuelFilter) {
   const addEntry = useCallback(
     async (input: CreateFuelEntryInput) => {
       const db = await getDatabase();
-
       const fuelRepo = new SQLiteFuelRepo(db);
-      const vehicleRepo = new SQLiteVehicleRepo(db);
-
       await fuelRepo.insert(input);
 
-      const vehicle = await vehicleRepo.getById(input.vehicleId);
-
-      if (vehicle && input.odometerKm > vehicle.currentOdometer) {
-        await vehicleRepo.update(vehicle.id, {
-          currentOdometer: input.odometerKm,
-        });
-      }
+      await updateVehicleOdometerIfHigher(
+        db,
+        input.vehicleId,
+        input.odometerKm,
+      );
 
       await load();
     },
@@ -80,22 +75,30 @@ export function useFuel(filter: FuelFilter) {
       const db = await getDatabase();
       const fuelRepo = new SQLiteFuelRepo(db);
 
+      const existingEntry = await fuelRepo.getById(id);
+
       await fuelRepo.update(id, input);
 
-      if (filter.vehicleId && input.odometerKm !== undefined) {
-        const vehicleRepo = new SQLiteVehicleRepo(db);
-        const vehicle = await vehicleRepo.getById(filter.vehicleId);
-        if (vehicle && input.odometerKm > vehicle.currentOdometer) {
-          await vehicleRepo.update(vehicle.id, {
-            currentOdometer: input.odometerKm,
-          });
-        }
+      if (existingEntry && input.odometerKm !== undefined) {
+        await updateVehicleOdometerIfHigher(
+          db,
+          existingEntry.vehicleId,
+          input.odometerKm,
+        );
       }
 
       await load();
     },
-    [load, filter.vehicleId],
+    [load],
   );
 
-  return { entries, stats, loading, refresh: load, addEntry, updateEntry, deleteEntry };
+  return {
+    entries,
+    stats,
+    loading,
+    refresh: load,
+    addEntry,
+    updateEntry,
+    deleteEntry,
+  };
 }
