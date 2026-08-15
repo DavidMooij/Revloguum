@@ -4,7 +4,7 @@
     "slug": "Revloguum",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/image.svg",
+    "icon": "./assets/image.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": false,
@@ -12,14 +12,14 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/image.svg",
+        "foregroundImage": "./assets/image.png",
         "backgroundColor": "#000000"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.veruum.Revloguum"
     },
     "web": {
-      "favicon": "./assets/image.svg"
+      "favicon": "./assets/image.png"
     },
     "plugins": [
       [
@@ -36,7 +36,9 @@
             "compileSdkVersion": 36,
             "targetSdkVersion": 36,
             "packagingOptions": {
-              "pickFirst": ["**/libcrypto.so"]
+              "pickFirst": [
+                "**/libcrypto.so"
+              ]
             }
           },
           "ios": {
@@ -54,7 +56,8 @@
       "expo-font",
       "expo-secure-store",
       "expo-image",
-      "expo-sharing"
+      "expo-sharing",
+      "expo-status-bar"
     ],
     "extra": {
       "eas": {
