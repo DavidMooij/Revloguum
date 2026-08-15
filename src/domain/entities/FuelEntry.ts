@@ -17,6 +17,8 @@ export interface FuelFilter {
   vehicleId?: string;
   dateFrom?: number;
   dateTo?: number;
+  searchText?: string;
+  notesOnly?: boolean;
   limit?: number;
   offset?: number;
 }

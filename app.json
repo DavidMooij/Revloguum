@@ -53,6 +53,12 @@
           "cameraPermission": "Revloguum uses your camera to take vehicle photos and service photos."
         }
       ],
+      [
+        "expo-notifications",
+        {
+          "color": "#0A84FF"
+        }
+      ],
       "expo-font",
       "expo-secure-store",
       "expo-image",

@@ -10,6 +10,7 @@ import type {
   FuelFilter,
   FuelStats,
 } from "../domain/entities/FuelEntry";
+import { syncNotifications } from "@/notifications/syncNotifications";
 
 export function useFuel(filter: FuelFilter) {
   const [entries, setEntries] = useState<FuelEntry[]>([]);
@@ -36,7 +37,16 @@ export function useFuel(filter: FuelFilter) {
     } finally {
       setLoading(false);
     }
-  }, [filter.vehicleId, filter.dateFrom, filter.dateTo]);
+  }, [
+    filter.vehicleId,
+    filter.dateFrom,
+    filter.dateTo,
+    filter.searchText,
+    filter.notesOnly,
+    filter.limit,
+    filter.offset,
+  ]);
+
 
   useFocusEffect(
     useCallback(() => {
@@ -57,6 +67,7 @@ export function useFuel(filter: FuelFilter) {
       );
 
       await load();
+      void syncNotifications().catch(() => {});
     },
     [load],
   );
@@ -66,6 +77,7 @@ export function useFuel(filter: FuelFilter) {
       const db = await getDatabase();
       await new SQLiteFuelRepo(db).delete(id);
       await load();
+      void syncNotifications().catch(() => {});
     },
     [load],
   );
@@ -88,6 +100,7 @@ export function useFuel(filter: FuelFilter) {
       }
 
       await load();
+      void syncNotifications().catch(() => {});
     },
     [load],
   );

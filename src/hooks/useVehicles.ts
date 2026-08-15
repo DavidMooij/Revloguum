@@ -3,6 +3,7 @@ import { getDatabase } from '../data/db/database';
 import { SQLiteVehicleRepo } from '../data/repositories/SQLiteVehicleRepo';
 import { useAppStore } from '../store/appStore';
 import type { CreateVehicleInput, UpdateVehicleInput } from '../domain/entities/Vehicle';
+import { syncNotifications } from '@/notifications/syncNotifications';
 
 export function useVehicles() {
   const { vehicles, setVehicles, activeVehicleId, setActiveVehicleId, getActiveVehicle } = useAppStore();
@@ -24,6 +25,7 @@ export function useVehicles() {
     const moto = await repo.insert(input);
     await refresh();
     setActiveVehicleId(moto.id);
+    await syncNotifications();
     return moto;
   }, [refresh, setActiveVehicleId]);
 
@@ -32,6 +34,7 @@ export function useVehicles() {
     const repo = new SQLiteVehicleRepo(db);
     await repo.update(id, input);
     await refresh();
+    await syncNotifications();
   }, [refresh]);
 
   const deleteVehicle = useCallback(async (id: string) => {
@@ -39,6 +42,7 @@ export function useVehicles() {
     const repo = new SQLiteVehicleRepo(db);
     await repo.delete(id);
     await refresh();
+    await syncNotifications();
   }, [refresh]);
 
   return {

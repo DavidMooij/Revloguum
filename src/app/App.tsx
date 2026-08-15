@@ -1,7 +1,14 @@
 import "react-native-gesture-handler";
 import "../i18n";
 import React, { useEffect, useState } from "react";
-import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  StyleSheet,
+  AppState,
+  type AppStateStatus,
+} from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -14,6 +21,7 @@ import { readableColor } from "../theme/readability";
 import { typography } from "../theme/typography";
 import RootNavigator from "./navigation/RootNavigator";
 import { FeedbackProvider } from "@/screens/components/feedback/Feedbackprovider";
+import { syncNotifications } from "@/notifications/syncNotifications";
 
 export default function App() {
   const isDbReady = useAppStore((s) => s.isDbReady);
@@ -32,6 +40,23 @@ export default function App() {
       .then(() => setDbReady(true))
       .catch((e) => setInitError((e as Error).message));
   }, [setDbReady]);
+
+  useEffect(() => {
+    if (!isDbReady) return;
+
+    syncNotifications();
+
+    const sub = AppState.addEventListener(
+      "change",
+      (status: AppStateStatus) => {
+        if (status === "active") {
+          syncNotifications();
+        }
+      },
+    );
+
+    return () => sub.remove();
+  }, [isDbReady]);
 
   if (initError) {
     return (

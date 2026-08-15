@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    height: 80,
+    height: 75,
     minWidth: 210,
     flexDirection: "row",
     alignItems: "center",
@@ -106,8 +106,8 @@ const styles = StyleSheet.create({
   },
 
   imageWrap: {
-    width: 60,
-    height: 60,
+    width: 55,
+    height: 55,
     borderRadius: radius.full,
     backgroundColor: colors.bg3,
     alignItems: "center",

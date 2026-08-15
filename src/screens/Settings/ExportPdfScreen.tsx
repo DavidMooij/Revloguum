@@ -128,7 +128,7 @@ export default function ExportPdfScreen() {
           />
           <OptionRow
             icon="receipt"
-            label={t("costs.title")}
+            label={t("payments.historyTitle")}
             value={includeCosts}
             onChange={setIncludeCosts}
           />

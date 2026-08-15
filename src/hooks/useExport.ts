@@ -28,6 +28,7 @@ interface BackupPayload {
   exportedAt: number;
   vehicles: any[];
   serviceTypes: any[];
+  paymentTypes?: any[];
   serviceEntries: any[];
   fuelEntries: any[];
   vehicleCosts: any[];
@@ -140,10 +141,18 @@ async function decryptPayload(
 async function readAllData(): Promise<BackupPayload> {
   const db = await getDatabase();
 
-  const [vehicles, serviceTypes, serviceEntries, fuelEntries, vehicleCosts] =
+  const [
+    vehicles,
+    serviceTypes,
+    paymentTypes,
+    serviceEntries,
+    fuelEntries,
+    vehicleCosts,
+  ] =
     await Promise.all([
       db.getAllAsync<any>("SELECT * FROM vehicles;"),
       db.getAllAsync<any>("SELECT * FROM service_types;"),
+      db.getAllAsync<any>("SELECT * FROM payment_types;"),
       db.getAllAsync<any>("SELECT * FROM service_entries;"),
       db.getAllAsync<any>("SELECT * FROM fuel_entries;"),
       db.getAllAsync<any>("SELECT * FROM vehicle_costs;"),
@@ -186,10 +195,11 @@ async function readAllData(): Promise<BackupPayload> {
   }
 
   return {
-    version: 4,
+    version: 5,
     exportedAt: Date.now(),
     vehicles,
     serviceTypes,
+    paymentTypes,
     serviceEntries,
     fuelEntries,
     vehicleCosts,
@@ -273,6 +283,21 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
       );
     }
 
+    for (const t of payload.paymentTypes ?? []) {
+      if (t.is_system || t.isSystem) continue;
+      await db.runAsync(
+        `INSERT OR IGNORE INTO payment_types (id,name,translation_key,icon,is_system,sort_order,created_at)
+         VALUES (?,?,NULL,?,0,?,?);`,
+        [
+          t.id,
+          t.name,
+          t.icon ?? "receipt",
+          t.sort_order ?? t.sortOrder ?? 0,
+          t.created_at ?? t.createdAt ?? Date.now(),
+        ],
+      );
+    }
+
     for (const e of payload.serviceEntries ?? []) {
       let oldPaths: string[] = [];
       try {
@@ -321,17 +346,40 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
     }
 
     for (const c of payload.vehicleCosts ?? []) {
+      const restoredIntervalType =
+        c.interval_type ?? c.intervalType ?? null;
+      const restoredKind =
+        c.kind ??
+        (restoredIntervalType === "monthly" ||
+        restoredIntervalType === "yearly" ||
+        restoredIntervalType === "custom"
+          ? "interval"
+          : "history");
+
+      const restoredIntervalDays =
+        c.interval_days ??
+        c.intervalDays ??
+        (restoredIntervalType === "monthly"
+          ? 30
+          : restoredIntervalType === "yearly"
+            ? 365
+            : null);
+
       await db.runAsync(
         `INSERT OR REPLACE INTO vehicle_costs
-           (id,vehicle_id,category,amount,date_ts,interval_type,notes,created_at)
-         VALUES (?,?,?,?,?,?,?,?);`,
+           (id,vehicle_id,kind,category,amount,date_ts,interval_type,interval_days,payment_interval_id,interval_due_ts,notes,created_at)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?);`,
         [
           c.id,
           c.vehicle_id ?? c.vehicleId,
+          restoredKind,
           c.category,
           c.amount,
           c.date_ts ?? c.dateTs,
-          c.interval_type ?? c.intervalType ?? null,
+          restoredKind === "interval" ? restoredIntervalType : null,
+          restoredKind === "interval" ? restoredIntervalDays : null,
+          c.payment_interval_id ?? c.paymentIntervalId ?? null,
+          c.interval_due_ts ?? c.intervalDueTs ?? null,
           c.notes ?? null,
           c.created_at ?? c.createdAt ?? Date.now(),
         ],

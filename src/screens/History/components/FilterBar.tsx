@@ -136,7 +136,15 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   searchIcon: { flexShrink: 0 },
-  searchInput: { flex: 1, color: colors.text0, fontSize: typeScale.bodyMedium },
+  searchInput: {
+    flex: 1,
+    color: colors.text0,
+    fontSize: typeScale.bodyMedium,
+    height: '100%',
+    paddingVertical: 0,
+    textAlignVertical: 'center',
+    includeFontPadding: false,
+  },
   filterBtn: {
     width: 40,
     height: 40,

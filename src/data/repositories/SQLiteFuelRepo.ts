@@ -48,13 +48,21 @@ export class SQLiteFuelRepo {
       conditions.push("vehicle_id = ?");
       params.push(filter.vehicleId);
     }
-    if (filter.dateFrom) {
+    if (filter.dateFrom !== undefined) {
       conditions.push("date_ts >= ?");
       params.push(filter.dateFrom);
     }
-    if (filter.dateTo) {
+    if (filter.dateTo !== undefined) {
       conditions.push("date_ts <= ?");
       params.push(filter.dateTo);
+    }
+    if (filter.notesOnly) {
+      conditions.push("notes IS NOT NULL AND TRIM(notes) != ''");
+    }
+    if (filter.searchText?.trim()) {
+      conditions.push("(notes LIKE ? OR CAST(cost AS TEXT) LIKE ?)");
+      const q = `%${filter.searchText.trim()}%`;
+      params.push(q, q);
     }
 
     const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
@@ -72,13 +80,21 @@ export class SQLiteFuelRepo {
       conditions.push("vehicle_id = ?");
       params.push(filter.vehicleId);
     }
-    if (filter.dateFrom) {
+    if (filter.dateFrom !== undefined) {
       conditions.push("date_ts >= ?");
       params.push(filter.dateFrom);
     }
-    if (filter.dateTo) {
+    if (filter.dateTo !== undefined) {
       conditions.push("date_ts <= ?");
       params.push(filter.dateTo);
+    }
+    if (filter.notesOnly) {
+      conditions.push("notes IS NOT NULL AND TRIM(notes) != ''");
+    }
+    if (filter.searchText?.trim()) {
+      conditions.push("(notes LIKE ? OR CAST(cost AS TEXT) LIKE ?)");
+      const q = `%${filter.searchText.trim()}%`;
+      params.push(q, q);
     }
     const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 

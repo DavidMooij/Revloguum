@@ -56,7 +56,7 @@ export default function VehicleNavGrid({
       tintMuted: BLUE_MUTED,
     },
     {
-      label: t("costs.title"),
+      label: t("payments.historyTitle"),
       value: formatCost(totalOtherCost),
       icon: "receipt",
       screen: "VehicleCosts",

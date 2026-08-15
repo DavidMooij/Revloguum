@@ -21,8 +21,10 @@ import { spacing } from "../../theme/spacing";
 import { typeScale, typography } from "../../theme/typography";
 import { useVehicles } from "../../hooks/useVehicles";
 import { useServiceTypes } from "../../hooks/useServiceTypes";
+import { usePaymentTypes } from "../../hooks/usePaymentTypes";
 import { getDatabase } from "../../data/db/database";
 import { SQLiteVehicleRepo } from "../../data/repositories/SQLiteVehicleRepo";
+import { SQLiteVehicleCostRepo } from "../../data/repositories/SQLiteVehicleCostRepo";
 import ScreenHeader from "../components/ScreenHeader";
 import TextInputField from "../components/TextInputField";
 import PrimaryButton from "../components/PrimaryButton";
@@ -37,6 +39,11 @@ import { vehicleTypeIcon } from "../../utils/vehicleType";
 import ServiceIntervalConfig from "./components/stats/ServiceIntervalConfig";
 import { decryptImage, encryptImage } from "@/security/imageEncryption";
 import { useFeedback } from "../components/feedback/Feedbackprovider";
+import PaymentIntervalConfig, {
+  type PaymentIntervalDraft,
+} from "./components/stats/PaymentIntervalConfig";
+import { generateUUID } from "@/utils/uuid";
+import { syncNotifications } from "@/notifications/syncNotifications";
 
 type Props = NativeStackScreenProps<RootStackParamList, "AddVehicle">;
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -53,6 +60,7 @@ export default function AddVehicleScreen() {
   const { showToast, showCelebration } = useFeedback();
 
   const { serviceTypes } = useServiceTypes();
+  const { paymentTypes } = usePaymentTypes();
 
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
@@ -64,6 +72,9 @@ export default function AddVehicleScreen() {
   const [serviceIntervals, setServiceIntervals] = useState<ServiceInterval[]>(
     [],
   );
+  const [paymentIntervals, setPaymentIntervals] = useState<
+    PaymentIntervalDraft[]
+  >([]);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<{
     make?: string;
@@ -90,7 +101,11 @@ export default function AddVehicleScreen() {
     (async () => {
       const db = await getDatabase();
       const repo = new SQLiteVehicleRepo(db);
-      const moto = await repo.getById(editId);
+      const costRepo = new SQLiteVehicleCostRepo(db);
+      const [moto, loadedIntervals] = await Promise.all([
+        repo.getById(editId),
+        costRepo.getIntervals(editId),
+      ]);
       if (!moto) return;
       setMake(moto.make);
       setModel(moto.model);
@@ -106,6 +121,26 @@ export default function AddVehicleScreen() {
       setServiceIntervals(moto.serviceIntervals ?? []);
       setPhotoPath(moto.photoPath ?? null);
       setVehicleType(moto.vehicleType ?? "motorcycle");
+      setPaymentIntervals(
+        loadedIntervals.map((iv) => ({
+          id: iv.id,
+          category: iv.category,
+          amount: iv.amount,
+          intervalType: (iv.intervalType ?? "monthly") as
+            | "monthly"
+            | "yearly"
+            | "custom",
+          intervalDays:
+            iv.intervalDays ??
+            (iv.intervalType === "yearly"
+              ? 365
+              : iv.intervalType === "custom"
+                ? 30
+                : 30),
+          startDateTs: iv.dateTs,
+          notes: iv.notes ?? null,
+        })),
+      );
     })();
   }, [editId]);
 
@@ -170,14 +205,33 @@ export default function AddVehicleScreen() {
         vehicleType,
       };
 
+      const mappedIntervals = paymentIntervals
+        .filter((iv) => iv.amount > 0)
+        .map((iv) => ({
+          id: iv.id,
+          category: iv.category,
+          amount: iv.amount,
+          intervalType: iv.intervalType,
+          intervalDays: iv.intervalType === "custom"
+            ? Math.max(1, Math.floor(iv.intervalDays || 1))
+            : iv.intervalType === "yearly"
+              ? 365
+              : 30,
+          startDateTs: iv.startDateTs,
+          notes: iv.notes ?? null,
+        }));
+
       const wasFirstVehicle = !isEditing && vehicles.length === 0;
+      let targetVehicleId = editId ?? null;
 
       if (isEditing && editId) {
         await updateVehicle(editId, payload);
+        targetVehicleId = editId;
         haptic.success();
         showToast({ titleKey: "toast.vehicleUpdated", variant: "success" });
       } else {
-        await addVehicle(payload);
+        const created = await addVehicle(payload);
+        targetVehicleId = created.id;
         haptic.success();
         if (wasFirstVehicle) {
           showCelebration({
@@ -189,6 +243,14 @@ export default function AddVehicleScreen() {
           showToast({ titleKey: "toast.vehicleAdded", variant: "success" });
         }
       }
+
+      if (targetVehicleId) {
+        const db = await getDatabase();
+        const costRepo = new SQLiteVehicleCostRepo(db);
+        await costRepo.replaceIntervals(targetVehicleId, mappedIntervals);
+        await syncNotifications();
+      }
+
       navigation.goBack();
     } catch (e) {
       haptic.error();
@@ -206,6 +268,7 @@ export default function AddVehicleScreen() {
     defaultTankLiters,
     defaultFuelPrice,
     serviceIntervals,
+    paymentIntervals,
     vehicleType,
     isEditing,
     editId,
@@ -393,6 +456,30 @@ export default function AddVehicleScreen() {
             serviceTypes={serviceTypes}
             intervals={serviceIntervals}
             onChange={setServiceIntervals}
+          />
+
+          <View style={styles.sectionHeader}>
+            <Icon name="receipt" size={13} color={colors.accent} />
+            <Text style={styles.sectionTitle}>{t("vehicles.paymentIntervals")}</Text>
+          </View>
+          <PaymentIntervalConfig
+            paymentTypes={paymentTypes}
+            intervals={paymentIntervals}
+            onChange={setPaymentIntervals}
+            onAdd={() =>
+              setPaymentIntervals((prev) => [
+                ...prev,
+                {
+                  id: generateUUID(),
+                  category: paymentTypes[0]?.id ?? "insurance",
+                  amount: 0,
+                  intervalType: "yearly",
+                  intervalDays: 365,
+                  startDateTs: Date.now(),
+                  notes: null,
+                },
+              ])
+            }
           />
         </ScrollView>
 

@@ -18,68 +18,86 @@ import { colors } from "../../../../theme/colors";
 import { spacing, radius } from "../../../../theme/spacing";
 import { typography, typeScale } from "../../../../theme/typography";
 import {
-  COST_CATEGORIES,
   type CostCategory,
-  type IntervalType,
   type VehicleCost,
 } from "../../../../domain/entities/VehicleCost";
+import type { PaymentType } from "@/domain/entities/PaymentType";
 import { haptic } from "@/utils/haptics";
 import DatePickerField from "../../../AddEntry/components/DatePickerField";
+import { usePaymentTypeLabel } from "@/hooks/usePaymentTypeLabel";
 
 interface CostFormValue {
   category: CostCategory;
   amount: number;
-  intervalType: IntervalType;
   dateTs: number;
   notes: string | null;
+  paymentIntervalId: string | null;
 }
 
 interface Props {
   visible: boolean;
   editingCost: VehicleCost | null;
+  paymentIntervals: VehicleCost[];
+  paymentTypes: PaymentType[];
   insetsBottom: number;
   saving: boolean;
   onClose: () => void;
   onSubmit: (value: CostFormValue) => Promise<void>;
 }
 
-const INTERVALS: { key: IntervalType; label: string }[] = [
-  { key: null, label: "once" },
-  { key: "monthly", label: "monthly" },
-  { key: "yearly", label: "yearly" },
-];
+function intervalBadgeLabel(
+  interval: VehicleCost,
+  t: (key: string) => string,
+): string {
+  if (interval.intervalType === "monthly") return t("costs.monthlyShort");
+  if (interval.intervalType === "yearly") return t("costs.yearlyShort");
+  return `${interval.intervalDays ?? 0}d`;
+}
 
 export default function CostEditModal({
   visible,
   editingCost,
+  paymentIntervals,
+  paymentTypes,
   insetsBottom,
   saving,
   onClose,
   onSubmit,
 }: Props) {
   const { t } = useTranslation();
-  const [category, setCategory] = useState<CostCategory>("insurance");
+  const getPaymentTypeLabel = usePaymentTypeLabel();
+  const paymentTypeById = new Map(paymentTypes.map((pt) => [pt.id, pt]));
+  const defaultCategory = paymentTypes[0]?.id ?? "insurance";
+  const [category, setCategory] = useState<CostCategory>(defaultCategory);
   const [amount, setAmount] = useState("");
-  const [intervalType, setIntervalType] = useState<IntervalType>(null);
   const [dateTs, setDateTs] = useState(Date.now());
   const [notes, setNotes] = useState("");
+  const [paymentIntervalId, setPaymentIntervalId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!visible) return;
     if (editingCost) {
       setCategory(editingCost.category);
       setAmount(String(editingCost.amount));
-      setIntervalType(editingCost.intervalType);
       setDateTs(editingCost.dateTs);
       setNotes(editingCost.notes ?? "");
+      setPaymentIntervalId(editingCost.paymentIntervalId ?? null);
       return;
     }
-    setCategory("insurance");
+    setCategory(defaultCategory);
     setAmount("");
-    setIntervalType(null);
     setDateTs(Date.now());
     setNotes("");
-  }, [visible, editingCost]);
+    setPaymentIntervalId(null);
+  }, [visible, editingCost, defaultCategory]);
+
+  useEffect(() => {
+    if (!paymentIntervalId) return;
+    const selected = paymentIntervals.find((iv) => iv.id === paymentIntervalId);
+    if (!selected) return;
+    setCategory(selected.category);
+    setAmount(String(selected.amount));
+  }, [paymentIntervalId, paymentIntervals]);
 
   const submit = async () => {
     const amt = parseFloat(amount);
@@ -92,11 +110,13 @@ export default function CostEditModal({
     await onSubmit({
       category,
       amount: amt,
-      intervalType,
       dateTs,
       notes: notes.trim() || null,
+      paymentIntervalId,
     });
   };
+
+  const linkedInterval = paymentIntervals.find((iv) => iv.id === paymentIntervalId) ?? null;
 
   return (
     <Modal
@@ -130,55 +150,92 @@ export default function CostEditModal({
                 style={styles.chipScroll}
               >
                 <View style={styles.chipRow}>
-                  {COST_CATEGORIES.map((cat) => (
+                  {paymentTypes.map((cat) => (
                     <TouchableOpacity
-                      key={cat.key}
+                      key={cat.id}
                       style={[
                         styles.catChip,
-                        category === cat.key && styles.catChipActive,
+                        category === cat.id && styles.catChipActive,
+                        paymentIntervalId && styles.catChipDisabled,
                       ]}
-                      onPress={() => setCategory(cat.key)}
+                      onPress={() => {
+                        if (paymentIntervalId) return;
+                        setCategory(cat.id);
+                      }}
+                      disabled={!!paymentIntervalId}
                     >
                       <Icon
                         name={cat.icon}
                         size={12}
-                        color={category === cat.key ? colors.white : colors.text2}
+                        color={category === cat.id ? colors.white : colors.text2}
                       />
                       <Text
                         style={[
                           styles.catChipText,
-                          category === cat.key && styles.catChipTextActive,
+                          category === cat.id && styles.catChipTextActive,
                         ]}
                       >
-                        {t(`costs.categories.${cat.key}`)}
+                        {getPaymentTypeLabel(cat)}
                       </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
               </ScrollView>
 
-              <Text style={styles.fieldLabel}>{t("costs.intervalLabel")}</Text>
-              <View style={[styles.chipRow, { marginBottom: spacing.md }]}>
-                {INTERVALS.map((iv) => (
+              <Text style={styles.fieldLabel}>{t("payments.linkToInterval")}</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+                <View style={styles.chipRow}>
                   <TouchableOpacity
-                    key={String(iv.key)}
                     style={[
-                      styles.intervalChip,
-                      intervalType === iv.key && styles.intervalChipActive,
+                      styles.linkChip,
+                      paymentIntervalId === null && styles.linkChipActive,
                     ]}
-                    onPress={() => setIntervalType(iv.key)}
+                    onPress={() => setPaymentIntervalId(null)}
                   >
                     <Text
                       style={[
-                        styles.intervalChipText,
-                        intervalType === iv.key && styles.intervalChipTextActive,
+                        styles.linkChipText,
+                        paymentIntervalId === null && styles.linkChipTextActive,
                       ]}
                     >
-                      {t(`costs.${iv.label}` as any)}
+                      {t("costs.once")}
                     </Text>
                   </TouchableOpacity>
-                ))}
-              </View>
+
+                  {paymentIntervals.map((interval) => {
+                    const active = paymentIntervalId === interval.id;
+                    const intervalType = paymentTypeById.get(interval.category);
+                    const fallbackKey = `costs.categories.${interval.category}`;
+                    const intervalLabel = intervalType
+                      ? getPaymentTypeLabel(intervalType)
+                      : (() => {
+                          const translated = t(fallbackKey);
+                          return translated === fallbackKey
+                            ? interval.category
+                            : translated;
+                        })();
+                    return (
+                      <TouchableOpacity
+                        key={interval.id}
+                        style={[styles.linkChip, active && styles.linkChipActive]}
+                        onPress={() => setPaymentIntervalId(interval.id)}
+                      >
+                        <Text style={[styles.linkChipText, active && styles.linkChipTextActive]}>
+                          {intervalLabel}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.linkChipSub,
+                            active && styles.linkChipSubActive,
+                          ]}
+                        >
+                          {formatAmount(interval.amount)} · {intervalBadgeLabel(interval, t)}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </ScrollView>
 
               <View style={styles.formRow}>
                 <View style={styles.formCol}>
@@ -191,14 +248,11 @@ export default function CostEditModal({
                     placeholder={t("costs.placeholderCost")}
                     placeholderTextColor={colors.text2}
                     autoFocus={!editingCost}
+                    editable={!linkedInterval}
                   />
                 </View>
                 <View style={styles.formCol}>
-                  <Text style={styles.fieldLabel}>
-                    {intervalType === null
-                      ? t("costs.dateLabel")
-                      : t("costs.recurringFromLabel")}
-                  </Text>
+                  <Text style={styles.fieldLabel}>{t("costs.dateLabel")}</Text>
                   <DatePickerField
                     value={dateTs}
                     onChange={setDateTs}
@@ -238,6 +292,10 @@ export default function CostEditModal({
       </KeyboardAvoidingView>
     </Modal>
   );
+}
+
+function formatAmount(amount: number): string {
+  return `CHF ${amount.toFixed(2)}`;
 }
 
 const styles = StyleSheet.create({
@@ -291,21 +349,36 @@ const styles = StyleSheet.create({
   },
   catChipText: { fontSize: typeScale.captionLarge, fontWeight: "500", color: colors.text1 },
   catChipTextActive: { color: colors.white, fontWeight: "600" },
-  intervalChip: {
-    flex: 1,
+  catChipDisabled: {
+    opacity: 0.45,
+  },
+  linkChip: {
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: radius.sm,
     backgroundColor: colors.bg3,
     borderWidth: 1,
     borderColor: colors.border1,
-    alignItems: "center",
+    alignItems: "flex-start",
   },
-  intervalChipActive: {
+  linkChipActive: {
     backgroundColor: colors.accentMuted,
     borderColor: colors.accent,
   },
-  intervalChipText: { fontSize: typeScale.bodySmall, fontWeight: "500", color: colors.text1 },
-  intervalChipTextActive: { color: colors.accentText, fontWeight: "600" },
+  linkChipText: {
+    fontSize: typeScale.bodySmall,
+    fontWeight: "600",
+    color: colors.text1,
+  },
+  linkChipTextActive: { color: colors.accentText },
+  linkChipSub: {
+    marginTop: 2,
+    fontSize: typeScale.overline,
+    color: colors.text2,
+  },
+  linkChipSubActive: {
+    color: colors.accentText,
+  },
   formRow: { flexDirection: "row", gap: spacing.md, marginBottom: spacing.xs },
   formCol: { flex: 1 },
   input: {

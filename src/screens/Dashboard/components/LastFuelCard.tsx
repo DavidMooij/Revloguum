@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border1,
     padding: spacing.md,
-    gap: spacing.md,
+    gap: spacing.sm,
   },
 
   header: {

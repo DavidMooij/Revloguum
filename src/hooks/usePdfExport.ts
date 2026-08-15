@@ -7,10 +7,12 @@ import { SQLiteVehicleRepo } from "../data/repositories/SQLiteVehicleRepo";
 import { SQLiteServiceEntryRepo } from "../data/repositories/SQLiteServiceEntryRepo";
 import { SQLiteFuelRepo } from "../data/repositories/SQLiteFuelRepo";
 import { SQLiteVehicleCostRepo } from "../data/repositories/SQLiteVehicleCostRepo";
+import { SQLitePaymentTypeRepo } from "../data/repositories/SQLitePaymentTypeRepo";
 import { decryptImage } from "@/security/imageEncryption";
 import { formatCost, formatOdometer, formatVehicleName } from "../utils/format";
 import * as FileSystem from "expo-file-system/legacy";
 import { ServiceTypeLabelService } from "../domain/services/ServiceTypeLabelService";
+import { PaymentTypeLabelService } from "../domain/services/PaymentTypeLabelService";
 
 export interface PdfExportOptions {
   vehicleId: string;
@@ -151,20 +153,32 @@ export function usePdfExport() {
 
         let costsSection = "";
         if (options.includeCosts) {
+          const paymentTypes = await new SQLitePaymentTypeRepo(db).getAll();
+          const paymentTypeById = new Map(paymentTypes.map((pt) => [pt.id, pt]));
+
           const costs = await new SQLiteVehicleCostRepo(db).getAll(
             options.vehicleId,
           );
           const filtered = costs.filter((c) => inRange(c.dateTs));
           const rows = filtered
-            .map(
-              (c) => `
+            .map((c) => {
+              const paymentType = paymentTypeById.get(c.category);
+              const categoryLabel = paymentType
+                ? PaymentTypeLabelService.getLabel(paymentType, t)
+                : (() => {
+                    const key = `costs.categories.${c.category}`;
+                    const translated = t(key);
+                    return translated === key ? c.category : translated;
+                  })();
+
+              return `
               <tr>
                 <td>${formatPdfDate(c.dateTs)}</td>
-                <td>${escapeHtml(c.category)}</td>
+                <td>${escapeHtml(categoryLabel)}</td>
                 ${options.includeCostValues ? `<td class="cost-cell">${formatCost(c.amount)}</td>` : ""}
                 ${options.includeNotes ? `<td>${escapeHtml(c.notes ?? "")}</td>` : ""}
-              </tr>`,
-            )
+              </tr>`;
+            })
             .join("");
           costsSection = `
             <h2>${escapeHtml(t("settings.pdfOtherCosts"))}</h2>

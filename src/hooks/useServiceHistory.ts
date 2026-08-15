@@ -9,6 +9,7 @@ import type {
   UpdateServiceEntryInput,
 } from "../domain/entities/ServiceEntry";
 import { updateVehicleOdometerIfHigher } from "@/utils/updateVehicleOdometer";
+import { syncNotifications } from "@/notifications/syncNotifications";
 
 const PAGE_SIZE = 50;
 
@@ -145,6 +146,7 @@ export function useServiceEntryActions() {
     const repo = new SQLiteServiceEntryRepo(db);
     await repo.insert(input);
     await updateVehicleOdometerIfHigher(db, input.vehicleId, input.odometerKm);
+    await syncNotifications();
   }, []);
 
   const updateEntry = useCallback(
@@ -162,6 +164,7 @@ export function useServiceEntryActions() {
           );
         }
       }
+      await syncNotifications();
     },
     [],
   );
@@ -169,7 +172,8 @@ export function useServiceEntryActions() {
   const deleteEntry = useCallback(async (id: string) => {
     const db = await getDatabase();
     const repo = new SQLiteServiceEntryRepo(db);
-    return repo.delete(id);
+    await repo.delete(id);
+    await syncNotifications();
   }, []);
 
   const addGroup = useCallback(
@@ -196,6 +200,8 @@ export function useServiceEntryActions() {
         common.odometerKm,
       );
 
+      await syncNotifications();
+
       return groupId;
     },
     [],
@@ -210,7 +216,8 @@ export function useServiceEntryActions() {
   const deleteGroup = useCallback(async (groupId: string) => {
     const db = await getDatabase();
     const repo = new SQLiteServiceEntryRepo(db);
-    return repo.deleteGroup(groupId);
+    await repo.deleteGroup(groupId);
+    await syncNotifications();
   }, []);
 
   const getLastForVehicle = useCallback(async (vehicleId: string) => {

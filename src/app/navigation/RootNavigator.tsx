@@ -10,6 +10,7 @@ import SettingsScreen from "../../screens/Settings/SettingsScreen";
 import AddEntryScreen from "../../screens/AddEntry/AddEntryScreen";
 import EntryDetailScreen from "../../screens/History/EntryDetailScreen";
 import ManageServiceTypesScreen from "../../screens/Settings/ManageServiceTypesScreen";
+import ManagePaymentTypesScreen from "../../screens/Settings/ManagePaymentTypesScreen";
 import ImageViewerScreen from "@/screens/History/ImageViewerScreen";
 import VehicleHistoryScreen from "@/screens/Vehicles/VehicleHistoryScreen";
 import VehicleFuelHistoryScreen from "@/screens/Vehicles/VehicleFuelHistoryScreen";
@@ -19,6 +20,7 @@ import AddVehicleScreen from "@/screens/Vehicles/AddVehicleScreen";
 import VehicleDetailScreen from "@/screens/Vehicles/VehicleDetailScreen";
 import VehicleCostsScreen from "@/screens/Vehicles/VehicleCostsScreen";
 import ExportPdfScreen from "@/screens/Settings/ExportPdfScreen";
+import NotificationSettingsScreen from "@/screens/Settings/NotificationSettingsScreen";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { typeScale } from "../../theme/typography";
 
@@ -95,6 +97,10 @@ export default function RootNavigator() {
         name="ManageServiceTypes"
         component={ManageServiceTypesScreen}
       />
+      <Stack.Screen
+        name="ManagePaymentTypes"
+        component={ManagePaymentTypesScreen}
+      />
       <Stack.Screen name="ImageViewer" component={ImageViewerScreen} />
       <Stack.Screen name="History" component={HistoryScreen} />
       <Stack.Screen name="VehicleDetail" component={VehicleDetailScreen} />
@@ -106,6 +112,10 @@ export default function RootNavigator() {
       />
       <Stack.Screen name="VehicleStats" component={VehicleStatsScreen} />
       <Stack.Screen name="ExportPdf" component={ExportPdfScreen} />
+      <Stack.Screen
+        name="NotificationSettings"
+        component={NotificationSettingsScreen}
+      />
     </Stack.Navigator>
   );
 }

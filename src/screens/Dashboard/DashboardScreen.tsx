@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { SQLiteVehicleCostRepo } from "../../data/repositories/SQLiteVehicleCostRepo";
 import { useTranslation } from "react-i18next";
 import {
@@ -21,20 +21,31 @@ import { useVehicles } from "../../hooks/useVehicles";
 import { getDatabase } from "../../data/db/database";
 import { SQLiteServiceEntryRepo } from "../../data/repositories/SQLiteServiceEntryRepo";
 import { SQLiteServiceTypeRepo } from "../../data/repositories/SQLiteServiceTypeRepo";
+import { SQLiteVehicleRepo } from "../../data/repositories/SQLiteVehicleRepo";
 import type { FuelEntry } from "../../domain/entities/FuelEntry";
 import { SQLiteFuelRepo as FuelRepo } from "../../data/repositories/SQLiteFuelRepo";
 import { haptic } from "@/utils/haptics";
 import QuickFuelModal from "../Fuel/QuickFuelModal";
 import VehicleSelector from "./components/VehicleSelector";
-import { VehicleCost } from "@/domain/entities/VehicleCost";
-import OverdueServicesCard from "./components/OverdueServiceCard";
 import DashboardInfoCard from "./components/DashboardInfoCard";
 import { formatCost } from "@/utils/format";
-import { useFuel } from "@/hooks/useFuel";
 import LastFuelCard from "./components/LastFuelCard";
 import { getVehicleFunFact } from "@/utils/vehicleFunFact";
 import { useServiceTypeLabel } from "@/hooks/useServiceTypeLabel";
+import { usePaymentTypes } from "@/hooks/usePaymentTypes";
+import { usePaymentTypeLabel } from "@/hooks/usePaymentTypeLabel";
 import { useFeedback } from "../components/feedback/Feedbackprovider";
+import { useAppStore } from "@/store/appStore";
+import { syncNotifications } from "@/notifications/syncNotifications";
+import { updateVehicleOdometerIfHigher } from "@/utils/updateVehicleOdometer";
+import {
+  computeServiceDueStatus,
+  isServiceOverdue,
+} from "@/domain/services/serviceDue";
+import {
+  computePaymentDueSummary,
+  type PaymentDueOccurrence,
+} from "@/domain/services/paymentDue";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -60,39 +71,37 @@ export interface NextServiceItem {
 interface DashboardData {
   lastFuel: FuelEntry | null;
   overdueItems: OverdueItem[];
+  overduePayments: PaymentDueOccurrence[];
   nextService: NextServiceItem | null;
-  nextPayment: VehicleCost | null;
+  nextPayment: PaymentDueOccurrence | null;
 }
 
-function getNextPayment(costs: VehicleCost[]): VehicleCost | null {
-  const recurring = costs.filter((c) => c.intervalType != null);
-  if (!recurring.length) return null;
+function computeNextServiceScore(status: {
+  nextDays: number | null;
+  nextKm: number | null;
+  interval: { intervalDays?: number; intervalKm?: number };
+}): number {
+  const scores: number[] = [];
 
-  const now = Date.now();
-  const withDue = recurring.map((c) => {
-    let nextTs = c.dateTs;
-    if (c.intervalType === "monthly") {
-      while (nextTs < now) nextTs += 30 * 86400000;
-    } else {
-      const d = new Date(c.dateTs);
-      while (nextTs < now) {
-        d.setFullYear(d.getFullYear() + 1);
-        nextTs = d.getTime();
-      }
-    }
-    return { c, nextTs };
-  });
+  if (status.nextDays !== null && status.interval.intervalDays) {
+    scores.push(status.nextDays / status.interval.intervalDays);
+  }
 
-  withDue.sort((a, b) => a.nextTs - b.nextTs);
-  return withDue[0]?.c ?? null;
+  if (status.nextKm !== null && status.interval.intervalKm) {
+    scores.push(status.nextKm / status.interval.intervalKm);
+  }
+
+  return scores.length ? Math.min(...scores) : Number.POSITIVE_INFINITY;
 }
 
 export default function DashboardScreen() {
   const { t } = useTranslation();
   const getLabel = useServiceTypeLabel();
+  const getPaymentTypeLabel = usePaymentTypeLabel();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
   const { showToast } = useFeedback();
+  const { paymentTypes } = usePaymentTypes();
   const { vehicles, activeVehicleId, setActiveVehicleId, refresh } =
     useVehicles();
   const activeVehicle =
@@ -100,80 +109,122 @@ export default function DashboardScreen() {
   const [data, setData] = useState<DashboardData>({
     lastFuel: null,
     overdueItems: [],
+    overduePayments: [],
     nextService: null,
     nextPayment: null,
   });
   const [fuelModalVisible, setFuelModalVisible] = useState(false);
+  const loadSeqRef = useRef(0);
+  const paymentTypeById = new Map(paymentTypes.map((pt) => [pt.id, pt]));
 
-  const loadData = useCallback(async () => {
-    if (!activeVehicle) return;
+  const loadData = useCallback(async (vehicleId: string | null) => {
+    const seq = ++loadSeqRef.current;
+
+    if (!vehicleId) {
+      setData({
+        lastFuel: null,
+        overdueItems: [],
+        overduePayments: [],
+        nextService: null,
+        nextPayment: null,
+      });
+      return;
+    }
+
     const db = await getDatabase();
+    const vehicleRepo = new SQLiteVehicleRepo(db);
     const serviceRepo = new SQLiteServiceEntryRepo(db);
     const fuelRepo = new FuelRepo(db);
     const costRepo = new SQLiteVehicleCostRepo(db);
 
-    const [lastFuelArr, allCosts] = await Promise.all([
-      fuelRepo.fetchFiltered({ vehicleId: activeVehicle.id, limit: 1 }),
-      costRepo.getAll(activeVehicle.id),
+    const vehicle = await vehicleRepo.getById(vehicleId);
+    if (!vehicle) {
+      if (seq === loadSeqRef.current) {
+        setData({
+          lastFuel: null,
+          overdueItems: [],
+          overduePayments: [],
+          nextService: null,
+          nextPayment: null,
+        });
+      }
+      return;
+    }
+
+    const [lastFuelArr, paymentHistory, paymentIntervals] = await Promise.all([
+      fuelRepo.fetchFiltered({ vehicleId, limit: 1 }),
+      costRepo.getHistory(vehicleId),
+      costRepo.getIntervals(vehicleId),
     ]);
 
     const lastFuel = lastFuelArr[0] ?? null;
-    const nextPayment = getNextPayment(allCosts);
-    let nextService: NextServiceItem | null = null;
 
-    if (activeVehicle.serviceIntervals?.length) {
+    const paymentDue = computePaymentDueSummary({
+      intervals: paymentIntervals,
+      historyEntries: paymentHistory,
+      nowTs: Date.now(),
+      horizonEndTs: Date.now() + 3650 * 86400000,
+    });
+
+    const nextPayment = paymentDue.upcoming[0] ?? null;
+    const overduePayments = paymentDue.overdue;
+
+    let nextService: NextServiceItem | null = null;
+    const overdueItems: OverdueItem[] = [];
+
+    if (vehicle.serviceIntervals?.length) {
       const serviceTypeRepo = new SQLiteServiceTypeRepo(db);
       const allTypes = await serviceTypeRepo.getAll();
       const typeMap = new Map(allTypes.map((st) => [st.id, st]));
+      const nowTs = Date.now();
 
       const candidates: {
         item: NextServiceItem;
         score: number;
       }[] = [];
 
-      for (const interval of activeVehicle.serviceIntervals) {
+      for (const interval of vehicle.serviceIntervals) {
         const st = typeMap.get(interval.serviceTypeId);
         if (!st) continue;
 
         const last = await serviceRepo.getLastByTypeForVehicle(
-          activeVehicle.id,
+          vehicleId,
           interval.serviceTypeId,
         );
 
-        let nextKm: number | null = null;
-        let nextDays: number | null = null;
-        let score = Infinity;
+        const status = computeServiceDueStatus({
+          interval,
+          vehicle,
+          lastEntry: last,
+          nowTs,
+        });
 
-        if (last) {
-          if (interval.intervalKm) {
-            const kmSince = activeVehicle.currentOdometer - last.odometerKm;
-
-            nextKm = Math.max(interval.intervalKm - kmSince, 0);
-
-            score = Math.min(score, nextKm);
-          }
-
-          if (interval.intervalDays) {
-            const daysSince = (Date.now() - last.dateTs) / 86400000;
-
-            nextDays = Math.max(
-              Math.ceil(interval.intervalDays - daysSince),
-              0,
-            );
-
-            score = Math.min(score, nextDays * 100);
-          }
+        if (status.kmOverdue !== null || status.daysOverdue !== null) {
+          overdueItems.push({
+            serviceTypeId: interval.serviceTypeId,
+            serviceTypeName: st.name,
+            serviceTypeIcon: st.icon,
+            translationKey: st.translationKey,
+            kmOverdue: status.kmOverdue,
+            daysOverdue: status.daysOverdue,
+            neverDone: status.neverDone,
+          });
         }
 
-        if (nextKm !== null || nextDays !== null) {
+        const isDueByDays = status.nextDays !== null;
+        const isDueByKm = status.nextKm !== null;
+
+        if ((isDueByDays || isDueByKm) && !isServiceOverdue(status)) {
+          const score = computeNextServiceScore(status);
+
           candidates.push({
             item: {
               serviceTypeId: interval.serviceTypeId,
               serviceTypeName: st.name,
               serviceTypeIcon: st.icon,
               translationKey: st.translationKey,
-              nextKm,
-              nextDays,
+              nextKm: status.nextKm,
+              nextDays: status.nextDays,
             },
             score,
           });
@@ -181,96 +232,53 @@ export default function DashboardScreen() {
       }
 
       candidates.sort((a, b) => a.score - b.score);
-
       nextService = candidates[0]?.item ?? null;
     }
 
-    const overdueItems: OverdueItem[] = [];
+    const currentVehicleId =
+      useAppStore.getState().activeVehicleId ??
+      useAppStore.getState().vehicles[0]?.id ??
+      null;
 
-    if (activeVehicle.serviceIntervals?.length) {
-      const serviceTypeRepo = new SQLiteServiceTypeRepo(db);
-      const allTypes = await serviceTypeRepo.getAll();
-      const typeMap = new Map(allTypes.map((st) => [st.id, st]));
-
-      for (const interval of activeVehicle.serviceIntervals) {
-        const st = typeMap.get(interval.serviceTypeId);
-        if (!st) continue;
-
-        const last = await serviceRepo.getLastByTypeForVehicle(
-          activeVehicle.id,
-          interval.serviceTypeId,
-        );
-
-        let kmOverdue: number | null = null;
-        let daysOverdue: number | null = null;
-
-        if (last) {
-          if (interval.intervalKm) {
-            const kmSince = activeVehicle.currentOdometer - last.odometerKm;
-
-            if (kmSince >= interval.intervalKm) {
-              kmOverdue = kmSince - interval.intervalKm;
-            }
-          }
-
-          if (interval.intervalDays) {
-            const daysSince = (Date.now() - last.dateTs) / 86400000;
-
-            if (daysSince >= interval.intervalDays) {
-              daysOverdue = Math.floor(daysSince - interval.intervalDays);
-            }
-          }
-        } else {
-          if (
-            interval.intervalKm &&
-            activeVehicle.currentOdometer >= interval.intervalKm
-          ) {
-            kmOverdue = activeVehicle.currentOdometer - interval.intervalKm;
-          }
-
-          if (interval.intervalDays) {
-            const daysSinceCreation =
-              (Date.now() - activeVehicle.createdAt) / 86400000;
-
-            if (daysSinceCreation >= interval.intervalDays) {
-              daysOverdue = Math.floor(
-                daysSinceCreation - interval.intervalDays,
-              );
-            }
-          }
-        }
-
-        if (kmOverdue !== null || daysOverdue !== null) {
-          overdueItems.push({
-            serviceTypeId: interval.serviceTypeId,
-            serviceTypeName: st.name,
-            serviceTypeIcon: st.icon,
-            translationKey: st.translationKey,
-            kmOverdue,
-            daysOverdue,
-            neverDone: !last,
-          });
-        }
-      }
+    if (seq !== loadSeqRef.current || currentVehicleId !== vehicleId) {
+      return;
     }
 
     setData({
       lastFuel,
       overdueItems,
+      overduePayments,
       nextService,
       nextPayment,
     });
-  }, [activeVehicle?.id, activeVehicle?.currentOdometer]);
+  }, []);
+
+  useEffect(() => {
+    void loadData(activeVehicle?.id ?? null);
+  }, [activeVehicle?.id, loadData]);
 
   useFocusEffect(
     useCallback(() => {
-      loadData();
-    }, [loadData]),
-  );
+      let cancelled = false;
 
-  const { addEntry } = useFuel({
-    vehicleId: activeVehicle?.id,
-  });
+      const reload = async () => {
+        await refresh();
+        if (!cancelled) {
+          const currentId =
+            useAppStore.getState().activeVehicleId ??
+            useAppStore.getState().vehicles[0]?.id ??
+            null;
+          await loadData(currentId);
+        }
+      };
+
+      void reload();
+      return () => {
+        cancelled = true;
+        loadSeqRef.current += 1;
+      };
+    }, [refresh, loadData]),
+  );
 
   const handleQuickFuelSave = useCallback(
     async (entry: {
@@ -281,16 +289,30 @@ export default function DashboardScreen() {
     }) => {
       if (!activeVehicle) return;
 
-      await addEntry({
-        vehicleId: activeVehicle.id,
+      const vehicleId = activeVehicle.id;
+      const db = await getDatabase();
+      const fuelRepo = new FuelRepo(db);
+
+      await fuelRepo.insert({
+        vehicleId,
         dateTs: Date.now(),
         ...entry,
       });
 
-      await refresh();
-      await loadData();
+      await updateVehicleOdometerIfHigher(db, vehicleId, entry.odometerKm);
+
+      void (async () => {
+        await refresh();
+        const currentId =
+          useAppStore.getState().activeVehicleId ??
+          useAppStore.getState().vehicles[0]?.id ??
+          null;
+        await loadData(currentId);
+      })();
+
+      void syncNotifications().catch(() => {});
     },
-    [activeVehicle, addEntry, refresh, loadData],
+    [activeVehicle, refresh, loadData],
   );
 
   if (!activeVehicle) {
@@ -342,29 +364,32 @@ export default function DashboardScreen() {
     return "-";
   }
 
-  function getDaysUntilNext(cost: VehicleCost): number {
-    const now = Date.now();
+  const overdueService = data.overdueItems[0] ?? null;
 
-    if (cost.intervalType === "monthly") {
-      const next = cost.dateTs + 30 * 86400000;
-      return Math.ceil((next - now) / 86400000);
+  const formatOverdueServiceSubtitle = (item: OverdueItem | null) => {
+    if (!item) return t("dashboard.vehicleUpToDate");
+    if (item.neverDone) return t("dashboard.neverDone");
+
+    const chunks: string[] = [];
+    if (item.kmOverdue != null && item.kmOverdue > 0) {
+      chunks.push(
+        `+${item.kmOverdue.toLocaleString()} km ${t("dashboard.overdue")}`,
+      );
     }
-
-    if (cost.intervalType === "yearly") {
-      const date = new Date(cost.dateTs);
-      const next = new Date(date);
-
-      next.setFullYear(next.getFullYear() + 1);
-
-      while (next.getTime() < now) {
-        next.setFullYear(next.getFullYear() + 1);
-      }
-
-      return Math.ceil((next.getTime() - now) / 86400000);
+    if (item.daysOverdue != null && item.daysOverdue > 0) {
+      chunks.push(`+${item.daysOverdue} ${t("dashboard.daysOverdue")}`);
     }
+    return chunks.join(" · ");
+  };
 
-    return 0;
-  }
+  const getPaymentCategoryLabel = (category: string) => {
+    const type = paymentTypeById.get(category);
+    if (type) return getPaymentTypeLabel(type);
+
+    const key = `costs.categories.${category}`;
+    const translated = t(key);
+    return translated === key ? category : translated;
+  };
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -386,7 +411,9 @@ export default function DashboardScreen() {
         )}
       </View>
 
-      <View style={styles.body}>
+      <View
+        style={[styles.body, vehicles.length > 1 && styles.bodyWithSelector]}
+      >
         <LastFuelCard
           entry={data.lastFuel}
           t={t}
@@ -397,15 +424,58 @@ export default function DashboardScreen() {
           }
         />
 
-        <OverdueServicesCard
-          item={data.overdueItems[0] ?? null}
-          onPress={() =>
-            navigation.navigate("VehicleHistory", {
-              vehicleId: activeVehicle.id,
-            })
-          }
-          t={t}
-        />
+        <View style={styles.infoGrid}>
+          <DashboardInfoCard
+            label={t("dashboard.overdueServices")}
+            title={
+              overdueService
+                ? getLabel({
+                    name: overdueService.serviceTypeName,
+                    translationKey: overdueService.translationKey,
+                  })
+                : t("dashboard.noOverdueServices")
+            }
+            subtitle={formatOverdueServiceSubtitle(overdueService)}
+            icon={overdueService ? "exclamation-triangle" : "check-circle"}
+            onPress={() =>
+              navigation.navigate("VehicleHistory", {
+                vehicleId: activeVehicle.id,
+              })
+            }
+            variant={overdueService ? "warning" : "normal"}
+          />
+
+          <DashboardInfoCard
+            label={t("dashboard.overduePayments")}
+            title={
+              data.overduePayments[0]
+                ? getPaymentCategoryLabel(data.overduePayments[0].category)
+                : t("dashboard.noOverduePayments")
+            }
+            subtitle={
+              data.overduePayments[0]
+                ? t("dashboard.daysOverdueDetailed", {
+                    days: data.overduePayments[0].daysOverdue ?? 0,
+                  })
+                : t("dashboard.paymentStatusGood")
+            }
+            icon={
+              data.overduePayments[0] ? "exclamation-triangle" : "check-circle"
+            }
+            value={
+              data.overduePayments[0]
+                ? formatCost(data.overduePayments[0].amount)
+                : undefined
+            }
+            onPress={() =>
+              navigation.navigate("VehicleCosts", {
+                vehicleId: activeVehicle.id,
+              })
+            }
+            variant={data.overduePayments[0] ? "warning" : "normal"}
+          />
+        </View>
+
         <View style={styles.infoGrid}>
           <DashboardInfoCard
             label={t("dashboard.nextService")}
@@ -433,15 +503,15 @@ export default function DashboardScreen() {
             label={t("dashboard.nextPayment")}
             title={
               data.nextPayment
-                ? t(`costs.categories.${data.nextPayment.category}`)
+                ? getPaymentCategoryLabel(data.nextPayment.category)
                 : t("dashboard.noPayments")
             }
             subtitle={
               data.nextPayment
                 ? t("dashboard.inDays", {
-                    days: getDaysUntilNext(data.nextPayment),
+                    days: data.nextPayment.daysUntilDue ?? 0,
                   })
-                : t("dashboard.addCostsHint")
+                : t("dashboard.addPaymentsHint")
             }
             icon="receipt"
             value={
@@ -461,8 +531,6 @@ export default function DashboardScreen() {
           </View>
 
           <View style={styles.odoContent}>
-            <Text style={styles.odoLabel}>{t("dashboard.odometer")}</Text>
-
             <Text style={styles.odoValue}>
               {activeVehicle.currentOdometer.toLocaleString()} km
             </Text>
@@ -522,7 +590,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border1,
-    padding: spacing.lg,
+    padding: spacing.md,
     marginBottom: spacing.md,
   },
 
@@ -545,8 +613,8 @@ const styles = StyleSheet.create({
   },
 
   odoValue: {
-    marginTop: 3,
-    fontSize: typeScale.numericLarge,
+    marginTop: 0,
+    fontSize: typeScale.titleXL,
     fontWeight: "800",
     color: colors.text0,
     letterSpacing: -0.8,
@@ -556,9 +624,12 @@ const styles = StyleSheet.create({
     fontSize: typeScale.bodySmall,
     color: colors.text2,
     fontStyle: "italic",
-    lineHeight: 18,
+    lineHeight: 12,
   },
   body: { padding: spacing.lg, gap: spacing.md, paddingBottom: 120 },
+  bodyWithSelector: {
+    paddingTop: spacing.sm,
+  },
 
   emptyCenter: {
     flex: 1,
@@ -576,7 +647,7 @@ const styles = StyleSheet.create({
   },
   infoGrid: {
     flexDirection: "row",
-    gap: spacing.md,
+    gap: spacing.sm,
   },
   infoHalf: {
     flex: 1,
@@ -588,7 +659,7 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: "absolute",
-    bottom: 90,
+    bottom: 55,
     right: spacing.lg,
     width: 54,
     height: 54,

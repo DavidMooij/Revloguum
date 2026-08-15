@@ -11,6 +11,7 @@ export type RootStackParamList = {
   EntryDetail: { entryId: string };
   AddVehicle: { editId?: string };
   ManageServiceTypes: undefined;
+  ManagePaymentTypes: undefined;
   ImageViewer: { images: string[]; initialIndex: number };
   History: { vehicleId: string };
   VehicleDetail: { vehicleId: string };
@@ -19,4 +20,5 @@ export type RootStackParamList = {
   VehicleFuelHistory: { vehicleId: string };
   VehicleStats: { vehicleId: string };
   ExportPdf: undefined;
+  NotificationSettings: undefined;
 };

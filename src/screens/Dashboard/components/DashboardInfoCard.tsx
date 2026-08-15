@@ -27,18 +27,40 @@ export default function DashboardInfoCard({
   const isWarning = variant === "warning";
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
-      <View style={styles.accentBar} />
+    <TouchableOpacity
+      style={styles.card}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <View
+        style={[
+          styles.accentBar,
+          { backgroundColor: isWarning ? colors.warning : colors.accent },
+        ]}
+      />
       <View style={styles.top}>
-        <View style={styles.iconWrap}>
-          <Icon name={icon} size={16} color={colors.accent} />
+        <View
+          style={[
+            styles.iconWrap,
+            isWarning && { backgroundColor: colors.warningMuted },
+          ]}
+        >
+          <Icon name={icon} size={16} color={isWarning ? colors.warning : colors.accent} />
         </View>
 
-        {value && <Text style={styles.value}>{value}</Text>}
+        {value && (
+          <Text style={[styles.value, isWarning && { color: colors.warningText }]}>
+            {value}
+          </Text>
+        )}
       </View>
       <Text style={styles.label}>{label}</Text>
       <Text style={styles.title}>{title}</Text>
-      {subtitle && <Text style={styles.status}>{subtitle}</Text>}
+      {subtitle && (
+        <Text style={[styles.status, isWarning && { color: colors.warningText }]}>
+          {subtitle}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 }
@@ -51,7 +73,9 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border1,
-    padding: spacing.md,
+    paddingLeft: spacing.md,
+    paddingRight: spacing.sm,
+    paddingVertical: spacing.md,
     overflow: "hidden",
   },
 

@@ -197,6 +197,13 @@ export default function SettingsScreen() {
           />
           <Divider />
           <SettingsRow
+            icon="receipt"
+            label={t("settings.managePaymentTypes")}
+            sublabel={t("settings.managePaymentTypesHint")}
+            onPress={() => navigation.navigate("ManagePaymentTypes")}
+          />
+          <Divider />
+          <SettingsRow
             icon="file-pdf"
             label={t("settings.exportPdf")}
             sublabel={t("settings.exportPdfHint")}
@@ -253,6 +260,13 @@ export default function SettingsScreen() {
                 thumbColor={colors.white}
               />
             }
+          />
+          <Divider />
+          <SettingsRow
+            icon="bell"
+            label={t("settings.notifications")}
+            sublabel={t("settings.notificationsHint")}
+            onPress={() => navigation.navigate("NotificationSettings")}
           />
           <Divider />
           <SettingsRow

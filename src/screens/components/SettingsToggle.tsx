@@ -15,12 +15,14 @@ interface Props<T extends string> {
   options: ToggleOption<T>[];
   value: T;
   onChange: (value: T) => void;
+  fullWidth?: boolean;
 }
 
 export function SettingsToggle<T extends string>({
   options,
   value,
   onChange,
+  fullWidth,
 }: Props<T>) {
   const readabilityMode = useAppStore((s) => s.readabilityMode);
 
@@ -28,6 +30,7 @@ export function SettingsToggle<T extends string>({
     <View
       style={[
         styles.container,
+        fullWidth && styles.containerFullWidth,
         { backgroundColor: readableColor("bg3", readabilityMode) },
       ]}
     >
@@ -38,6 +41,7 @@ export function SettingsToggle<T extends string>({
             key={opt.value}
             style={[
               styles.option,
+              fullWidth && styles.optionFullWidth,
               readabilityMode && styles.optionReadable,
               active && styles.optionActive,
             ]}
@@ -71,6 +75,9 @@ const styles = StyleSheet.create({
     padding: 2,
     gap: 2,
   },
+  containerFullWidth: {
+    width: "100%",
+  },
   option: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
@@ -78,6 +85,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     minWidth: 36,
+  },
+  optionFullWidth: {
+    flex: 1,
+    minWidth: 0,
   },
   optionReadable: {
     minWidth: 42,

@@ -1,14 +1,8 @@
-export type CostCategory =
-  | "purchase"
-  | "tax"
-  | "parking"
-  | "insurance"
-  | "accessory"
-  | "gear"
-  | "maintenance"
-  | "other";
+export type CostCategory = string;
 
-export type IntervalType = "monthly" | "yearly" | null;
+export type CostKind = "history" | "interval";
+
+export type IntervalType = "monthly" | "yearly" | "custom" | null;
 
 export const COST_CATEGORIES: {
   key: CostCategory;
@@ -27,12 +21,25 @@ export const COST_CATEGORIES: {
 export interface VehicleCost {
   id: string;
   vehicleId: string;
+  kind: CostKind;
   category: CostCategory;
   amount: number;
   dateTs: number;
   intervalType: IntervalType;
+  intervalDays: number | null;
+  paymentIntervalId: string | null;
+  intervalDueTs: number | null;
   notes: string | null;
   createdAt: number;
 }
 
-export type CreateVehicleCostInput = Omit<VehicleCost, "id" | "createdAt">;
+export type CreateVehicleCostInput = Omit<
+  VehicleCost,
+  "id" | "createdAt" | "kind" | "intervalDays" | "paymentIntervalId" | "intervalDueTs"
+> &
+  Partial<
+    Pick<
+      VehicleCost,
+      "kind" | "intervalDays" | "paymentIntervalId" | "intervalDueTs"
+    >
+  >;

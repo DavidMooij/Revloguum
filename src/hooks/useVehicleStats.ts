@@ -6,21 +6,14 @@ import { SQLiteVehicleRepo } from "../data/repositories/SQLiteVehicleRepo";
 import { SQLiteFuelRepo } from "../data/repositories/SQLiteFuelRepo";
 import { SQLiteServiceEntryRepo } from "../data/repositories/SQLiteServiceEntryRepo";
 import { SQLiteVehicleCostRepo } from "../data/repositories/SQLiteVehicleCostRepo";
+import { SQLitePaymentTypeRepo } from "../data/repositories/SQLitePaymentTypeRepo";
 import type { LineChartPoint } from "../screens/Vehicles/components/charts/LineChart";
 import type { BarChartData } from "../screens/Vehicles/components/charts/BarChart";
 import type { DonutSegment } from "../screens/Vehicles/components/charts/DonutChart";
 import { formatDateShort } from "../utils/date";
 import { colors } from "../theme/colors";
 import { ServiceTypeLabelService } from "../domain/services/ServiceTypeLabelService";
-
-const DONUT_OTHER_CATEGORIES = new Set([
-  "purchase",
-  "tax",
-  "parking",
-  "accessory",
-  "gear",
-  "other",
-]);
+import { PaymentTypeLabelService } from "@/domain/services/PaymentTypeLabelService";
 
 const SERVICE_TYPE_PALETTE = [
   colors.accent,
@@ -32,6 +25,25 @@ const SERVICE_TYPE_PALETTE = [
   "#F472B6",
   "#34D399",
 ];
+
+const PAYMENT_CATEGORY_PALETTE: string[] = [
+  colors.accent,
+  colors.warning,
+  colors.success,
+  "#60A5FA",
+  "#F472B6",
+  "#34D399",
+  colors.accentBright,
+  colors.bg4,
+];
+
+function colorForPaymentCategory(category: string): string {
+  let hash = 0;
+  for (let i = 0; i < category.length; i++) {
+    hash = (hash * 31 + category.charCodeAt(i)) >>> 0;
+  }
+  return PAYMENT_CATEGORY_PALETTE[hash % PAYMENT_CATEGORY_PALETTE.length];
+}
 
 function buildMonthlyData(
   fuelEntries: any[],
@@ -102,6 +114,50 @@ function buildMonthlyKmData(fuelEntries: any[], monthCount: number): LineChartPo
   return points;
 }
 
+function buildMonthlyPaymentCostData(
+  paymentEntries: { dateTs: number; amount: number }[],
+  monthCount: number,
+): BarChartData[] {
+  const now = new Date();
+  return Array.from({ length: monthCount }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (monthCount - 1 - i), 1);
+    const start = d.getTime();
+    const end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59).getTime();
+
+    const total = paymentEntries
+      .filter((e) => e.dateTs >= start && e.dateTs <= end)
+      .reduce((sum, e) => sum + e.amount, 0);
+
+    return {
+      label: d.toLocaleString("de-CH", { month: "short" }),
+      value: total,
+      color: colors.warning,
+    };
+  });
+}
+
+function buildYearlyPaymentCostData(
+  paymentEntries: { dateTs: number; amount: number }[],
+  yearCount: number,
+): BarChartData[] {
+  const now = new Date();
+  return Array.from({ length: yearCount }, (_, i) => {
+    const year = now.getFullYear() - (yearCount - 1 - i);
+    const start = new Date(year, 0, 1).getTime();
+    const end = new Date(year, 11, 31, 23, 59, 59).getTime();
+
+    const total = paymentEntries
+      .filter((e) => e.dateTs >= start && e.dateTs <= end)
+      .reduce((sum, e) => sum + e.amount, 0);
+
+    return {
+      label: String(year),
+      value: total,
+      color: colors.success,
+    };
+  });
+}
+
 export interface TyreDataPoint {
   dateTs: number;
   odometerKm: number;
@@ -118,6 +174,10 @@ export interface VehicleStatsData {
   totalCost: number;
   costPerKm: number;
   costDonutData: DonutSegment[];
+  paymentTypeCostData: DonutSegment[];
+  monthlyPaymentCostBarData: BarChartData[];
+  yearlyPaymentCostBarData: BarChartData[];
+  monthlyPaymentEstimate: number;
   serviceTypeCostData: DonutSegment[];
   priceLineData: LineChartPoint[];
   consumptionLineData: LineChartPoint[];
@@ -139,6 +199,7 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
         const fuelRepo = new SQLiteFuelRepo(db);
         const serviceRepo = new SQLiteServiceEntryRepo(db);
         const costRepo = new SQLiteVehicleCostRepo(db);
+        const paymentTypeRepo = new SQLitePaymentTypeRepo(db);
 
         const moto = await vehicleRepo.getById(vehicleId);
         if (!moto) return;
@@ -153,7 +214,9 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
           serviceTypeCosts,
           allServiceDates,
           allVehicleCostDates,
+          paymentIntervals,
           tyreEntries,
+          paymentTypes,
         ] = await Promise.all([
           serviceRepo.getCountForVehicle(vehicleId),
           serviceRepo.getTotalCostForVehicle(vehicleId),
@@ -164,8 +227,12 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
           serviceRepo.getCostByServiceType(vehicleId),
           serviceRepo.getAllWithDates(vehicleId),
           costRepo.getAllWithDates(vehicleId),
+          costRepo.getIntervals(vehicleId),
           serviceRepo.getAllByTypeForVehicle(vehicleId, "sys_tyre"),
+          paymentTypeRepo.getAll(),
         ]);
+
+        const paymentTypeById = new Map(paymentTypes.map((pt) => [pt.id, pt]));
 
         const fuelEntries = [...allFuel].reverse();
         const totalCost = serviceCost + fuelStats.totalCost + otherCost;
@@ -174,7 +241,7 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
         const insuranceCost = costsByCategory.find((c) => c.category === "insurance")?.total ?? 0;
         const maintenanceCost = costsByCategory.find((c) => c.category === "maintenance")?.total ?? 0;
         const otherVehicleCost = costsByCategory
-          .filter((c) => DONUT_OTHER_CATEGORIES.has(c.category))
+          .filter((c) => c.category !== "insurance" && c.category !== "maintenance")
           .reduce((sum, c) => sum + c.total, 0);
 
         const costDonutData: DonutSegment[] = [
@@ -192,6 +259,24 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
             value: s.total,
             color: SERVICE_TYPE_PALETTE[i % SERVICE_TYPE_PALETTE.length],
           }));
+
+        const paymentTypeCostData: DonutSegment[] = costsByCategory
+          .filter((c) => c.total > 0)
+          .map((c) => {
+            const paymentType = paymentTypeById.get(c.category);
+
+            return {
+              label: paymentType
+                ? PaymentTypeLabelService.getLabel(paymentType, t)
+                : (() => {
+                    const key = `costs.categories.${c.category}`;
+                    const translated = t(key);
+                    return translated === key ? c.category : translated;
+                  })(),
+              value: c.total,
+              color: colorForPaymentCategory(c.category),
+            };
+          });
 
         const priceLineData: LineChartPoint[] = fuelEntries
           .filter((e: any) => e.liters > 0)
@@ -237,6 +322,25 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
           6,
         );
 
+        const monthlyPaymentCostBarData = buildMonthlyPaymentCostData(
+          allVehicleCostDates,
+          6,
+        );
+
+        const yearlyPaymentCostBarData = buildYearlyPaymentCostData(
+          allVehicleCostDates,
+          5,
+        );
+
+        const monthlyPaymentEstimate = paymentIntervals.reduce((sum, interval) => {
+          if (interval.intervalType === "monthly") return sum + interval.amount;
+          if (interval.intervalType === "yearly") return sum + interval.amount / 12;
+          if (interval.intervalType === "custom" && interval.intervalDays) {
+            return sum + (interval.amount * 30) / interval.intervalDays;
+          }
+          return sum;
+        }, 0);
+
         const monthlyKmLineData = buildMonthlyKmData(fuelEntries, 6);
 
         const tyreData: TyreDataPoint[] = tyreEntries.map((e, i) => ({
@@ -255,6 +359,10 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
           totalCost,
           costPerKm,
           costDonutData,
+          paymentTypeCostData,
+          monthlyPaymentCostBarData,
+          yearlyPaymentCostBarData,
+          monthlyPaymentEstimate,
           serviceTypeCostData,
           priceLineData,
           consumptionLineData,

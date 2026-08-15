@@ -114,9 +114,9 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
       params.push(filter.odometerMax);
     }
     if (filter.searchText?.trim()) {
-      conditions.push("(st.name LIKE ? OR e.notes LIKE ?)");
+      conditions.push("(st.name LIKE ? OR e.notes LIKE ? OR CAST(COALESCE(e.cost, 0) AS TEXT) LIKE ?)");
       const q = `%${filter.searchText.trim()}%`;
-      params.push(q, q);
+      params.push(q, q, q);
     }
 
     const where =

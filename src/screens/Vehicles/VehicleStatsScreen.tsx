@@ -20,7 +20,7 @@ import type { RootStackParamList } from "../../app/navigation/routes";
 import { colors } from "../../theme/colors";
 import { typography, typeScale } from "../../theme/typography";
 import { spacing, radius } from "../../theme/spacing";
-import { formatCost, formatOdometer } from "../../utils/format";
+import { formatCost } from "../../utils/format";
 import ScreenHeader from "../components/ScreenHeader";
 import LineChart from "./components/charts/LineChart";
 import BarChart from "./components/charts/BarChart";
@@ -34,6 +34,8 @@ type ExpandedChart =
   | "price"
   | "consumption"
   | "monthlyFuel"
+  | "monthlyPayments"
+  | "yearlyPayments"
   | "monthlyTotal"
   | "monthlyKm"
   | null;
@@ -58,6 +60,10 @@ export default function VehicleStatsScreen() {
     fuelStats,
     costPerKm,
     costDonutData,
+    paymentTypeCostData,
+    monthlyPaymentCostBarData,
+    yearlyPaymentCostBarData,
+    monthlyPaymentEstimate,
     serviceTypeCostData,
     priceLineData,
     consumptionLineData,
@@ -89,9 +95,9 @@ export default function VehicleStatsScreen() {
       icon: "tint",
     },
     {
-      label: t("costs.odometer"),
-      value: formatOdometer(moto.currentOdometer),
-      icon: "tachometer-alt",
+      label: t("stats.monthlyPaymentEstimate"),
+      value: formatCost(monthlyPaymentEstimate),
+      icon: "receipt",
     },
     { label: t("costs.serviceEntries"), value: String(count), icon: "wrench" },
   ];
@@ -104,6 +110,10 @@ export default function VehicleStatsScreen() {
         return t("stats.consumptionChart");
       case "monthlyFuel":
         return t("stats.fuelCostChart");
+      case "monthlyPayments":
+        return t("stats.monthlyPaymentCostChart");
+      case "yearlyPayments":
+        return t("stats.yearlyPaymentCostChart");
       case "monthlyTotal":
         return t("stats.monthlyTotalCostChart");
       case "monthlyKm":
@@ -120,6 +130,8 @@ export default function VehicleStatsScreen() {
       case "consumption":
         return "L/100km";
       case "monthlyFuel":
+      case "monthlyPayments":
+      case "yearlyPayments":
       case "monthlyTotal":
         return "CHF";
       case "monthlyKm":
@@ -225,6 +237,60 @@ export default function VehicleStatsScreen() {
           </View>
         )}
 
+        {paymentTypeCostData.length >= 1 && (
+          <View style={styles.chartCard}>
+            <View style={styles.chartCardHeader}>
+              <View>
+                <Text style={styles.sectionLabel}>
+                  {t("stats.paymentTypeCostChart")}
+                </Text>
+                <Text style={styles.chartUnit}>CHF</Text>
+              </View>
+            </View>
+            <DonutChart
+              data={paymentTypeCostData}
+              size={130}
+              strokeWidth={16}
+              centerLabel={formatCost(
+                paymentTypeCostData.reduce((s, d) => s + d.value, 0),
+              )}
+              centerSub={t("stats.total")}
+            />
+          </View>
+        )}
+
+        {monthlyPaymentCostBarData.some((d) => d.value > 0) && (
+          <ChartCard
+            title={t("stats.monthlyPaymentCostChart")}
+            unit="CHF"
+            onExpand={() => setExpandedChart("monthlyPayments")}
+          >
+            <BarChart
+              data={monthlyPaymentCostBarData}
+              width={CHART_W}
+              height={160}
+              color={colors.warning}
+              formatValue={(v) => v.toFixed(0)}
+            />
+          </ChartCard>
+        )}
+
+        {yearlyPaymentCostBarData.some((d) => d.value > 0) && (
+          <ChartCard
+            title={t("stats.yearlyPaymentCostChart")}
+            unit="CHF"
+            onExpand={() => setExpandedChart("yearlyPayments")}
+          >
+            <BarChart
+              data={yearlyPaymentCostBarData}
+              width={CHART_W}
+              height={160}
+              color={colors.success}
+              formatValue={(v) => v.toFixed(0)}
+            />
+          </ChartCard>
+        )}
+
         {monthlyTotalCostBarData.some((d) => d.value > 0) && (
           <ChartCard
             title={t("stats.monthlyTotalCostChart")}
@@ -326,6 +392,24 @@ export default function VehicleStatsScreen() {
                 width={CHART_W_FULL}
                 height={420}
                 color={colors.accentBright}
+                formatValue={(v) => v.toFixed(0)}
+              />
+            )}
+            {expandedChart === "monthlyPayments" && (
+              <BarChart
+                data={monthlyPaymentCostBarData}
+                width={CHART_W_FULL}
+                height={420}
+                color={colors.warning}
+                formatValue={(v) => v.toFixed(0)}
+              />
+            )}
+            {expandedChart === "yearlyPayments" && (
+              <BarChart
+                data={yearlyPaymentCostBarData}
+                width={CHART_W_FULL}
+                height={420}
+                color={colors.success}
                 formatValue={(v) => v.toFixed(0)}
               />
             )}

@@ -4,146 +4,153 @@ import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { colors } from "../../../../theme/colors";
 import { spacing, radius } from "../../../../theme/spacing";
-import { typeScale } from "../../../../theme/typography";
-import type { CostCategory, VehicleCost } from "../../../../domain/entities/VehicleCost";
+import { typography, typeScale } from "../../../../theme/typography";
+import { type VehicleCost } from "../../../../domain/entities/VehicleCost";
+import type { PaymentType } from "@/domain/entities/PaymentType";
 import { formatCost } from "../../../../utils/format";
 import { formatDate } from "../../../../utils/date";
 import { haptic } from "@/utils/haptics";
-
-export interface CostGroupView {
-  key: CostCategory;
-  icon: string;
-  items: VehicleCost[];
-  total: number;
-}
+import { usePaymentTypeLabel } from "@/hooks/usePaymentTypeLabel";
 
 interface Props {
-  groups: CostGroupView[];
+  entries: VehicleCost[];
+  paymentTypes: PaymentType[];
   onEdit: (cost: VehicleCost) => void;
   onDeleteRequest: (costId: string) => void;
 }
 
-export default function CostGroupsList({ groups, onEdit, onDeleteRequest }: Props) {
+export default function CostGroupsList({
+  entries,
+  paymentTypes,
+  onEdit,
+  onDeleteRequest,
+}: Props) {
   const { t } = useTranslation();
+  const getPaymentTypeLabel = usePaymentTypeLabel();
+  const paymentTypeById = new Map(paymentTypes.map((pt) => [pt.id, pt]));
 
   return (
     <ScrollView
       contentContainerStyle={styles.scroll}
       showsVerticalScrollIndicator={false}
     >
-      {groups.map((group) => (
-        <View key={group.key} style={styles.group}>
-          <View style={styles.groupHeader}>
-            <View style={styles.groupIconWrap}>
-              <Icon name={group.icon} size={13} color={colors.accent} />
+      {entries.map((item) => {
+        const paymentType = paymentTypeById.get(item.category);
+        const categoryIcon = paymentType?.icon ?? "receipt";
+        const fallbackKey = `costs.categories.${item.category}`;
+        const categoryLabel = paymentType
+          ? getPaymentTypeLabel(paymentType)
+          : (() => {
+              const translated = t(fallbackKey);
+              return translated === fallbackKey ? item.category : translated;
+            })();
+
+        return (
+          <TouchableOpacity
+            key={item.id}
+            style={styles.costRow}
+            onPress={() => onEdit(item)}
+            onLongPress={() => {
+              haptic.error();
+              onDeleteRequest(item.id);
+            }}
+            activeOpacity={0.78}
+          >
+            <View style={styles.iconWrap}>
+              <Icon name={categoryIcon as any} size={13} color={colors.accent} />
             </View>
-            <Text style={styles.groupTitle}>{t(`costs.categories.${group.key}`)}</Text>
-            <Text style={styles.groupTotal}>{formatCost(group.total)}</Text>
-          </View>
-          {group.items.map((item, idx) => (
-            <TouchableOpacity
-              key={item.id}
-              style={[
-                styles.costRow,
-                idx < group.items.length - 1 && styles.costRowBorder,
-              ]}
-              onPress={() => onEdit(item)}
-              onLongPress={() => {
-                haptic.error();
-                onDeleteRequest(item.id);
-              }}
-              activeOpacity={0.72}
-            >
-              <View style={styles.costLeft}>
-                <Text style={styles.costAmount}>{formatCost(item.amount)}</Text>
-                {item.intervalType && (
+
+            <View style={styles.costLeft}>
+              <View style={styles.titleLine}>
+                <Text style={styles.categoryText} numberOfLines={1}>
+                  {categoryLabel}
+                </Text>
+                <Text style={styles.dot}>·</Text>
+                <Text style={styles.dateText} numberOfLines={1}>
+                  {formatDate(item.dateTs)}
+                </Text>
+                {item.paymentIntervalId && (
                   <View style={styles.intervalBadge}>
-                    <Text style={styles.intervalText}>
-                      {item.intervalType === "monthly"
-                        ? t("costs.monthlyShort")
-                        : t("costs.yearlyShort")}
-                    </Text>
+                    <Text style={styles.intervalText}>{t("payments.recurringPaidShort")}</Text>
                   </View>
                 )}
               </View>
-              <View style={styles.costRight}>
-                <Text style={styles.costDate}>{formatDate(item.dateTs)}</Text>
-                {item.notes ? (
-                  <Text style={styles.costNotes} numberOfLines={1}>
-                    {item.notes}
-                  </Text>
-                ) : null}
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      ))}
+            </View>
+
+            <View style={styles.costRight}>
+              <Text style={styles.costAmount} numberOfLines={1}>
+                {formatCost(item.amount)}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        );
+      })}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { padding: spacing.lg, paddingBottom: 60, gap: spacing.md },
-  group: {
+  scroll: { padding: spacing.lg, paddingBottom: 60, gap: spacing.sm },
+  costRow: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.bg1,
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border1,
-    overflow: "hidden",
-  },
-  groupHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    padding: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border0,
-  },
-  groupIconWrap: {
-    width: 28,
-    height: 28,
-    borderRadius: radius.sm,
-    backgroundColor: colors.accentMuted,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  groupTitle: {
-    flex: 1,
-    fontSize: typeScale.bodySmall,
-    fontWeight: "600",
-    color: colors.text0,
-  },
-  groupTotal: { fontSize: typeScale.bodySmall, fontWeight: "600", color: colors.text0 },
-  costRow: {
-    flexDirection: "row",
-    alignItems: "center",
     padding: spacing.md,
     gap: spacing.md,
   },
-  costRowBorder: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border0,
+  iconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.accentMuted,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
   },
   costLeft: {
+    flex: 1,
+    minWidth: 0,
+  },
+  titleLine: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
-    flex: 1,
+    gap: spacing.xs,
+    minHeight: 20,
+    flexWrap: "nowrap",
   },
-  costAmount: { fontSize: typeScale.body, fontWeight: "600", color: colors.text0 },
+  categoryText: {
+    ...typography.bodyStrong,
+    color: colors.text0,
+  },
+  dot: {
+    fontSize: typeScale.captionLarge,
+    color: colors.text3,
+  },
+  dateText: {
+    fontSize: typeScale.captionLarge,
+    color: colors.text2,
+    fontWeight: "500",
+  },
   intervalBadge: {
-    backgroundColor: colors.bg3,
+    marginLeft: spacing.xs,
+    backgroundColor: colors.accentMuted,
     borderRadius: radius.full,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
+    paddingVertical: 1,
   },
-  intervalText: { fontSize: typeScale.overline, fontWeight: "600", color: colors.text2 },
+  intervalText: {
+    fontSize: typeScale.overline,
+    fontWeight: "700",
+    color: colors.accentText,
+    textTransform: "uppercase",
+  },
   costRight: { flex: 1, alignItems: "flex-end" },
-  costDate: { fontSize: typeScale.captionLarge, color: colors.text2 },
-  costNotes: {
-    fontSize: typeScale.caption,
-    color: colors.text2,
-    fontStyle: "italic",
-    maxWidth: 140,
+  costAmount: {
+    fontSize: typeScale.bodyLarge,
+    fontWeight: "800",
+    color: colors.successText,
   },
 });
