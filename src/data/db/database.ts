@@ -12,7 +12,7 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
   _initPromise = (async () => {
     const key = await getDatabaseKey();
 
-    const db = await SQLite.openDatabaseAsync("revlog.db");
+    const db = await SQLite.openDatabaseAsync("revloguum.db");
 
     await db.execAsync(`PRAGMA key = "x'${key}'";`);
     await db.getFirstAsync("SELECT count(*) as c FROM sqlite_master");

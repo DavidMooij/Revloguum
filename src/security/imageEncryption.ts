@@ -47,7 +47,7 @@ export async function encryptImage(uri: string): Promise<string> {
     data: encrypted.toString("hex"),
   };
 
-  const dir = FileSystem.documentDirectory + "revlog_images/";
+  const dir = FileSystem.documentDirectory + "revloguum_images/";
 
   const info = await FileSystem.getInfoAsync(dir);
 
@@ -94,7 +94,7 @@ export async function decryptImage(encryptedPath: string): Promise<string> {
 
   const ext = encryptedPath.includes(".png") ? "png" : "jpg";
 
-  const temp = FileSystem.cacheDirectory + "revlog_preview_" + filename + "." + ext;
+  const temp = FileSystem.cacheDirectory + "revloguum_preview_" + filename + "." + ext;
 
   await FileSystem.writeAsStringAsync(temp, decrypted.toString("base64"), {
     encoding: FileSystem.EncodingType.Base64,

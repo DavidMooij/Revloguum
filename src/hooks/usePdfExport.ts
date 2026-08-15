@@ -332,7 +332,7 @@ export function usePdfExport() {
 
         const { uri } = await Print.printToFileAsync({ html, base64: false });
 
-        const filename = `revlog-export-${formatDate(Date.now())}.pdf`;
+        const filename = `revloguum-export-${formatDate(Date.now())}.pdf`;
         const finalUri = FileSystem.cacheDirectory + filename;
         await FileSystem.copyAsync({ from: uri, to: finalUri });
 

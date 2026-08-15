@@ -1,8 +1,8 @@
-# RevLog
+# Revloguumuum
 
 Your garage memory, finally in one place.
 
-RevLog is a local-first vehicle journal for people who care about maintenance, running costs, and clean history.
+Revloguum is a local-first vehicle journal for people who care about maintenance, running costs, and clean history.
 
 No spreadsheets. No forgotten service dates. No "where did I save that receipt" moments.
 
@@ -15,9 +15,9 @@ Vehicle ownership gets messy over time.
 - Real monthly ownership cost is hard to estimate
 - Important history gets lost right when you need it
 
-## The RevLog Approach
+## The Revloguum Approach
 
-RevLog keeps your full vehicle story structured, searchable, and private.
+Revloguum keeps your full vehicle story structured, searchable, and private.
 
 - Service history in clear, practical timelines
 - Fuel tracking with quick input and edit support
@@ -52,7 +52,7 @@ RevLog keeps your full vehicle story structured, searchable, and private.
 
 ## Privacy by Default
 
-RevLog is designed to keep your data on your device.
+Revloguum is designed to keep your data on your device.
 
 - No account required
 - No cloud dependency for core use
@@ -77,7 +77,7 @@ See [SECURITY.md](SECURITY.md) for full technical details and threat model.
 
 Maintenance is expensive when it is forgotten.
 
-RevLog helps you stay ahead with:
+Revloguum helps you stay ahead with:
 - better service memory
 - clearer cost visibility
 - cleaner ownership history

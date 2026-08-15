@@ -1,10 +1,10 @@
-# RevLog Security Model
+# Revloguum Security Model
 
 ## Scope
 
-This document describes how RevLog protects local user data, what threats are in scope, and what limitations remain.
+This document describes how Revloguum protects local user data, what threats are in scope, and what limitations remain.
 
-RevLog is a local-first mobile app. Core vehicle data is stored on-device.
+Revloguum is a local-first mobile app. Core vehicle data is stored on-device.
 
 ## Security Goals
 

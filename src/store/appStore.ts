@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 import type { Vehicle } from '../domain/entities/Vehicle';
 
-const READABILITY_MODE_KEY = 'revlog.readabilityMode';
+const READABILITY_MODE_KEY = 'revloguum.readabilityMode';
 
 interface AppState {
   isDbReady: boolean;

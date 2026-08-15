@@ -93,7 +93,7 @@ async function encryptPayload(
       iv,
       additionalData: new TextEncoder().encode(
         JSON.stringify({
-          app: "RevLog",
+          app: "Revloguumuum",
           format: "backup",
           version: 3,
         }),
@@ -124,7 +124,7 @@ async function decryptPayload(
       iv,
       additionalData: new TextEncoder().encode(
         JSON.stringify({
-          app: "RevLog",
+          app: "Revloguumuum",
           format: "backup",
           version: 3,
         }),
@@ -200,7 +200,7 @@ async function readAllData(): Promise<BackupPayload> {
 async function restoreAllData(payload: BackupPayload): Promise<void> {
   const db = await getDatabase();
 
-  const imgDir = FileSystem.documentDirectory + "revlog_images/";
+  const imgDir = FileSystem.documentDirectory + "Revloguum_images/";
   const info = await FileSystem.getInfoAsync(imgDir);
   if (!info.exists)
     await FileSystem.makeDirectoryAsync(imgDir, { intermediates: true });
@@ -355,7 +355,7 @@ export function useExport() {
         );
         const fileContent = JSON.stringify(envelope);
 
-        const filename = `revlog_backup_${formatDate(todayTs())}.rvlg`;
+        const filename = `Revloguum_backup_${formatDate(todayTs())}.rvlg`;
         const fileUri = FileSystem.cacheDirectory + filename;
 
         await FileSystem.writeAsStringAsync(fileUri, fileContent, {
@@ -383,7 +383,7 @@ export function useExport() {
         }
         await Sharing.shareAsync(fileUri, {
           mimeType: "application/octet-stream",
-          dialogTitle: "Save RevLog backup",
+          dialogTitle: "Save Revloguum backup",
           UTI: "public.data",
         });
         return { success: true };
@@ -430,7 +430,7 @@ export function useExport() {
           !envelope.data ||
           !envelope.salt
         ) {
-          return { success: false, error: "Not a valid RevLog backup file" };
+          return { success: false, error: "Not a valid Revloguum backup file" };
         }
 
         let json: string;
@@ -468,7 +468,7 @@ export function useExport() {
         await db.runAsync("DELETE FROM vehicles;");
         await db.runAsync("DELETE FROM service_types WHERE is_system = 0;");
       });
-      const imgDir = FileSystem.documentDirectory + "revlog_images/";
+      const imgDir = FileSystem.documentDirectory + "Revloguum_images/";
       const info = await FileSystem.getInfoAsync(imgDir);
       if (info.exists)
         await FileSystem.deleteAsync(imgDir, { idempotent: true });

@@ -2,8 +2,8 @@ import * as Keychain from "react-native-keychain";
 
 import { generateDatabaseKey } from "./keyGenerator";
 
-const SERVICE_KEY = "com.revlog.database";
-const USERNAME = "revlog";
+const SERVICE_KEY = "com.revloguum.database";
+const USERNAME = "revloguum";
 
 export async function getDatabaseKey(): Promise<string> {
   const existing = await Keychain.getGenericPassword({
