@@ -8,7 +8,6 @@ import { SQLiteServiceEntryRepo } from "../data/repositories/SQLiteServiceEntryR
 import { SQLiteFuelRepo } from "../data/repositories/SQLiteFuelRepo";
 import { SQLiteVehicleCostRepo } from "../data/repositories/SQLiteVehicleCostRepo";
 import { decryptImage } from "@/security/imageEncryption";
-import { formatDate } from "../utils/date";
 import { formatCost, formatOdometer, formatVehicleName } from "../utils/format";
 import * as FileSystem from "expo-file-system/legacy";
 import { ServiceTypeLabelService } from "../domain/services/ServiceTypeLabelService";
@@ -48,10 +47,23 @@ async function imageToDataUri(path: string): Promise<string | null> {
 }
 
 export function usePdfExport() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const generatePdf = useCallback(
     async (options: PdfExportOptions): Promise<PdfExportResult> => {
       try {
+        const formatPdfDate = (ts: number) =>
+          new Intl.DateTimeFormat(i18n.language, {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }).format(new Date(ts));
+
+        const formatLiters = (value: number) =>
+          new Intl.NumberFormat(i18n.language, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }).format(value);
+
         const db = await getDatabase();
         const vehicle = await new SQLiteVehicleRepo(db).getById(
           options.vehicleId,
@@ -90,7 +102,7 @@ export function usePdfExport() {
                     <span class="entry-title">${escapeHtml(ServiceTypeLabelService.getLabel({ name: e.serviceTypeName, translationKey: e.translationKey }, t))}</span>
                     ${options.includeCostValues && e.cost != null ? `<span class="entry-cost">${formatCost(e.cost)}</span>` : ""}
                   </div>
-                  <div class="entry-meta">${formatDate(e.dateTs)} · ${formatOdometer(e.odometerKm)}</div>
+                  <div class="entry-meta">${formatPdfDate(e.dateTs)} · ${formatOdometer(e.odometerKm)}</div>
                   ${options.includeNotes && e.notes ? `<div class="entry-notes">${escapeHtml(e.notes)}</div>` : ""}
                   ${photosHtml}
                 </div>`;
@@ -98,7 +110,7 @@ export function usePdfExport() {
           );
 
           serviceSection = `
-            <h2>Service History</h2>
+            <h2>${escapeHtml(t("settings.pdfServiceHistory"))}</h2>
             ${blocks.join("")}`;
         }
 
@@ -115,22 +127,22 @@ export function usePdfExport() {
             .map(
               (f) => `
               <tr>
-                <td>${formatDate(f.dateTs)}</td>
+                <td>${formatPdfDate(f.dateTs)}</td>
                 <td>${formatOdometer(f.odometerKm)}</td>
-                <td>${f.liters.toFixed(2)} L</td>
+                <td>${formatLiters(f.liters)} ${escapeHtml(t("settings.pdfLitersUnit"))}</td>
                 ${options.includeCostValues ? `<td class="cost-cell">${formatCost(f.cost)}</td>` : ""}
                 ${options.includeNotes ? `<td>${escapeHtml(f.notes ?? "")}</td>` : ""}
               </tr>`,
             )
             .join("");
           fuelSection = `
-            <h2>Fuel History</h2>
+            <h2>${escapeHtml(t("settings.pdfFuelHistory"))}</h2>
             <table>
               <thead>
                 <tr>
-                  <th>Date</th><th>Odometer</th><th>Liters</th>
-                  ${options.includeCostValues ? "<th>Cost</th>" : ""}
-                  ${options.includeNotes ? "<th>Notes</th>" : ""}
+                  <th>${escapeHtml(t("common.date"))}</th><th>${escapeHtml(t("dashboard.odometer"))}</th><th>${escapeHtml(t("settings.pdfLiters"))}</th>
+                  ${options.includeCostValues ? `<th>${escapeHtml(t("dashboard.cost"))}</th>` : ""}
+                  ${options.includeNotes ? `<th>${escapeHtml(t("settings.pdfNotes"))}</th>` : ""}
                 </tr>
               </thead>
               <tbody>${rows}</tbody>
@@ -147,7 +159,7 @@ export function usePdfExport() {
             .map(
               (c) => `
               <tr>
-                <td>${formatDate(c.dateTs)}</td>
+                <td>${formatPdfDate(c.dateTs)}</td>
                 <td>${escapeHtml(c.category)}</td>
                 ${options.includeCostValues ? `<td class="cost-cell">${formatCost(c.amount)}</td>` : ""}
                 ${options.includeNotes ? `<td>${escapeHtml(c.notes ?? "")}</td>` : ""}
@@ -155,13 +167,13 @@ export function usePdfExport() {
             )
             .join("");
           costsSection = `
-            <h2>Other Costs</h2>
+            <h2>${escapeHtml(t("settings.pdfOtherCosts"))}</h2>
             <table>
               <thead>
                 <tr>
-                  <th>Date</th><th>Category</th>
-                  ${options.includeCostValues ? "<th>Amount</th>" : ""}
-                  ${options.includeNotes ? "<th>Notes</th>" : ""}
+                  <th>${escapeHtml(t("common.date"))}</th><th>${escapeHtml(t("settings.pdfCategory"))}</th>
+                  ${options.includeCostValues ? `<th>${escapeHtml(t("settings.pdfAmount"))}</th>` : ""}
+                  ${options.includeNotes ? `<th>${escapeHtml(t("settings.pdfNotes"))}</th>` : ""}
                 </tr>
               </thead>
               <tbody>${rows}</tbody>
@@ -297,7 +309,7 @@ export function usePdfExport() {
             </head>
             <body>
               <div class="cover">
-                <div class="cover-eyebrow">Vehicle Report</div>
+                <div class="cover-eyebrow">${escapeHtml(t("settings.pdfVehicleReport"))}</div>
                 <div class="cover-title">${escapeHtml(
                   formatVehicleName(
                     vehicle.make,
@@ -305,20 +317,20 @@ export function usePdfExport() {
                     vehicle.nickname,
                   ),
                 )}</div>
-                <div class="cover-sub">${vehicle.year ? `${vehicle.year} · ` : ""}Generated ${formatDate(Date.now())}</div>
+                <div class="cover-sub">${vehicle.year ? `${vehicle.year} · ` : ""}${escapeHtml(t("settings.pdfGeneratedOn", { date: formatPdfDate(Date.now()) }))}</div>
                 <div class="cover-stats">
                   <div class="cover-stat">
-                    <div class="cover-stat-label">Odometer</div>
+                    <div class="cover-stat-label">${escapeHtml(t("dashboard.odometer"))}</div>
                     <div class="cover-stat-value">${formatOdometer(vehicle.currentOdometer)}</div>
                   </div>
                   ${
                     options.includeService
-                      ? `<div class="cover-stat"><div class="cover-stat-label">Service entries</div><div class="cover-stat-value">${serviceCount}</div></div>`
+                      ? `<div class="cover-stat"><div class="cover-stat-label">${escapeHtml(t("settings.pdfServiceEntries"))}</div><div class="cover-stat-value">${serviceCount}</div></div>`
                       : ""
                   }
                   ${
                     options.includeFuel
-                      ? `<div class="cover-stat"><div class="cover-stat-label">Fuel entries</div><div class="cover-stat-value">${fuelCount}</div></div>`
+                      ? `<div class="cover-stat"><div class="cover-stat-label">${escapeHtml(t("settings.pdfFuelEntries"))}</div><div class="cover-stat-value">${fuelCount}</div></div>`
                       : ""
                   }
                 </div>
@@ -332,7 +344,14 @@ export function usePdfExport() {
 
         const { uri } = await Print.printToFileAsync({ html, base64: false });
 
-        const filename = `revloguum-export-${formatDate(Date.now())}.pdf`;
+        const dateForFilename = new Intl.DateTimeFormat("sv-SE", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        })
+          .format(new Date())
+          .replace(/-/g, "");
+        const filename = `revloguum-export-${dateForFilename}.pdf`;
         const finalUri = FileSystem.cacheDirectory + filename;
         await FileSystem.copyAsync({ from: uri, to: finalUri });
 
@@ -341,7 +360,7 @@ export function usePdfExport() {
         return { success: false, error: (e as Error).message };
       }
     },
-    [],
+    [i18n.language, t],
   );
 
   const shareGeneratedPdf = useCallback(async (fileUri: string) => {
@@ -349,11 +368,11 @@ export function usePdfExport() {
     if (!available) return { success: false, error: "Sharing not available" };
     await Sharing.shareAsync(fileUri, {
       mimeType: "application/pdf",
-      dialogTitle: "Save PDF",
+      dialogTitle: t("settings.pdfSaveDialogTitle"),
       UTI: "com.adobe.pdf",
     });
     return { success: true };
-  }, []);
+  }, [t]);
 
   return { generatePdf, shareGeneratedPdf };
 }
