@@ -539,7 +539,7 @@
     "dangerZone": "DANGER ZONE",
     "exportPasswordTitle": "Set backup password",
     "exportPasswordMessage": "Choose a password to encrypt your backup. You will need it to restore.",
-    "exportEncryptBtn": "Encrypt & prepare",
+    "exportEncryptBtn": "Encrypt",
     "exportReadyTitle": "Backup ready",
     "exportReadyMessage": "Your backup is encrypted. Save the file somewhere safe.",
     "importPasswordTitle": "Enter backup password",
@@ -578,7 +578,9 @@
     "pdfCategory": "Category",
     "pdfAmount": "Amount",
     "pdfNotes": "Notes",
-    "pdfSaveDialogTitle": "Save PDF"
+    "pdfSaveDialogTitle": "Save PDF",
+    "processingExportImport": "Processing…\n This may take a while for large backups.",
+    "processingPdfExport": "Generating PDF…\n This may take a while for large reports."
   },
   "notifications": {
     "title": "Notifications",

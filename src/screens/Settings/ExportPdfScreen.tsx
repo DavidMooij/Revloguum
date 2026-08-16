@@ -81,7 +81,10 @@ export default function ExportPdfScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <LoadingOverlay visible={loading} />
+      <LoadingOverlay
+        visible={loading}
+        label={t("settings.processingPdfExport")}
+      />
       <ScreenHeader title={t("settings.exportPdf")} showBack />
 
       <ScrollView
@@ -254,7 +257,11 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: colors.accent,
   },
-  vehicleName: { fontSize: typeScale.bodyMedium, fontWeight: "500", color: colors.text0 },
+  vehicleName: {
+    fontSize: typeScale.bodyMedium,
+    fontWeight: "500",
+    color: colors.text0,
+  },
   optionRow: {
     flexDirection: "row",
     alignItems: "center",

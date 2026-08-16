@@ -177,12 +177,14 @@ export default function SettingsScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <LoadingOverlay visible={loading} />
+      <LoadingOverlay
+        visible={loading}
+        label={t("settings.processingExportImport")}
+      />
       <View style={styles.header}>
         <Text style={typography.h2}>{t("settings.title")}</Text>
         <Text style={typography.bodySmall}>{t("settings.subtitle")}</Text>
       </View>
-
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
@@ -368,7 +370,6 @@ export default function SettingsScreen() {
 
         <View style={{ height: spacing.xl }} />
       </ScrollView>
-
       <AlertModal
         visible={aboutVisible}
         onClose={() => setAboutVisible(false)}
@@ -380,7 +381,6 @@ export default function SettingsScreen() {
           { label: t("common.ok"), variant: "primary", onPress: () => {} },
         ]}
       />
-
       {modal.type === "exportPasswordEntry" && (
         <AlertModal
           visible
@@ -417,7 +417,6 @@ export default function SettingsScreen() {
           />
         </AlertModal>
       )}
-
       {modal.type === "exportReady" && (
         <AlertModal
           visible
@@ -436,7 +435,6 @@ export default function SettingsScreen() {
           ]}
         />
       )}
-
       {modal.type === "importPasswordEntry" && (
         <AlertModal
           visible
@@ -473,7 +471,6 @@ export default function SettingsScreen() {
           />
         </AlertModal>
       )}
-
       {modal.type === "deleteConfirm" && (
         <AlertModal
           visible
@@ -516,7 +513,6 @@ export default function SettingsScreen() {
           />
         </AlertModal>
       )}
-
       <AlertModal
         visible={modal.type === "result"}
         onClose={close}
