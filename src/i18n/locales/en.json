@@ -608,7 +608,7 @@
     "noPaymentsHint": "Tap + to record an expense or a paid recurring bill",
     "totalPaidLabel": "TOTAL PAID",
     "monthlyEstimateLabel": "MONTHLY (INTERVALS)",
-    "searchPlaceholder": "Search payment notes, category or amount…",
+    "searchPlaceholder": "Search payment notes or amount…",
     "category": "CATEGORY",
     "deletePayment": "Delete payment entry?",
     "linkToInterval": "LINK TO INTERVAL (OPTIONAL)",

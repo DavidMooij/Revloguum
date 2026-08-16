@@ -1,5 +1,11 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { colors } from "../../../../theme/colors";
@@ -57,24 +63,27 @@ export default function CostGroupsList({
             activeOpacity={0.78}
           >
             <View style={styles.iconWrap}>
-              <Icon name={categoryIcon as any} size={13} color={colors.accent} />
+              <Icon
+                name={categoryIcon as any}
+                size={13}
+                color={colors.accent}
+              />
             </View>
 
             <View style={styles.costLeft}>
-              <View style={styles.titleLine}>
-                <Text style={styles.categoryText} numberOfLines={1}>
-                  {categoryLabel}
+              <Text style={styles.categoryText} numberOfLines={1}>
+                {categoryLabel}
+              </Text>
+
+              <Text style={styles.dateText} numberOfLines={1}>
+                {formatDate(item.dateTs)}
+              </Text>
+
+              {item.paymentIntervalId && (
+                <Text style={styles.intervalText} numberOfLines={1}>
+                  {t("payments.recurringPaidShort")}
                 </Text>
-                <Text style={styles.dot}>·</Text>
-                <Text style={styles.dateText} numberOfLines={1}>
-                  {formatDate(item.dateTs)}
-                </Text>
-                {item.paymentIntervalId && (
-                  <View style={styles.intervalBadge}>
-                    <Text style={styles.intervalText}>{t("payments.recurringPaidShort")}</Text>
-                  </View>
-                )}
-              </View>
+              )}
             </View>
 
             <View style={styles.costRight}>
@@ -114,40 +123,27 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
   },
-  titleLine: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-    minHeight: 20,
-    flexWrap: "nowrap",
-  },
   categoryText: {
     ...typography.bodyStrong,
     color: colors.text0,
-  },
-  dot: {
-    fontSize: typeScale.captionLarge,
-    color: colors.text3,
   },
   dateText: {
     fontSize: typeScale.captionLarge,
     color: colors.text2,
     fontWeight: "500",
   },
-  intervalBadge: {
-    marginLeft: spacing.xs,
-    backgroundColor: colors.accentMuted,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 1,
-  },
   intervalText: {
     fontSize: typeScale.overline,
     fontWeight: "700",
     color: colors.accentText,
     textTransform: "uppercase",
+    marginTop: 2,
   },
-  costRight: { flex: 1, alignItems: "flex-end" },
+  costRight: {
+    alignItems: "flex-end",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
   costAmount: {
     fontSize: typeScale.bodyLarge,
     fontWeight: "800",

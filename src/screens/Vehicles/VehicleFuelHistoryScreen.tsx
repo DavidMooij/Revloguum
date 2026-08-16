@@ -24,7 +24,6 @@ import { useVehicles } from "../../hooks/useVehicles";
 import {
   dateRangeFromPreset,
   formatDate,
-  formatDateShort,
   type DateRangePreset,
 } from "../../utils/date";
 import { formatCost } from "../../utils/format";
@@ -32,15 +31,11 @@ import ScreenHeader from "../components/ScreenHeader";
 import EmptyState from "../components/EmptyState";
 import AlertModal from "../components/AlertModal";
 import QuickFuelModal from "../Fuel/QuickFuelModal";
-import LineChart, { LineChartPoint } from "./components/charts/LineChart";
 import type { FuelEntry } from "../../domain/entities/FuelEntry";
 import { useFeedback } from "../components/feedback/Feedbackprovider";
 import { haptic } from "@/utils/haptics";
 
 type Props = NativeStackScreenProps<RootStackParamList, "VehicleFuelHistory">;
-
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const CHART_WIDTH = SCREEN_WIDTH - spacing.lg * 2;
 
 export default function VehicleFuelHistoryScreen() {
   const { t } = useTranslation();
@@ -60,23 +55,20 @@ export default function VehicleFuelHistoryScreen() {
   const [fuelModal, setFuelModal] = useState(false);
   const [preset, setPreset] = useState<DateRangePreset>("all");
   const [searchText, setSearchText] = useState("");
-  const [notesOnly, setNotesOnly] = useState(false);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [actionTarget, setActionTarget] = useState<FuelEntry | null>(null);
   const [editTarget, setEditTarget] = useState<FuelEntry | null>(null);
   const dateRange = useMemo(() => dateRangeFromPreset(preset), [preset]);
-  const hasFilter =
-    preset !== "all" || searchText.trim().length > 0 || notesOnly;
+  const hasFilter = preset !== "all" || searchText.trim().length > 0;
   const filter = useMemo(
     () => ({
       vehicleId,
       dateFrom: dateRange.from,
       dateTo: dateRange.to,
       searchText: searchText.trim() || undefined,
-      notesOnly,
     }),
-    [vehicleId, dateRange.from, dateRange.to, searchText, notesOnly],
+    [vehicleId, dateRange.from, dateRange.to, searchText],
   );
   const { entries, stats, loading, deleteEntry, addEntry, updateEntry } =
     useFuel(filter);
@@ -91,7 +83,11 @@ export default function VehicleFuelHistoryScreen() {
 
     if (!shouldUseTwoLines) {
       return (
-        <Text style={styles.entryMetaOneLine} numberOfLines={1} ellipsizeMode="tail">
+        <Text
+          style={styles.entryMetaOneLine}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
           {compact}
         </Text>
       );
@@ -130,7 +126,12 @@ export default function VehicleFuelHistoryScreen() {
       <View style={styles.filterContainer}>
         <View style={styles.searchRow}>
           <View style={styles.searchWrap}>
-            <Icon name="search" size={13} color={colors.text2} style={styles.searchIcon} />
+            <Icon
+              name="search"
+              size={13}
+              color={colors.text2}
+              style={styles.searchIcon}
+            />
             <TextInput
               style={styles.searchInput}
               value={searchText}
@@ -146,7 +147,10 @@ export default function VehicleFuelHistoryScreen() {
           </View>
 
           <TouchableOpacity
-            style={[styles.filterBtn, filtersExpanded && styles.filterBtnActive]}
+            style={[
+              styles.filterBtn,
+              filtersExpanded && styles.filterBtnActive,
+            ]}
             onPress={() => {
               haptic.light();
               setFiltersExpanded((prev) => !prev);
@@ -168,7 +172,10 @@ export default function VehicleFuelHistoryScreen() {
               {PRESETS.map((p) => (
                 <TouchableOpacity
                   key={p.key}
-                  style={[styles.preset, preset === p.key && styles.presetActive]}
+                  style={[
+                    styles.preset,
+                    preset === p.key && styles.presetActive,
+                  ]}
                   onPress={() => setPreset(p.key)}
                 >
                   <Text
@@ -184,29 +191,18 @@ export default function VehicleFuelHistoryScreen() {
             </View>
 
             <Text style={styles.filterLabel}>{t("fuel.entryType")}</Text>
-            <View style={styles.presetRow}>
-              <TouchableOpacity
-                style={[styles.preset, notesOnly && styles.presetActive]}
-                onPress={() => setNotesOnly((prev) => !prev)}
-              >
-                <Text
-                  style={[styles.presetText, notesOnly && styles.presetTextActive]}
-                >
-                  {t("fuel.notesOnly")}
-                </Text>
-              </TouchableOpacity>
-            </View>
 
             {hasFilter && (
               <TouchableOpacity
                 onPress={() => {
                   setPreset("all");
                   setSearchText("");
-                  setNotesOnly(false);
                 }}
                 style={styles.clearBtn}
               >
-                <Text style={styles.clearText}>{t("history.clearFilters")}</Text>
+                <Text style={styles.clearText}>
+                  {t("history.clearFilters")}
+                </Text>
               </TouchableOpacity>
             )}
           </View>
@@ -215,27 +211,65 @@ export default function VehicleFuelHistoryScreen() {
 
       <View style={styles.statsRow}>
         <View style={styles.stat}>
-          <Text style={styles.statValue}>{stats.totalLiters.toFixed(1)} L</Text>
-          <Text style={styles.statLabel}>{t("fuel.statTotal")}</Text>
+          <Text
+            style={styles.statValue}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.6}
+          >
+            {stats.totalLiters.toFixed(1)} L
+          </Text>
+          <Text style={styles.statLabel} numberOfLines={2}>
+            {t("fuel.statTotal")}
+          </Text>
         </View>
+
         <View style={styles.statDiv} />
+
         <View style={styles.stat}>
-          <Text style={styles.statValue}>{formatCost(stats.totalCost)}</Text>
-          <Text style={styles.statLabel}>{t("fuel.statCost")}</Text>
+          <Text
+            style={styles.statValue}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.6}
+          >
+            {formatCost(stats.totalCost)}
+          </Text>
+          <Text style={styles.statLabel} numberOfLines={2}>
+            {t("fuel.statCost")}
+          </Text>
         </View>
+
         <View style={styles.statDiv} />
+
         <View style={styles.stat}>
-          <Text style={styles.statValue}>
+          <Text
+            style={styles.statValue}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.6}
+          >
             {stats.avgConsumption.toFixed(1)} L
           </Text>
-          <Text style={styles.statLabel}>{t("fuel.statPer100km")}</Text>
+          <Text style={styles.statLabel} numberOfLines={2}>
+            {t("fuel.statPer100km")}
+          </Text>
         </View>
+
         <View style={styles.statDiv} />
+
         <View style={styles.stat}>
-          <Text style={styles.statValue}>
+          <Text
+            style={styles.statValue}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.6}
+          >
             {formatCost(stats.avgCostPerLiter)}
           </Text>
-          <Text style={styles.statLabel}>{t("fuel.statPerLiter")}</Text>
+          <Text style={styles.statLabel} numberOfLines={2}>
+            {t("fuel.statPerLiter")}
+          </Text>
         </View>
       </View>
 
@@ -276,7 +310,9 @@ export default function VehicleFuelHistoryScreen() {
                   </View>
 
                   <View style={styles.entryRightCol}>
-                    <Text style={styles.entryCost} numberOfLines={1}>{formatCost(item.cost)}</Text>
+                    <Text style={styles.entryCost} numberOfLines={1}>
+                      {formatCost(item.cost)}
+                    </Text>
                     <Text style={styles.entryDateRight} numberOfLines={1}>
                       {formatDate(item.dateTs)}
                     </Text>
@@ -436,7 +472,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  filterBtnActive: { borderColor: colors.accent, backgroundColor: colors.accentMuted },
+  filterBtnActive: {
+    borderColor: colors.accent,
+    backgroundColor: colors.accentMuted,
+  },
   dot: {
     position: "absolute",
     top: 6,
@@ -474,28 +513,48 @@ const styles = StyleSheet.create({
   },
   presetTextActive: { color: colors.accentText, fontWeight: "600" },
   clearBtn: { alignSelf: "center", paddingVertical: spacing.sm },
-  clearText: { color: colors.accent, fontSize: typeScale.bodySmall, fontWeight: "600" },
+  clearText: {
+    color: colors.accent,
+    fontSize: typeScale.bodySmall,
+    fontWeight: "600",
+  },
   statsRow: {
     flexDirection: "row",
+    alignItems: "stretch",
     marginHorizontal: spacing.lg,
     backgroundColor: colors.bg1,
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border1,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
   },
-  stat: { flex: 1, alignItems: "center", gap: 2 },
-  statDiv: { width: 1, backgroundColor: colors.border0 },
+  stat: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 2,
+    gap: 2,
+  },
+  statDiv: {
+    width: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border0,
+  },
   statValue: {
     ...typography.bodyMediumStrong,
     color: colors.text0,
+    textAlign: "center",
+    width: "100%",
+    flexShrink: 1,
   },
   statLabel: {
     fontSize: typeScale.overline,
     color: colors.text2,
     textTransform: "uppercase",
     letterSpacing: 0.4,
+    textAlign: "center",
+    width: "100%",
   },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   list: { padding: spacing.lg },
@@ -547,9 +606,4 @@ const styles = StyleSheet.create({
   entryMetaOneLine: { fontSize: typeScale.captionLarge, color: colors.text2 },
   entryMetaTwoLines: { gap: 1 },
   entryMetaLine: { fontSize: typeScale.captionLarge, color: colors.text2 },
-  entryNotes: {
-    fontSize: typeScale.captionLarge,
-    color: colors.text2,
-    fontStyle: "italic",
-  },
 });
