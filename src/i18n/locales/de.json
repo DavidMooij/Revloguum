@@ -596,7 +596,7 @@
     "repeat": "Wiederholung",
     "repeatDaily": "Täglich",
     "repeatThreeDays": "3 Tage",
-    "repeatWeekly": "Wöchentlich",
+    "repeatWeekly": "7 Tage",
     "repeatCustom": "Custom",
     "paymentTitle": "Zahlungserinnerung",
     "paymentBody": "Eine wiederkehrende Zahlung für {{vehicle}} ist bald fällig.",
