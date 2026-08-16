@@ -56,7 +56,9 @@ export default function PaymentIntervalConfig({
   const paymentTypeById = new Map(paymentTypes.map((pt) => [pt.id, pt]));
 
   const updateAt = (index: number, patch: Partial<PaymentIntervalDraft>) => {
-    onChange(intervals.map((iv, i) => (i === index ? { ...iv, ...patch } : iv)));
+    onChange(
+      intervals.map((iv, i) => (i === index ? { ...iv, ...patch } : iv)),
+    );
   };
 
   const removeAt = (index: number) => {
@@ -65,14 +67,10 @@ export default function PaymentIntervalConfig({
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{t("vehicles.paymentIntervals")}</Text>
-        <TouchableOpacity style={styles.addBtn} onPress={onAdd}>
-          <Icon name="plus" size={12} color={colors.accent} />
-        </TouchableOpacity>
-      </View>
-
       <Text style={styles.hint}>{t("vehicles.paymentIntervalsHint")}</Text>
+      <TouchableOpacity style={styles.addBox} onPress={onAdd}>
+        <Icon name="plus" size={14} color={colors.accent} />
+      </TouchableOpacity>
 
       {intervals.length === 0 && (
         <Text style={styles.empty}>{t("vehicles.noPaymentIntervals")}</Text>
@@ -102,7 +100,10 @@ export default function PaymentIntervalConfig({
                 <Text style={styles.cardTitle}>{selectedLabel}</Text>
               </View>
 
-              <TouchableOpacity onPress={() => removeAt(index)} style={styles.removeBtn}>
+              <TouchableOpacity
+                onPress={() => removeAt(index)}
+                style={styles.removeBtn}
+              >
                 <Icon name="times" size={13} color={colors.text2} />
               </TouchableOpacity>
             </View>
@@ -122,7 +123,9 @@ export default function PaymentIntervalConfig({
                         size={11}
                         color={active ? colors.white : colors.text2}
                       />
-                      <Text style={[styles.catText, active && styles.catTextActive]}>
+                      <Text
+                        style={[styles.catText, active && styles.catTextActive]}
+                      >
                         {getPaymentTypeLabel(cat)}
                       </Text>
                     </TouchableOpacity>
@@ -131,99 +134,112 @@ export default function PaymentIntervalConfig({
               </View>
             </ScrollView>
 
-          <View style={styles.formRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.fieldLabel}>{t("costs.amountLabel")}</Text>
-              <TextInput
-                style={styles.input}
-                value={iv.amount > 0 ? String(iv.amount) : ""}
-                onChangeText={(txt) => {
-                  const parsed = Number.parseFloat(txt.replace(",", "."));
-                  updateAt(index, {
-                    amount: Number.isFinite(parsed) && parsed > 0 ? parsed : 0,
-                  });
-                }}
-                keyboardType="decimal-pad"
-                placeholder={t("costs.placeholderCost")}
-                placeholderTextColor={colors.text2}
-              />
-            </View>
-
-            <View style={{ flex: 1 }}>
-              <Text style={styles.fieldLabel}>{t("payments.startDate")}</Text>
-              <DatePickerField
-                value={iv.startDateTs}
-                onChange={(next) => updateAt(index, { startDateTs: next })}
-                showLabel={false}
-              />
-            </View>
-          </View>
-
-          <Text style={styles.fieldLabel}>{t("costs.intervalLabel")}</Text>
-          <View style={styles.intervalRow}>
-            {([
-              ["monthly", t("costs.monthly")],
-              ["yearly", t("costs.yearly")],
-              ["custom", t("payments.custom")],
-            ] as [Exclude<IntervalType, null>, string][]).map(([type, label]) => {
-              const active = iv.intervalType === type;
-              return (
-                <TouchableOpacity
-                  key={type}
-                  style={[styles.intervalChip, active && styles.intervalChipActive]}
-                  onPress={() =>
+            <View style={styles.formRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.fieldLabel}>{t("costs.amountLabel")}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={iv.amount > 0 ? String(iv.amount) : ""}
+                  onChangeText={(txt) => {
+                    const parsed = Number.parseFloat(txt.replace(",", "."));
                     updateAt(index, {
-                      intervalType: type,
-                      intervalDays: normalizeIntervalDays(type, iv.intervalDays),
-                    })
-                  }
-                >
-                  <Text
-                    style={[
-                      styles.intervalChipText,
-                      active && styles.intervalChipTextActive,
-                    ]}
-                  >
-                    {label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+                      amount:
+                        Number.isFinite(parsed) && parsed > 0 ? parsed : 0,
+                    });
+                  }}
+                  keyboardType="decimal-pad"
+                  placeholder={t("costs.placeholderCost")}
+                  placeholderTextColor={colors.text2}
+                />
+              </View>
 
-          {iv.intervalType === "custom" && (
+              <View style={{ flex: 1 }}>
+                <Text style={styles.fieldLabel}>{t("payments.startDate")}</Text>
+                <DatePickerField
+                  value={iv.startDateTs}
+                  onChange={(next) => updateAt(index, { startDateTs: next })}
+                  showLabel={false}
+                />
+              </View>
+            </View>
+
+            <Text style={styles.fieldLabel}>{t("costs.intervalLabel")}</Text>
+            <View style={styles.intervalRow}>
+              {(
+                [
+                  ["monthly", t("costs.monthly")],
+                  ["yearly", t("costs.yearly")],
+                  ["custom", t("payments.custom")],
+                ] as [Exclude<IntervalType, null>, string][]
+              ).map(([type, label]) => {
+                const active = iv.intervalType === type;
+                return (
+                  <TouchableOpacity
+                    key={type}
+                    style={[
+                      styles.intervalChip,
+                      active && styles.intervalChipActive,
+                    ]}
+                    onPress={() =>
+                      updateAt(index, {
+                        intervalType: type,
+                        intervalDays: normalizeIntervalDays(
+                          type,
+                          iv.intervalDays,
+                        ),
+                      })
+                    }
+                  >
+                    <Text
+                      style={[
+                        styles.intervalChipText,
+                        active && styles.intervalChipTextActive,
+                      ]}
+                    >
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {iv.intervalType === "custom" && (
+              <View style={{ marginTop: spacing.sm }}>
+                <Text style={styles.fieldLabel}>
+                  {t("payments.customDays")}
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  value={String(iv.intervalDays || "")}
+                  onChangeText={(txt) => {
+                    const parsed = Number.parseInt(txt, 10);
+                    updateAt(index, {
+                      intervalDays: Number.isFinite(parsed)
+                        ? Math.max(1, parsed)
+                        : 1,
+                    });
+                  }}
+                  keyboardType="number-pad"
+                  placeholder="30"
+                  placeholderTextColor={colors.text2}
+                />
+              </View>
+            )}
+
             <View style={{ marginTop: spacing.sm }}>
-              <Text style={styles.fieldLabel}>{t("payments.customDays")}</Text>
+              <Text style={styles.fieldLabel}>{t("costs.notesLabel")}</Text>
               <TextInput
-                style={styles.input}
-                value={String(iv.intervalDays || "")}
-                onChangeText={(txt) => {
-                  const parsed = Number.parseInt(txt, 10);
-                  updateAt(index, {
-                    intervalDays: Number.isFinite(parsed) ? Math.max(1, parsed) : 1,
-                  });
-                }}
-                keyboardType="number-pad"
-                placeholder="30"
+                style={[styles.input, styles.notesInput]}
+                value={iv.notes ?? ""}
+                onChangeText={(txt) =>
+                  updateAt(index, { notes: txt.trim() ? txt : null })
+                }
+                placeholder={t("costs.placeholderNotes")}
                 placeholderTextColor={colors.text2}
+                multiline
+                numberOfLines={2}
               />
             </View>
-          )}
-
-          <View style={{ marginTop: spacing.sm }}>
-            <Text style={styles.fieldLabel}>{t("costs.notesLabel")}</Text>
-            <TextInput
-              style={[styles.input, styles.notesInput]}
-              value={iv.notes ?? ""}
-              onChangeText={(txt) =>
-                updateAt(index, { notes: txt.trim() ? txt : null })
-              }
-              placeholder={t("costs.placeholderNotes")}
-              placeholderTextColor={colors.text2}
-              multiline
-              numberOfLines={2}
-            />
-          </View>
           </View>
         );
       })}
@@ -233,15 +249,12 @@ export default function PaymentIntervalConfig({
 
 const styles = StyleSheet.create({
   container: { gap: spacing.sm },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  title: { ...typography.bodySmall, fontWeight: "600", color: colors.text0 },
-  addBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.accentMuted,
+  addBox: {
     borderWidth: 1,
-    borderColor: colors.accent,
+    borderStyle: "dashed",
+    borderColor: colors.border1,
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
     alignItems: "center",
     justifyContent: "center",
   },

@@ -73,7 +73,7 @@ export default function VehicleCard({
         <View style={styles.statBox}>
           <Icon name="calendar-alt" size={12} color={colors.accent} />
           <Text style={styles.statValue} numberOfLines={1}>
-            {lastServiceDate ?? "—"}
+            {lastServiceDate ?? "-"}
           </Text>
           <Text style={styles.statLabel}>{t("vehicles.lastService")}</Text>
         </View>

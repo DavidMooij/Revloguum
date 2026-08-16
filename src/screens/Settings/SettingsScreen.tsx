@@ -300,6 +300,19 @@ export default function SettingsScreen() {
               </View>
             }
           />
+          <SettingsRow
+            icon="images"
+            label={t("settings.imageEncryption")}
+            sublabel={t("settings.imageEncryptionHint")}
+            right={
+              <View style={[styles.pill, styles.pillGood]}>
+                <Text style={[styles.pillText, styles.pillTextGood]}>
+                  {t("settings.statusOn")}
+                </Text>
+              </View>
+            }
+          />
+          <Divider />
           <Divider />
           <SettingsRow
             icon="wifi"

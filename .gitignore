@@ -42,3 +42,6 @@ yarn-error.*
 
 # local implementation playbooks (do not commit)
 /docs/
+
+# local encryption testing files (db and images)
+/encryption_testing/

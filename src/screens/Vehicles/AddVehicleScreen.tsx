@@ -212,11 +212,12 @@ export default function AddVehicleScreen() {
           category: iv.category,
           amount: iv.amount,
           intervalType: iv.intervalType,
-          intervalDays: iv.intervalType === "custom"
-            ? Math.max(1, Math.floor(iv.intervalDays || 1))
-            : iv.intervalType === "yearly"
-              ? 365
-              : 30,
+          intervalDays:
+            iv.intervalType === "custom"
+              ? Math.max(1, Math.floor(iv.intervalDays || 1))
+              : iv.intervalType === "yearly"
+                ? 365
+                : 30,
           startDateTs: iv.startDateTs,
           notes: iv.notes ?? null,
         }));
@@ -460,7 +461,9 @@ export default function AddVehicleScreen() {
 
           <View style={styles.sectionHeader}>
             <Icon name="receipt" size={13} color={colors.accent} />
-            <Text style={styles.sectionTitle}>{t("vehicles.paymentIntervals")}</Text>
+            <Text style={styles.sectionTitle}>
+              {t("vehicles.paymentIntervals")}
+            </Text>
           </View>
           <PaymentIntervalConfig
             paymentTypes={paymentTypes}
@@ -468,7 +471,6 @@ export default function AddVehicleScreen() {
             onChange={setPaymentIntervals}
             onAdd={() =>
               setPaymentIntervals((prev) => [
-                ...prev,
                 {
                   id: generateUUID(),
                   category: paymentTypes[0]?.id ?? "insurance",
@@ -478,6 +480,7 @@ export default function AddVehicleScreen() {
                   startDateTs: Date.now(),
                   notes: null,
                 },
+                ...prev,
               ])
             }
           />

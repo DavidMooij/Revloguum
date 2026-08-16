@@ -43,7 +43,7 @@ export default function TyreAnalysisSection({ data }: Props) {
         <View style={styles.summaryDiv} />
         <View style={styles.summaryItem}>
           <Text style={styles.summaryValue}>
-            {avgLife != null ? formatOdometer(Math.round(avgLife)) : "—"}
+            {avgLife != null ? formatOdometer(Math.round(avgLife)) : "-"}
           </Text>
           <Text style={styles.summaryLabel}>{t("stats.avgTyreLife")}</Text>
         </View>

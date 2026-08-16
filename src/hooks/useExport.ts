@@ -1,12 +1,15 @@
 /**
- * Export / Import via AES-256-GCM + PBKDF2 (react-native-quick-crypto polyfill).
+ * Export / Import via AES-256-GCM + PBKDF2.
  *
  * Encryption scheme:
- *   salt   = 32 random bytes
- *   key    = PBKDF2(password, salt, iterations=100_000, keylen=32, digest=SHA-256)
- *   iv     = 12 random bytes
- *   data   = AES-256-GCM(key, iv, JSON payload)
- *   file   = JSON { version, salt, iv, data, tag } — all hex-encoded
+ *   salt = 32 random bytes
+ *   key  = PBKDF2(password, salt, 650_000 iterations, 32 bytes, SHA-256)
+ *   iv   = 12 random bytes
+ *   data = AES-256-GCM(key, iv, JSON payload)
+ *   file = JSON { version, salt, iv, data }
+ *
+ * PBKDF2-HMAC-SHA256: 650,000 iterations
+ * (OWASP recommendation: 600,000+)
  */
 import { useCallback } from "react";
 import * as DocumentPicker from "expo-document-picker";
@@ -446,7 +449,7 @@ export function useExport() {
 
   /**
    * Import: pick .rvlg → PBKDF2+AES-256-GCM decrypt → INSERT OR REPLACE.
-   * DB stays open the whole time — no file system manipulation.
+   * DB stays open the whole time - no file system manipulation.
    */
   const importDatabase = useCallback(
     async (password: string): Promise<ImportResult> => {
