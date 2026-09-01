@@ -6,7 +6,7 @@ Dieses Dokument beschreibt aus Sicht der Nutzerinnen und Nutzer, was in Revloguu
 
 **This software is provided "as is", without warranty of any kind. Use it at your own risk.**
 
-Revloguum übernimmt keine Gewähr für die Richtigkeit, Vollständigkeit oder rechtzeitige Anzeige von Erinnerungen, Berechnungen, Berichten und gespeicherten Angaben. Die App ersetzt keine professionelle technische, rechtliche, versicherungsbezogene, steuerliche oder finanzielle Beratung. Soweit gesetzlich zulässig, haften Autorinnen, Autoren und Mitwirkende nicht für Schäden, Datenverlust, versäumte Wartungen, versäumte Zahlungen oder andere Folgen der Nutzung. Die vollständigen Gewährleistungs- und Haftungsbedingungen stehen in der [MIT-Lizenz](LICENSE).
+Revloguum übernimmt keine Gewähr für die Richtigkeit, Vollständigkeit oder rechtzeitige Anzeige von Erinnerungen, Berechnungen, Berichten, gespeicherten Angaben und Dokumentationen. Markdown-Dateien in diesem Repository können unvollständig, veraltet oder falsch sein. Sie beschreiben beabsichtigtes oder beobachtetes Verhalten, sind aber keine verbindliche Zusicherung, dass sich die Software exakt wie dokumentiert verhält. Die App und ihre Dokumentation ersetzen keine professionelle technische, rechtliche, versicherungsbezogene, steuerliche oder finanzielle Beratung. Soweit gesetzlich zulässig, haften Autorinnen, Autoren und Mitwirkende nicht für Schäden, Datenverlust, versäumte Wartungen, versäumte Zahlungen oder andere Folgen der Nutzung der Software oder ihrer Dokumentation. Die vollständigen Gewährleistungs- und Haftungsbedingungen stehen in der [MIT-Lizenz](LICENSE).
 
 ## 1. Grundlagen
 
