@@ -93,6 +93,10 @@ The code is organized as `domain -> data -> hooks -> screens`. Persistence belon
 
 ## Development
 
+### Platform status
+
+Revloguum is developed primarily for Android and the current application flows have been tested there. iOS support is configured in the project, but the app has not yet been tested on an Apple device or iOS simulator. iOS behavior, layout, permissions, notifications, encryption integration, backup/restore, and PDF sharing may therefore differ or require additional work.
+
 ### Prerequisites
 
 - Node.js and npm supported by the installed Expo SDK
@@ -109,7 +113,7 @@ npm ci
 npm run android
 ```
 
-On macOS, use `npm run ios` for iOS. `npm start` starts the Expo development server for an already installed compatible development build.
+On macOS, `npm run ios` starts the currently unverified iOS development build. `npm start` starts the Expo development server for an already installed compatible development build.
 
 Fork maintainers should replace the Expo owner/project ID, Android package name, and iOS bundle identifier in [app.json](app.json) before publishing builds under their own identity. Build profiles are defined in [eas.json](eas.json).
 
