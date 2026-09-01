@@ -16,7 +16,10 @@
         "backgroundColor": "#000000"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.veruum.Revloguum"
+      "package": "com.veruum.Revloguum",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/image.png"
@@ -65,11 +68,11 @@
       "expo-sharing",
       "expo-status-bar"
     ],
+    "owner": "veruum",
     "extra": {
       "eas": {
-        "projectId": "51f3acc6-6842-40b5-a2bb-0c6618cf7963"
+        "projectId": "d5d7fdd7-8f42-4a08-b854-b40328c30823"
       }
-    },
-    "owner": "veruum_"
+    }
   }
 }
