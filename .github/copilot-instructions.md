@@ -18,7 +18,7 @@
 6. Treat create, edit, delete, backup, restore, PDF export, and file cleanup as one feature lifecycle.
 7. Add a numbered migration for every persistent schema change and preserve existing user data.
 8. Do not log keys, passwords, decrypted content, personal vehicle data, or document contents.
-9. Update `README.md`, `SECURITY.md`, `PRIVACY.md`, and `usecases.md` when behavior or guarantees change.
+9. Update `README.md`, `SECURITY.md`, `PRIVACY.md`, and `USECASES.md` when behavior or guarantees change.
 10. Do not run `expo export`, native builds, dependency upgrades, or destructive Git commands unless the task requires them or the user requests them.
 
 ## Validation

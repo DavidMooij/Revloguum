@@ -2,6 +2,12 @@
 
 Dieses Dokument beschreibt aus Sicht der Nutzerinnen und Nutzer, was in Revloguum getan werden kann. Es beschreibt Abläufe, Varianten, Voraussetzungen, Eingabeprüfungen und Ergebnisse, aber keine technische Umsetzung.
 
+## Haftungsausschluss
+
+**This software is provided "as is", without warranty of any kind. Use it at your own risk.**
+
+Revloguum übernimmt keine Gewähr für die Richtigkeit, Vollständigkeit oder rechtzeitige Anzeige von Erinnerungen, Berechnungen, Berichten und gespeicherten Angaben. Die App ersetzt keine professionelle technische, rechtliche, versicherungsbezogene, steuerliche oder finanzielle Beratung. Soweit gesetzlich zulässig, haften Autorinnen, Autoren und Mitwirkende nicht für Schäden, Datenverlust, versäumte Wartungen, versäumte Zahlungen oder andere Folgen der Nutzung. Die vollständigen Gewährleistungs- und Haftungsbedingungen stehen in der [MIT-Lizenz](LICENSE).
+
 ## 1. Grundlagen
 
 ### 1.1 Zielgruppe

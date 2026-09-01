@@ -40,4 +40,4 @@ Use this for every non-trivial change.
 ## 6) Delivery
 - Kurz dokumentieren: was geändert, warum, welche Dateien.
 - Risiken benennen (falls vorhanden).
-- README, SECURITY, PRIVACY und usecases.md bei verändertem Verhalten oder Datenfluss aktualisieren.
+- README, SECURITY, PRIVACY und USECASES.md bei verändertem Verhalten oder Datenfluss aktualisieren.

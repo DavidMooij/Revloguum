@@ -6,7 +6,7 @@ applyTo: "**/*.md,package.json,app.json,eas.json"
 # Validation and documentation
 
 - Keep documentation factual and verifiable against the current source. Do not claim a feature, test suite, permission, platform guarantee, or security property that is not implemented.
-- Keep `README.md` concise and contributor-oriented; put threat details in `SECURITY.md`, data handling in `PRIVACY.md`, contribution workflow in `CONTRIBUTING.md`, and functional behavior in `usecases.md`.
+- Keep `README.md` concise and contributor-oriented; put threat details in `SECURITY.md`, data handling in `PRIVACY.md`, contribution workflow in `CONTRIBUTING.md`, and functional behavior in `USECASES.md`.
 - Use relative links and verify every linked local file exists.
 - When behavior changes, cross-check relevant use cases and update both the feature description and documented limitations.
 - Use the scripts that actually exist in `package.json`. Do not document nonexistent lint, test, or build commands.

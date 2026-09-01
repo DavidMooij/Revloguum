@@ -65,7 +65,7 @@ Revloguum is a local-first vehicle journal for tracking maintenance, fuel, recur
 - Switch between English and German
 - Use the optional Clear View readability mode
 
-The complete functional behavior and known calculation limits are documented in [usecases.md](usecases.md).
+The complete functional behavior and known calculation limits are documented in [USECASES.md](USECASES.md).
 
 ## Privacy and Security
 
@@ -124,7 +124,7 @@ There is currently no automated test suite. Security-sensitive and user-facing c
 
 ## Documentation
 
-- [usecases.md](usecases.md): detailed functional use cases and limitations
+- [USECASES.md](USECASES.md): detailed functional use cases and limitations
 - [SECURITY.md](SECURITY.md): security model and reporting process
 - [PRIVACY.md](PRIVACY.md): local data handling, permissions, exports, and retention
 - [CONTRIBUTING.md](CONTRIBUTING.md): setup, architecture, coding rules, and validation
@@ -134,6 +134,12 @@ There is currently no automated test suite. Security-sensitive and user-facing c
 ## Contributing
 
 Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before making changes. Report security vulnerabilities privately according to [SECURITY.md](SECURITY.md), not in a public issue.
+
+## Disclaimer
+
+**This software is provided "as is", without warranty of any kind. Use it at your own risk.**
+
+Revloguum's reminders, calculations, reports, and stored records may be incomplete or incorrect and do not replace professional mechanical, legal, insurance, tax, or financial advice. To the maximum extent permitted by applicable law, the authors and contributors are not liable for damages, data loss, missed maintenance, missed payments, or other consequences arising from use of the software. See the [MIT License](LICENSE) for the full warranty and liability terms.
 
 ## License
 

@@ -67,7 +67,7 @@ Project coding-agent rules are in [.github/copilot-instructions.md](.github/copi
 
 ## Documentation and Localization
 
-- Update [usecases.md](usecases.md) when functional behavior or limitations change.
+- Update [USECASES.md](USECASES.md) when functional behavior or limitations change.
 - Update [README.md](README.md), [PRIVACY.md](PRIVACY.md), and [SECURITY.md](SECURITY.md) when public behavior, data flow, permissions, or guarantees change.
 - Keep English and German locale files synchronized.
 - Verify every relative documentation link points to a tracked file.
