@@ -39,6 +39,7 @@ import { Image } from "expo-image";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import { decryptImage, encryptImage } from "@/security/imageEncryption";
 import { useFeedback } from "../components/feedback/Feedbackprovider";
+import { SQLiteDocumentRepo } from "../../data/repositories/SQLiteDocumentRepo";
 
 type Props = NativeStackScreenProps<RootStackParamList, "AddEntry">;
 
@@ -223,9 +224,22 @@ export default function AddEntryScreen() {
           notes: b.notes.trim() || null,
         }));
 
+      const documentHoldingId = `editing-${generateUUID()}`;
+      let preservedDocumentIds: string[] = [];
+
       if (isEditing) {
-        if (editGroupId) await deleteGroup(editGroupId);
-        else if (editEntryId) await deleteEntry(editEntryId);
+        if (editEntryId) {
+          const db = await getDatabase();
+          const documentRepo = new SQLiteDocumentRepo(db);
+          const documents = await documentRepo.getForServiceEntry(editEntryId);
+          preservedDocumentIds = documents.map((document) => document.id);
+          await documentRepo.reassignDocuments(
+            preservedDocumentIds,
+            documentHoldingId,
+          );
+        }
+        if (editGroupId) await deleteGroup(editGroupId, encryptedImages);
+        else if (editEntryId) await deleteEntry(editEntryId, encryptedImages);
       }
 
       let isFirstServiceEver = false;
@@ -237,7 +251,7 @@ export default function AddEntryScreen() {
         isFirstServiceEver = (countRow?.c ?? 0) === 0;
       }
 
-      await addGroup(
+      const createdGroup = await addGroup(
         {
           vehicleId: isEditing
             ? (editVehicleId ?? resolvedMotoId)
@@ -248,6 +262,13 @@ export default function AddEntryScreen() {
         },
         items,
       );
+      if (preservedDocumentIds.length > 0 && createdGroup.entryIds[0]) {
+        const db = await getDatabase();
+        await new SQLiteDocumentRepo(db).reassignDocuments(
+          preservedDocumentIds,
+          createdGroup.entryIds[0],
+        );
+      }
       haptic.success();
 
       if (isFirstServiceEver) {

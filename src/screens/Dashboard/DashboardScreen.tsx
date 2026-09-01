@@ -37,7 +37,7 @@ import { usePaymentTypeLabel } from "@/hooks/usePaymentTypeLabel";
 import { useFeedback } from "../components/feedback/Feedbackprovider";
 import { useAppStore } from "@/store/appStore";
 import { syncNotifications } from "@/notifications/syncNotifications";
-import { updateVehicleOdometerIfHigher } from "@/utils/updateVehicleOdometer";
+import { recalculateVehicleOdometer } from "@/utils/updateVehicleOdometer";
 import {
   computeServiceDueStatus,
   isServiceOverdue,
@@ -299,7 +299,7 @@ export default function DashboardScreen() {
         ...entry,
       });
 
-      await updateVehicleOdometerIfHigher(db, vehicleId, entry.odometerKm);
+      await recalculateVehicleOdometer(db, vehicleId);
 
       void (async () => {
         await refresh();

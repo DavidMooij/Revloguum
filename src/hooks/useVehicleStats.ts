@@ -10,7 +10,6 @@ import { SQLitePaymentTypeRepo } from "../data/repositories/SQLitePaymentTypeRep
 import type { LineChartPoint } from "../screens/Vehicles/components/charts/LineChart";
 import type { BarChartData } from "../screens/Vehicles/components/charts/BarChart";
 import type { DonutSegment } from "../screens/Vehicles/components/charts/DonutChart";
-import { formatDateShort } from "../utils/date";
 import { colors } from "../theme/colors";
 import { ServiceTypeLabelService } from "../domain/services/ServiceTypeLabelService";
 import { PaymentTypeLabelService } from "@/domain/services/PaymentTypeLabelService";
@@ -50,6 +49,7 @@ function buildMonthlyData(
   serviceEntries: { dateTs: number; cost: number | null }[],
   vehicleCostEntries: { dateTs: number; amount: number }[],
   monthCount: number,
+  locale: string,
 ): BarChartData[] {
   const now = new Date();
   return Array.from({ length: monthCount }, (_, i) => {
@@ -68,14 +68,18 @@ function buildMonthlyData(
       .reduce((sum, e) => sum + e.amount, 0);
 
     return {
-      label: d.toLocaleString("de-CH", { month: "short" }),
+      label: d.toLocaleString(locale, { month: "short" }),
       value: fuelCost + serviceCost + otherCost,
       color: colors.accent,
     };
   });
 }
 
-function buildMonthlyKmData(fuelEntries: any[], monthCount: number): LineChartPoint[] {
+function buildMonthlyKmData(
+  fuelEntries: any[],
+  monthCount: number,
+  locale: string,
+): LineChartPoint[] {
   if (fuelEntries.length === 0) return [];
 
   const now = new Date();
@@ -108,7 +112,7 @@ function buildMonthlyKmData(fuelEntries: any[], monthCount: number): LineChartPo
     points.push({
       x: months[i].d.getTime(),
       y: km,
-      label: months[i].d.toLocaleString("de-CH", { month: "short" }),
+      label: months[i].d.toLocaleString(locale, { month: "short" }),
     });
   }
   return points;
@@ -117,6 +121,7 @@ function buildMonthlyKmData(fuelEntries: any[], monthCount: number): LineChartPo
 function buildMonthlyPaymentCostData(
   paymentEntries: { dateTs: number; amount: number }[],
   monthCount: number,
+  locale: string,
 ): BarChartData[] {
   const now = new Date();
   return Array.from({ length: monthCount }, (_, i) => {
@@ -129,7 +134,7 @@ function buildMonthlyPaymentCostData(
       .reduce((sum, e) => sum + e.amount, 0);
 
     return {
-      label: d.toLocaleString("de-CH", { month: "short" }),
+      label: d.toLocaleString(locale, { month: "short" }),
       value: total,
       color: colors.warning,
     };
@@ -188,7 +193,7 @@ export interface VehicleStatsData {
 }
 
 export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [data, setData] = useState<VehicleStatsData | null>(null);
 
   useFocusEffect(
@@ -283,7 +288,10 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
           .map((e: any) => ({
             x: e.dateTs,
             y: parseFloat((e.cost / e.liters).toFixed(3)),
-            label: formatDateShort(e.dateTs),
+            label: new Date(e.dateTs).toLocaleDateString(i18n.language, {
+              day: "2-digit",
+              month: "short",
+            }),
           }));
 
         const consumptionLineData: LineChartPoint[] = fuelEntries
@@ -295,7 +303,10 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
             return {
               x: e.dateTs,
               y: parseFloat(((e.liters / km) * 100).toFixed(2)),
-              label: formatDateShort(e.dateTs),
+              label: new Date(e.dateTs).toLocaleDateString(i18n.language, {
+                day: "2-digit",
+                month: "short",
+              }),
             };
           })
           .filter(Boolean) as LineChartPoint[];
@@ -309,7 +320,7 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
             .filter((e: any) => e.dateTs >= start && e.dateTs <= end)
             .reduce((sum: number, e: any) => sum + e.cost, 0);
           return {
-            label: d.toLocaleString("de-CH", { month: "short" }),
+            label: d.toLocaleString(i18n.language, { month: "short" }),
             value: total,
             color: colors.accentBright,
           };
@@ -320,11 +331,13 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
           allServiceDates,
           allVehicleCostDates,
           6,
+          i18n.language,
         );
 
         const monthlyPaymentCostBarData = buildMonthlyPaymentCostData(
           allVehicleCostDates,
           6,
+          i18n.language,
         );
 
         const yearlyPaymentCostBarData = buildYearlyPaymentCostData(
@@ -341,7 +354,11 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
           return sum;
         }, 0);
 
-        const monthlyKmLineData = buildMonthlyKmData(fuelEntries, 6);
+        const monthlyKmLineData = buildMonthlyKmData(
+          fuelEntries,
+          6,
+          i18n.language,
+        );
 
         const tyreData: TyreDataPoint[] = tyreEntries.map((e, i) => ({
           dateTs: e.dateTs,
@@ -372,7 +389,7 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
           tyreData,
         });
       })();
-    }, [vehicleId]),
+    }, [vehicleId, i18n.language, t]),
   );
 
   return data;

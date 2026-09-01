@@ -15,6 +15,13 @@ export type RootStackParamList = {
   ImageViewer: { images: string[]; initialIndex: number };
   History: { vehicleId: string };
   VehicleDetail: { vehicleId: string };
+  VehicleManagement: { vehicleId: string };
+  Documents: {
+    vehicleId: string;
+    ownerType: "vehicle" | "service" | "cost";
+    ownerId: string;
+    title: string;
+  };
   VehicleHistory: { vehicleId: string };
   VehicleCosts: { vehicleId: string };
   VehicleFuelHistory: { vehicleId: string };

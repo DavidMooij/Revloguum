@@ -183,12 +183,6 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
         now,
       ],
     );
-    await this.db.runAsync(
-      `UPDATE vehicles
-         SET current_odometer = MAX(current_odometer, ?), updated_at = ?
-       WHERE id = ?;`,
-      [input.odometerKm, now, input.vehicleId],
-    );
     return {
       id,
       createdAt: now,
@@ -306,6 +300,21 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
       [vehicleId],
     );
     return rows.map((r) => ({ dateTs: r.date_ts, cost: r.cost }));
+  }
+
+  async getImagePathsForVehicle(vehicleId: string): Promise<string[]> {
+    const rows = await this.db.getAllAsync<{ image_paths: string | null }>(
+      "SELECT image_paths FROM service_entries WHERE vehicle_id = ?;",
+      [vehicleId],
+    );
+    const paths = rows.flatMap((row) => {
+      try {
+        return JSON.parse(row.image_paths ?? "[]") as string[];
+      } catch {
+        return [];
+      }
+    });
+    return [...new Set(paths)];
   }
 
   async getAllByTypeForVehicle(

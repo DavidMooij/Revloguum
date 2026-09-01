@@ -127,6 +127,9 @@ export default function VehicleScreen() {
               onEdit={() =>
                 navigation.navigate("AddVehicle", { editId: item.id })
               }
+              onManage={() =>
+                navigation.navigate("VehicleManagement", { vehicleId: item.id })
+              }
               onNavigate={(screen) =>
                 navigation.navigate(screen, { vehicleId: item.id })
               }

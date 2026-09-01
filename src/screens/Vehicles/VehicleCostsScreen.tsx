@@ -10,8 +10,8 @@ import {
   ScrollView,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRoute } from "@react-navigation/native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import type { NativeStackNavigationProp, NativeStackScreenProps } from "@react-navigation/native-stack";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
 import type { RootStackParamList } from "../../app/navigation/routes";
 import { colors } from "../../theme/colors";
@@ -22,7 +22,6 @@ import {
   type VehicleCost,
 } from "../../domain/entities/VehicleCost";
 import { haptic } from "@/utils/haptics";
-import ScreenHeader from "../components/ScreenHeader";
 import AlertModal from "../components/AlertModal";
 import EmptyState from "../components/EmptyState";
 import { useVehicleCosts } from "@/hooks/useVehicleCost";
@@ -34,8 +33,10 @@ import { pickBestUnpaidDueForPayment } from "@/domain/services/paymentDue";
 import { formatCost } from "@/utils/format";
 import { usePaymentTypes } from "@/hooks/usePaymentTypes";
 import { usePaymentTypeLabel } from "@/hooks/usePaymentTypeLabel";
+import VehicleHistoryLayout from "./components/VehicleHistoryLayout";
 
 type Props = NativeStackScreenProps<RootStackParamList, "VehicleCosts">;
+type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 const DATE_PRESETS: { key: DateRangePreset; label: string }[] = [
   { key: "last30", label: "30d" },
@@ -47,6 +48,7 @@ const DATE_PRESETS: { key: DateRangePreset; label: string }[] = [
 export default function VehicleCostsScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<Nav>();
   const route = useRoute<Props["route"]>();
   const { vehicleId } = route.params;
   const { costs, intervals, totalCost, addCost, updateCost, deleteCost, loading } =
@@ -248,16 +250,10 @@ export default function VehicleCostsScreen() {
   };
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <ScreenHeader
-        title={t("payments.historyTitle")}
-        showBack
-        rightElement={
-          <TouchableOpacity onPress={openAdd} hitSlop={8} style={styles.addBtn}>
-            <Icon name="plus" size={14} color={colors.white} />
-          </TouchableOpacity>
-        }
-      />
+    <VehicleHistoryLayout
+      title={t("payments.historyTitle")}
+      onAdd={openAdd}
+    >
 
       <View style={styles.filterContainer}>
         <View style={styles.searchRow}>
@@ -386,6 +382,14 @@ export default function VehicleCostsScreen() {
           paymentTypes={paymentTypes}
           onEdit={openEdit}
           onDeleteRequest={setDeleteTarget}
+          onDocuments={(cost) =>
+            navigation.navigate("Documents", {
+              vehicleId,
+              ownerType: "cost",
+              ownerId: cost.id,
+              title: t("documents.paymentTitle"),
+            })
+          }
         />
       )}
 
@@ -428,21 +432,11 @@ export default function VehicleCostsScreen() {
           },
         ]}
       />
-    </View>
+    </VehicleHistoryLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg0 },
-
-  addBtn: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: colors.accent,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   filterContainer: {
     backgroundColor: colors.bg0,
     borderBottomWidth: StyleSheet.hairlineWidth,

@@ -1,17 +1,26 @@
 import type * as SQLite from "expo-sqlite";
-import { SQLiteVehicleRepo } from "../data/repositories/SQLiteVehicleRepo";
 
-export async function updateVehicleOdometerIfHigher(
+export async function recalculateVehicleOdometer(
   db: SQLite.SQLiteDatabase,
   vehicleId: string,
-  odometerKm: number,
-) {
-  const vehicleRepo = new SQLiteVehicleRepo(db);
-  const vehicle = await vehicleRepo.getById(vehicleId);
-
-  if (vehicle && odometerKm > vehicle.currentOdometer) {
-    await vehicleRepo.update(vehicle.id, {
-      currentOdometer: odometerKm,
-    });
-  }
+): Promise<void> {
+  await db.runAsync(
+    `UPDATE vehicles
+     SET current_odometer = MAX(
+       base_odometer,
+       COALESCE((
+         SELECT MAX(odometer_km)
+         FROM service_entries
+         WHERE vehicle_id = ?
+       ), 0),
+       COALESCE((
+         SELECT MAX(odometer_km)
+         FROM fuel_entries
+         WHERE vehicle_id = ?
+       ), 0)
+     ),
+     updated_at = ?
+     WHERE id = ?;`,
+    [vehicleId, vehicleId, Date.now(), vehicleId],
+  );
 }

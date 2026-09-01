@@ -9,6 +9,7 @@ import {
   Dimensions,
   ActivityIndicator,
   Alert,
+  TextInput,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
@@ -274,7 +275,7 @@ export default function QuickFuelModal({
         odometerKm: parseInt(odometer, 10),
         liters: Math.round(liters * 10) / 10,
         cost: totalCost,
-        notes,
+        notes: notes?.trim() || null,
       });
       onClose();
     } finally {
@@ -537,6 +538,19 @@ export default function QuickFuelModal({
                   accent
                 />
               </View>
+              <View style={styles.notesField}>
+                <Text style={styles.notesLabel}>{t("fuel.notes")}</Text>
+                <TextInput
+                  style={styles.notesInput}
+                  value={notes ?? ""}
+                  onChangeText={setNotes}
+                  placeholder={t("fuel.notesPlaceholder")}
+                  placeholderTextColor={colors.text2}
+                  multiline
+                  maxLength={500}
+                  textAlignVertical="top"
+                />
+              </View>
             </View>
           )}
 
@@ -633,7 +647,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  stepBody: { gap: spacing.md, minHeight: 240 },
+  stepBody: { gap: spacing.md, height: 370 },
   stepLabel: {
     ...typography.overline,
   },
@@ -687,6 +701,19 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border1,
     paddingHorizontal: spacing.md,
+  },
+  notesField: { gap: spacing.xs },
+  notesLabel: { ...typography.overline },
+  notesInput: {
+    height: 82,
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border1,
+    backgroundColor: colors.bg2,
+    color: colors.text0,
+    fontSize: typeScale.bodyMedium,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   navRow: {
     flexDirection: "row",

@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { updateVehicleOdometerIfHigher } from "../utils/updateVehicleOdometer";
+import { recalculateVehicleOdometer } from "../utils/updateVehicleOdometer";
 import { useFocusEffect } from "@react-navigation/native";
 import { getDatabase } from "../data/db/database";
 import { SQLiteFuelRepo } from "../data/repositories/SQLiteFuelRepo";
@@ -60,11 +60,7 @@ export function useFuel(filter: FuelFilter) {
       const fuelRepo = new SQLiteFuelRepo(db);
       await fuelRepo.insert(input);
 
-      await updateVehicleOdometerIfHigher(
-        db,
-        input.vehicleId,
-        input.odometerKm,
-      );
+      await recalculateVehicleOdometer(db, input.vehicleId);
 
       await load();
       void syncNotifications().catch(() => {});
@@ -75,7 +71,12 @@ export function useFuel(filter: FuelFilter) {
   const deleteEntry = useCallback(
     async (id: string) => {
       const db = await getDatabase();
-      await new SQLiteFuelRepo(db).delete(id);
+      const fuelRepo = new SQLiteFuelRepo(db);
+      const existingEntry = await fuelRepo.getById(id);
+      await fuelRepo.delete(id);
+      if (existingEntry) {
+        await recalculateVehicleOdometer(db, existingEntry.vehicleId);
+      }
       await load();
       void syncNotifications().catch(() => {});
     },
@@ -91,12 +92,8 @@ export function useFuel(filter: FuelFilter) {
 
       await fuelRepo.update(id, input);
 
-      if (existingEntry && input.odometerKm !== undefined) {
-        await updateVehicleOdometerIfHigher(
-          db,
-          existingEntry.vehicleId,
-          input.odometerKm,
-        );
+      if (existingEntry) {
+        await recalculateVehicleOdometer(db, existingEntry.vehicleId);
       }
 
       await load();

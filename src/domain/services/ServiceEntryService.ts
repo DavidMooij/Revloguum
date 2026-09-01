@@ -17,11 +17,6 @@ export class ServiceEntryService {
     }
 
     const entry = await this.entryRepo.insert(input);
-
-    if (input.odometerKm > moto.currentOdometer) {
-      await this.motoRepo.updateOdometer(moto.id, input.odometerKm);
-    }
-
     return entry;
   }
 

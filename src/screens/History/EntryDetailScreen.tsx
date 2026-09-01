@@ -35,6 +35,7 @@ import { haptic } from "@/utils/haptics";
 import { decryptImage } from "@/security/imageEncryption";
 import EncryptedImage from "../components/EncryptedImage";
 import { useServiceTypeLabel } from "@/hooks/useServiceTypeLabel";
+import DocumentSection from "../components/documents/DocumentSection";
 
 type Props = NativeStackScreenProps<RootStackParamList, "EntryDetail">;
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -231,6 +232,15 @@ export default function EntryDetailScreen() {
             </ScrollView>
           </View>
         )}
+
+        <View style={styles.section}>
+          <DocumentSection
+            vehicleId={entry.vehicleId}
+            ownerType="service"
+            ownerId={entry.id}
+            title={t("documents.serviceTitle")}
+          />
+        </View>
 
         <View style={styles.metaSection}>
           <Text style={styles.metaText}>

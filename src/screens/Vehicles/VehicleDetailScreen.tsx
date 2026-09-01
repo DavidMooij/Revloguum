@@ -100,7 +100,12 @@ export default function VehicleDetailScreen() {
         }
       />
       <View style={styles.body}>
-        <View style={styles.hero}>
+        <TouchableOpacity
+          style={StyleSheet.absoluteFill}
+          onPress={() => navigation.navigate("VehicleManagement", { vehicleId })}
+          activeOpacity={1}
+        />
+        <View style={styles.hero} pointerEvents="none">
           {vehicle.photoPath ? (
             <EncryptedImage path={vehicle.photoPath} style={styles.heroImage} />
           ) : (

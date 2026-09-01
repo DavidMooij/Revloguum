@@ -40,11 +40,17 @@ export async function encryptImage(uri: string): Promise<string> {
   ]);
 
   const tag = cipher.getAuthTag();
+  const sourcePath = uri.split("?")[0].toLowerCase();
+  const ext =
+    base64.startsWith("iVBORw0KGgo") || sourcePath.endsWith(".png")
+      ? "png"
+      : "jpg";
 
   const payload = {
     iv: bufferToHex(iv),
     tag: bufferToHex(tag),
     data: encrypted.toString("hex"),
+    ext,
   };
 
   const dir = FileSystem.documentDirectory + "revloguum_images/";
@@ -57,7 +63,8 @@ export async function encryptImage(uri: string): Promise<string> {
     });
   }
 
-  const filename = dir + Date.now() + ".enc";
+  const suffix = Buffer.from(randomBytes(8)).toString("hex");
+  const filename = `${dir}${Date.now()}_${suffix}.enc`;
 
   await FileSystem.writeAsStringAsync(filename, JSON.stringify(payload), {
     encoding: FileSystem.EncodingType.UTF8,
@@ -92,7 +99,7 @@ export async function decryptImage(encryptedPath: string): Promise<string> {
 
   const filename = encryptedPath.split("/").pop();
 
-  const ext = encryptedPath.includes(".png") ? "png" : "jpg";
+  const ext = payload.ext === "png" ? "png" : "jpg";
 
   const temp = FileSystem.cacheDirectory + "revloguum_preview_" + filename + "." + ext;
 
@@ -101,4 +108,11 @@ export async function decryptImage(encryptedPath: string): Promise<string> {
   });
 
   return temp;
+}
+
+export async function deleteEncryptedImage(path: string): Promise<void> {
+  const info = await FileSystem.getInfoAsync(path);
+  if (info.exists) {
+    await FileSystem.deleteAsync(path, { idempotent: true });
+  }
 }

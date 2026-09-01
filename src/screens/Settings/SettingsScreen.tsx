@@ -27,6 +27,7 @@ import { getDatabase } from "../../data/db/database";
 import { SQLiteVehicleRepo } from "../../data/repositories/SQLiteVehicleRepo";
 import { haptic, setHapticsEnabled } from "@/utils/haptics";
 import { readableColor } from "../../theme/readability";
+import { syncNotifications } from "@/notifications/syncNotifications";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -79,9 +80,10 @@ export default function SettingsScreen() {
     if (value) haptic.medium();
   };
 
-  const changeLanguage = (value: "en" | "de") => {
+  const changeLanguage = async (value: "en" | "de") => {
     setLang(value);
-    i18n.changeLanguage(value);
+    await i18n.changeLanguage(value);
+    await syncNotifications();
     haptic?.light?.();
   };
 

@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
 import type {
   NativeStackNavigationProp,
@@ -21,11 +20,10 @@ import { useServiceTypes } from "../../hooks/useServiceTypes";
 import { dateRangeFromPreset, type DateRangePreset } from "../../utils/date";
 import ServiceGroupCard from "../History/components/ServiceGroupCard";
 import FilterBar from "../History/components/FilterBar";
-import FAB from "../components/FAB";
 import EmptyState from "../components/EmptyState";
 import AlertModal from "../components/AlertModal";
 import { useServiceTypeLabel } from "@/hooks/useServiceTypeLabel";
-import ScreenHeader from "../components/ScreenHeader";
+import VehicleHistoryLayout from "./components/VehicleHistoryLayout";
 
 type Props = NativeStackScreenProps<RootStackParamList, "VehicleHistory">;
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -33,7 +31,6 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 export default function VehicleHistoryScreen() {
   const { t } = useTranslation();
   const getLabel = useServiceTypeLabel();
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
   const route = useRoute<Props["route"]>();
   const { vehicleId } = route.params;
@@ -79,8 +76,10 @@ export default function VehicleHistoryScreen() {
   );
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <ScreenHeader title={t('history.title')} showBack />
+    <VehicleHistoryLayout
+      title={t("history.title")}
+      onAdd={() => navigation.navigate("AddEntry", { vehicleId })}
+    >
       <FilterBar
         serviceTypes={serviceTypes}
         selectedTypeIds={selectedTypeIds}
@@ -133,7 +132,6 @@ export default function VehicleHistoryScreen() {
           )}
         />
       )}
-      <FAB onPress={() => navigation.navigate("AddEntry", { vehicleId })} />
       <AlertModal
         visible={actionAlert.visible}
         onClose={() => setActionAlert({ visible: false, group: null })}
@@ -194,12 +192,11 @@ export default function VehicleHistoryScreen() {
           },
         ]}
       />
-    </View>
+    </VehicleHistoryLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg0 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   list: { padding: spacing.lg, paddingBottom: 120 },
 });

@@ -13,6 +13,7 @@ export interface Vehicle {
   year: number | null;
   nickname: string | null;
   currentOdometer: number;
+  baseOdometer: number;
   vehicleType: VehicleType;
   photoPath: string | null;
   defaultTankLiters: number | null;

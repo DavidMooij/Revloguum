@@ -23,6 +23,7 @@ interface Props {
   paymentTypes: PaymentType[];
   onEdit: (cost: VehicleCost) => void;
   onDeleteRequest: (costId: string) => void;
+  onDocuments: (cost: VehicleCost) => void;
 }
 
 export default function CostGroupsList({
@@ -30,6 +31,7 @@ export default function CostGroupsList({
   paymentTypes,
   onEdit,
   onDeleteRequest,
+  onDocuments,
 }: Props) {
   const { t } = useTranslation();
   const getPaymentTypeLabel = usePaymentTypeLabel();
@@ -52,25 +54,25 @@ export default function CostGroupsList({
             })();
 
         return (
-          <TouchableOpacity
-            key={item.id}
-            style={styles.costRow}
-            onPress={() => onEdit(item)}
-            onLongPress={() => {
-              haptic.error();
-              onDeleteRequest(item.id);
-            }}
-            activeOpacity={0.78}
-          >
-            <View style={styles.iconWrap}>
+          <View key={item.id} style={styles.costRow}>
+            <TouchableOpacity
+              style={styles.costContent}
+              onPress={() => onEdit(item)}
+              onLongPress={() => {
+                haptic.error();
+                onDeleteRequest(item.id);
+              }}
+              activeOpacity={0.78}
+            >
+              <View style={styles.iconWrap}>
               <Icon
                 name={categoryIcon as any}
                 size={13}
                 color={colors.accent}
               />
-            </View>
+              </View>
 
-            <View style={styles.costLeft}>
+              <View style={styles.costLeft}>
               <Text style={styles.categoryText} numberOfLines={1}>
                 {categoryLabel}
               </Text>
@@ -84,14 +86,22 @@ export default function CostGroupsList({
                   {t("payments.recurringPaidShort")}
                 </Text>
               )}
-            </View>
+              </View>
 
-            <View style={styles.costRight}>
+              <View style={styles.costRight}>
               <Text style={styles.costAmount} numberOfLines={1}>
                 {formatCost(item.amount)}
               </Text>
-            </View>
-          </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.documentButton}
+              onPress={() => onDocuments(item)}
+              hitSlop={8}
+            >
+              <Icon name="file-alt" size={13} color={colors.accent} />
+            </TouchableOpacity>
+          </View>
         );
       })}
     </ScrollView>
@@ -108,6 +118,13 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border1,
     padding: spacing.md,
+    gap: spacing.md,
+  },
+  costContent: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.md,
   },
   iconWrap: {
@@ -148,5 +165,13 @@ const styles = StyleSheet.create({
     fontSize: typeScale.bodyLarge,
     fontWeight: "800",
     color: colors.successText,
+  },
+  documentButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.accentMuted,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

@@ -18,6 +18,7 @@ interface Props {
   totalFuelLiters: number;
   totalOtherCost: number;
   onEdit: () => void;
+  onManage: () => void;
   onNavigate: (screen: VehicleNavScreen) => void;
 }
 
@@ -28,6 +29,7 @@ export default function VehicleGarageCard({
   totalFuelLiters,
   totalOtherCost,
   onEdit,
+  onManage,
   onNavigate,
 }: Props) {
   const { t } = useTranslation();
@@ -35,11 +37,16 @@ export default function VehicleGarageCard({
   return (
     <View style={[styles.page, { width }]}>
       <View style={styles.card}>
+        <TouchableOpacity
+          style={StyleSheet.absoluteFill}
+          onPress={onManage}
+          activeOpacity={1}
+        />
         <TouchableOpacity onPress={onEdit} hitSlop={10} style={styles.editBtn}>
           <Icon name="pen" size={13} color={colors.text1} />
         </TouchableOpacity>
 
-        <View style={styles.hero}>
+        <View style={styles.hero} pointerEvents="none">
           <View style={styles.imageWrap}>
             {vehicle.photoPath ? (
               <EncryptedImage path={vehicle.photoPath} style={styles.image} />

@@ -41,12 +41,15 @@ export default function ExportPdfScreen() {
   const [includeFuel, setIncludeFuel] = useState(true);
   const [includeCosts, setIncludeCosts] = useState(true);
   const [includePhotos, setIncludePhotos] = useState(false);
+  const [includeDocuments, setIncludeDocuments] = useState(true);
+  const [includeDocumentImages, setIncludeDocumentImages] = useState(false);
   const [includeCostValues, setIncludeCostValues] = useState(true);
   const [includeNotes, setIncludeNotes] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const nothingSelected = !includeService && !includeFuel && !includeCosts;
+  const nothingSelected =
+    !includeService && !includeFuel && !includeCosts && !includeDocuments;
 
   const handleGenerate = async () => {
     if (!vehicleId || nothingSelected) return;
@@ -58,6 +61,8 @@ export default function ExportPdfScreen() {
       includeFuel,
       includeCosts,
       includePhotos,
+      includeDocuments,
+      includeDocumentImages,
       includeCostValues,
       includeNotes,
     };
@@ -141,6 +146,19 @@ export default function ExportPdfScreen() {
             value={includePhotos}
             onChange={setIncludePhotos}
           />
+          <OptionRow
+            icon="file-alt"
+            label={t("documents.pdfInclude")}
+            value={includeDocuments}
+            onChange={setIncludeDocuments}
+          />
+          <OptionRow
+            icon="file-image"
+            label={t("documents.pdfIncludePages")}
+            value={includeDocumentImages}
+            onChange={setIncludeDocumentImages}
+            disabled={!includeDocuments}
+          />
         </View>
 
         <Text style={styles.sectionLabel}>{t("settings.pdfDetails")}</Text>
@@ -196,14 +214,16 @@ function OptionRow({
   label,
   value,
   onChange,
+  disabled = false,
 }: {
   icon: string;
   label: string;
   value: boolean;
   onChange: (v: boolean) => void;
+  disabled?: boolean;
 }) {
   return (
-    <View style={styles.optionRow}>
+    <View style={[styles.optionRow, disabled && styles.optionDisabled]}>
       <View style={styles.optionIcon}>
         <Icon name={icon} size={13} color={colors.accent} />
       </View>
@@ -211,6 +231,7 @@ function OptionRow({
       <Switch
         value={value}
         onValueChange={onChange}
+        disabled={disabled}
         trackColor={{ false: colors.bg4, true: colors.accent }}
         thumbColor={colors.white}
       />
@@ -269,6 +290,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     minHeight: 52,
   },
+  optionDisabled: { opacity: 0.45 },
   optionIcon: {
     width: 30,
     height: 30,

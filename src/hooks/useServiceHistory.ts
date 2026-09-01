@@ -8,8 +8,10 @@ import type {
   CreateServiceEntryInput,
   UpdateServiceEntryInput,
 } from "../domain/entities/ServiceEntry";
-import { updateVehicleOdometerIfHigher } from "@/utils/updateVehicleOdometer";
+import { recalculateVehicleOdometer } from "@/utils/updateVehicleOdometer";
 import { syncNotifications } from "@/notifications/syncNotifications";
+import { SQLiteDocumentRepo } from "../data/repositories/SQLiteDocumentRepo";
+import { deleteEncryptedImage } from "../security/imageEncryption";
 
 const PAGE_SIZE = 50;
 
@@ -145,7 +147,7 @@ export function useServiceEntryActions() {
     const db = await getDatabase();
     const repo = new SQLiteServiceEntryRepo(db);
     await repo.insert(input);
-    await updateVehicleOdometerIfHigher(db, input.vehicleId, input.odometerKm);
+    await recalculateVehicleOdometer(db, input.vehicleId);
     await syncNotifications();
   }, []);
 
@@ -153,26 +155,35 @@ export function useServiceEntryActions() {
     async (id: string, input: UpdateServiceEntryInput) => {
       const db = await getDatabase();
       const repo = new SQLiteServiceEntryRepo(db);
+      const existingEntry = await repo.getById(id);
       await repo.update(id, input);
-      if (input.odometerKm !== undefined) {
-        const entry = await repo.getById(id);
-        if (entry) {
-          await updateVehicleOdometerIfHigher(
-            db,
-            entry.vehicleId,
-            input.odometerKm,
-          );
-        }
+      if (existingEntry) {
+        await recalculateVehicleOdometer(db, existingEntry.vehicleId);
       }
       await syncNotifications();
     },
     [],
   );
 
-  const deleteEntry = useCallback(async (id: string) => {
+  const deleteEntry = useCallback(async (id: string, preservedImagePaths: string[] = []) => {
     const db = await getDatabase();
     const repo = new SQLiteServiceEntryRepo(db);
+    const existingEntry = await repo.getById(id);
+    const documents = await new SQLiteDocumentRepo(db).getForServiceEntry(id);
     await repo.delete(id);
+    await Promise.all(
+      [
+        ...(existingEntry?.imagePaths ?? []),
+        ...documents.flatMap((document) =>
+          document.pages.map((page) => page.path),
+        ),
+      ]
+        .filter((path) => !preservedImagePaths.includes(path))
+        .map(deleteEncryptedImage),
+    );
+    if (existingEntry) {
+      await recalculateVehicleOdometer(db, existingEntry.vehicleId);
+    }
     await syncNotifications();
   }, []);
 
@@ -181,8 +192,9 @@ export function useServiceEntryActions() {
       const db = await getDatabase();
       const repo = new SQLiteServiceEntryRepo(db);
       const groupId = items.length > 1 ? generateUUID() : null;
+      const entryIds: string[] = [];
       for (const it of items) {
-        await repo.insert({
+        const entry = await repo.insert({
           vehicleId: common.vehicleId,
           serviceTypeId: it.serviceTypeId,
           dateTs: common.dateTs,
@@ -192,17 +204,14 @@ export function useServiceEntryActions() {
           imagePaths: common.imagePaths,
           groupId,
         });
+        entryIds.push(entry.id);
       }
 
-      await updateVehicleOdometerIfHigher(
-        db,
-        common.vehicleId,
-        common.odometerKm,
-      );
+      await recalculateVehicleOdometer(db, common.vehicleId);
 
       await syncNotifications();
 
-      return groupId;
+      return { groupId, entryIds };
     },
     [],
   );
@@ -213,10 +222,30 @@ export function useServiceEntryActions() {
     return repo.getGroup(groupId);
   }, []);
 
-  const deleteGroup = useCallback(async (groupId: string) => {
+  const deleteGroup = useCallback(async (groupId: string, preservedImagePaths: string[] = []) => {
     const db = await getDatabase();
     const repo = new SQLiteServiceEntryRepo(db);
+    const group = await repo.getGroup(groupId);
+    const documentRepo = new SQLiteDocumentRepo(db);
+    const documents = (
+      await Promise.all(
+        group.map((entry) => documentRepo.getForOwner("service", entry.id)),
+      )
+    ).flat();
     await repo.deleteGroup(groupId);
+    await Promise.all(
+      [...new Set([
+        ...group.flatMap((entry) => entry.imagePaths),
+        ...documents.flatMap((document) =>
+          document.pages.map((page) => page.path),
+        ),
+      ])]
+        .filter((path) => !preservedImagePaths.includes(path))
+        .map(deleteEncryptedImage),
+    );
+    if (group[0]) {
+      await recalculateVehicleOdometer(db, group[0].vehicleId);
+    }
     await syncNotifications();
   }, []);
 

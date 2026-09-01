@@ -18,7 +18,11 @@ import * as Sharing from "expo-sharing";
 
 import { getDatabase } from "../data/db/database";
 import { formatDate, todayTs } from "../utils/date";
-import { decryptImage, encryptImage } from "@/security/imageEncryption";
+import {
+  decryptImage,
+  deleteEncryptedImage,
+  encryptImage,
+} from "@/security/imageEncryption";
 
 export type ExportResult =
   | { success: true; fileUri: string }
@@ -35,6 +39,8 @@ interface BackupPayload {
   serviceEntries: any[];
   fuelEntries: any[];
   vehicleCosts: any[];
+  documents?: any[];
+  documentPages?: any[];
   images: Record<string, string>;
 }
 
@@ -43,6 +49,26 @@ interface EncryptedEnvelope {
   salt: string; // hex, 32 bytes
   iv: string; // hex, 12 bytes
   data: string; // hex, ciphertext + 16-byte GCM tag appended by SubtleCrypto
+}
+
+const BACKUP_AUTH_CONTEXT = {
+  app: "Revloguum",
+  format: "backup",
+  version: 3,
+};
+
+const LEGACY_BACKUP_AUTH_CONTEXT = {
+  ...BACKUP_AUTH_CONTEXT,
+  app: "Revloguumuum",
+};
+
+function encodeAuthContext(
+  context: typeof BACKUP_AUTH_CONTEXT,
+): Uint8Array<ArrayBuffer> {
+  const encoded = new TextEncoder().encode(JSON.stringify(context));
+  const result = new Uint8Array(new ArrayBuffer(encoded.byteLength));
+  result.set(encoded);
+  return result;
 }
 
 function randomBytes(n: number): Uint8Array<ArrayBuffer> {
@@ -95,13 +121,7 @@ async function encryptPayload(
     {
       name: "AES-GCM",
       iv,
-      additionalData: new TextEncoder().encode(
-        JSON.stringify({
-          app: "Revloguumuum",
-          format: "backup",
-          version: 3,
-        }),
-      ),
+      additionalData: encodeAuthContext(BACKUP_AUTH_CONTEXT),
     },
     key,
     new TextEncoder().encode(plaintext),
@@ -122,21 +142,28 @@ async function decryptPayload(
   const iv = fromHex(env.iv);
   const data = fromHex(env.data);
   const key = await deriveKey(password, salt);
-  const pt = await crypto.subtle.decrypt(
-    {
-      name: "AES-GCM",
-      iv,
-      additionalData: new TextEncoder().encode(
-        JSON.stringify({
-          app: "Revloguumuum",
-          format: "backup",
-          version: 3,
-        }),
-      ),
-    },
-    key,
-    data,
-  );
+  let pt: ArrayBuffer;
+  try {
+    pt = await crypto.subtle.decrypt(
+      {
+        name: "AES-GCM",
+        iv,
+        additionalData: encodeAuthContext(BACKUP_AUTH_CONTEXT),
+      },
+      key,
+      data,
+    );
+  } catch {
+    pt = await crypto.subtle.decrypt(
+      {
+        name: "AES-GCM",
+        iv,
+        additionalData: encodeAuthContext(LEGACY_BACKUP_AUTH_CONTEXT),
+      },
+      key,
+      data,
+    );
+  }
 
   return new TextDecoder().decode(pt);
 }
@@ -151,6 +178,8 @@ async function readAllData(): Promise<BackupPayload> {
     serviceEntries,
     fuelEntries,
     vehicleCosts,
+    documents,
+    documentPages,
   ] =
     await Promise.all([
       db.getAllAsync<any>("SELECT * FROM vehicles;"),
@@ -159,6 +188,8 @@ async function readAllData(): Promise<BackupPayload> {
       db.getAllAsync<any>("SELECT * FROM service_entries;"),
       db.getAllAsync<any>("SELECT * FROM fuel_entries;"),
       db.getAllAsync<any>("SELECT * FROM vehicle_costs;"),
+      db.getAllAsync<any>("SELECT * FROM documents;"),
+      db.getAllAsync<any>("SELECT * FROM document_pages;"),
     ]);
 
   const images: Record<string, string> = {};
@@ -197,8 +228,18 @@ async function readAllData(): Promise<BackupPayload> {
     }
   }
 
+  for (const page of documentPages) {
+    const decryptedUri = page.path.endsWith(".enc")
+      ? await decryptImage(page.path)
+      : page.path;
+    images[`document_page_${page.id}`] =
+      await FileSystem.readAsStringAsync(decryptedUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+  }
+
   return {
-    version: 5,
+    version: 6,
     exportedAt: Date.now(),
     vehicles,
     serviceTypes,
@@ -206,6 +247,8 @@ async function readAllData(): Promise<BackupPayload> {
     serviceEntries,
     fuelEntries,
     vehicleCosts,
+    documents,
+    documentPages,
     images,
   };
 }
@@ -213,10 +256,24 @@ async function readAllData(): Promise<BackupPayload> {
 async function restoreAllData(payload: BackupPayload): Promise<void> {
   const db = await getDatabase();
 
-  const imgDir = FileSystem.documentDirectory + "Revloguum_images/";
-  const info = await FileSystem.getInfoAsync(imgDir);
-  if (!info.exists)
-    await FileSystem.makeDirectoryAsync(imgDir, { intermediates: true });
+  const missingDocumentPage = (payload.documentPages ?? []).find(
+    (page) => !payload.images?.[`document_page_${page.id}`],
+  );
+  if (missingDocumentPage) {
+    throw new Error("Backup is missing a document page");
+  }
+
+  const restoredDocumentIds = (payload.documents ?? []).map(
+    (document) => document.id,
+  );
+  const replacedDocumentPages =
+    restoredDocumentIds.length > 0
+      ? await db.getAllAsync<{ path: string }>(
+          `SELECT path FROM document_pages
+           WHERE document_id IN (${restoredDocumentIds.map(() => "?").join(",")});`,
+          restoredDocumentIds,
+        )
+      : [];
 
   const restored: Record<string, string> = {};
   for (const [key, b64] of Object.entries(payload.images ?? {})) {
@@ -233,25 +290,13 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
       const vehiclePhotoKey = `vehicle_photo_${v.id}`;
       let restoredPhotoPath: string | null =
         v.photo_path ?? v.photoPath ?? null;
-      if (payload.images?.[vehiclePhotoKey]) {
-        const photoPath = imgDir + vehiclePhotoKey + ".jpg";
-        try {
-          await FileSystem.writeAsStringAsync(
-            photoPath,
-            payload.images[vehiclePhotoKey],
-            {
-              encoding: FileSystem.EncodingType.Base64,
-            },
-          );
-          restoredPhotoPath = photoPath;
-        } catch {}
-      }
+      if (restored[vehiclePhotoKey]) restoredPhotoPath = restored[vehiclePhotoKey];
       await db.runAsync(
         `INSERT OR REPLACE INTO vehicles
-           (id,make,model,year,nickname,current_odometer,photo_path,
+            (id,make,model,year,nickname,current_odometer,base_odometer,photo_path,
             default_tank_liters,default_fuel_price,service_intervals,
             vehicle_type,created_at,updated_at)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);`,
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);`,
         [
           v.id,
           v.make,
@@ -259,6 +304,7 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
           v.year ?? null,
           v.nickname ?? null,
           v.current_odometer ?? v.currentOdometer ?? 0,
+          v.base_odometer ?? v.baseOdometer ?? v.current_odometer ?? v.currentOdometer ?? 0,
           restoredPhotoPath,
           v.default_tank_liters ?? v.defaultTankLiters ?? null,
           v.default_fuel_price ?? v.defaultFuelPrice ?? null,
@@ -388,7 +434,47 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
         ],
       );
     }
+
+    for (const document of payload.documents ?? []) {
+      await db.runAsync(
+        `INSERT OR REPLACE INTO documents
+          (id,vehicle_id,owner_type,owner_id,title,category,date_ts,notes,created_at,updated_at)
+         VALUES (?,?,?,?,?,?,?,?,?,?);`,
+        [
+          document.id,
+          document.vehicle_id ?? document.vehicleId,
+          document.owner_type ?? document.ownerType,
+          document.owner_id ?? document.ownerId,
+          document.title,
+          document.category ?? null,
+          document.date_ts ?? document.dateTs ?? Date.now(),
+          document.notes ?? null,
+          document.created_at ?? document.createdAt ?? Date.now(),
+          document.updated_at ?? document.updatedAt ?? Date.now(),
+        ],
+      );
+    }
+
+    for (const page of payload.documentPages ?? []) {
+      const pagePath = restored[`document_page_${page.id}`];
+      if (!pagePath) continue;
+      await db.runAsync(
+        `INSERT OR REPLACE INTO document_pages
+          (id,document_id,path,sort_order)
+         VALUES (?,?,?,?);`,
+        [
+          page.id,
+          page.document_id ?? page.documentId,
+          pagePath,
+          page.sort_order ?? page.sortOrder ?? 0,
+        ],
+      );
+    }
   });
+
+  await Promise.all(
+    replacedDocumentPages.map((page) => deleteEncryptedImage(page.path)),
+  );
 }
 
 export function useExport() {
@@ -513,16 +599,22 @@ export function useExport() {
     try {
       const db = await getDatabase();
       await db.withTransactionAsync(async () => {
+        await db.runAsync("DELETE FROM document_pages;");
+        await db.runAsync("DELETE FROM documents;");
         await db.runAsync("DELETE FROM service_entries;");
         await db.runAsync("DELETE FROM fuel_entries;");
         await db.runAsync("DELETE FROM vehicle_costs;");
         await db.runAsync("DELETE FROM vehicles;");
         await db.runAsync("DELETE FROM service_types WHERE is_system = 0;");
+        await db.runAsync("DELETE FROM payment_types WHERE is_system = 0;");
       });
-      const imgDir = FileSystem.documentDirectory + "Revloguum_images/";
-      const info = await FileSystem.getInfoAsync(imgDir);
-      if (info.exists)
-        await FileSystem.deleteAsync(imgDir, { idempotent: true });
+      for (const directory of ["revloguum_images/", "Revloguum_images/"]) {
+        const imageDirectory = FileSystem.documentDirectory + directory;
+        const info = await FileSystem.getInfoAsync(imageDirectory);
+        if (info.exists) {
+          await FileSystem.deleteAsync(imageDirectory, { idempotent: true });
+        }
+      }
       return { success: true };
     } catch (e) {
       return { success: false, error: (e as Error).message };

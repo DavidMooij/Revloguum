@@ -7,6 +7,8 @@ import {
 } from '../data/repositories/SQLiteVehicleCostRepo';
 import type { VehicleCost, CreateVehicleCostInput } from '../domain/entities/VehicleCost';
 import { syncNotifications } from '@/notifications/syncNotifications';
+import { SQLiteDocumentRepo } from '../data/repositories/SQLiteDocumentRepo';
+import { deleteEncryptedImage } from '../security/imageEncryption';
 
 export function useVehicleCosts(vehicleId: string) {
   const [costs, setCosts] = useState<VehicleCost[]>([]);
@@ -50,7 +52,13 @@ export function useVehicleCosts(vehicleId: string) {
 
   const deleteCost = useCallback(async (id: string) => {
     const db = await getDatabase();
+    const documents = await new SQLiteDocumentRepo(db).getForOwner('cost', id);
     await new SQLiteVehicleCostRepo(db).delete(id);
+    await Promise.all(
+      documents.flatMap((document) => document.pages).map((page) =>
+        deleteEncryptedImage(page.path),
+      ),
+    );
     await load();
     await syncNotifications();
   }, [load]);

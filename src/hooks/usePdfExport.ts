@@ -8,6 +8,7 @@ import { SQLiteServiceEntryRepo } from "../data/repositories/SQLiteServiceEntryR
 import { SQLiteFuelRepo } from "../data/repositories/SQLiteFuelRepo";
 import { SQLiteVehicleCostRepo } from "../data/repositories/SQLiteVehicleCostRepo";
 import { SQLitePaymentTypeRepo } from "../data/repositories/SQLitePaymentTypeRepo";
+import { SQLiteDocumentRepo } from "../data/repositories/SQLiteDocumentRepo";
 import { decryptImage } from "@/security/imageEncryption";
 import { formatCost, formatOdometer, formatVehicleName } from "../utils/format";
 import * as FileSystem from "expo-file-system/legacy";
@@ -20,6 +21,8 @@ export interface PdfExportOptions {
   includeFuel: boolean;
   includeCosts: boolean;
   includePhotos: boolean;
+  includeDocuments: boolean;
+  includeDocumentImages: boolean;
   includeCostValues: boolean;
   includeNotes: boolean;
   dateFrom?: number;
@@ -40,7 +43,7 @@ async function imageToDataUri(path: string): Promise<string | null> {
     const base64 = await FileSystem.readAsStringAsync(uri, {
       encoding: FileSystem.EncodingType.Base64,
     });
-    const ext = path.includes(".png") ? "png" : "jpeg";
+    const ext = uri.toLowerCase().endsWith(".png") ? "png" : "jpeg";
     return `data:image/${ext};base64,${base64}`;
   } catch (e) {
     console.warn("PDF export: failed to load image", path, e);
@@ -194,6 +197,46 @@ export function usePdfExport() {
             </table>`;
         }
 
+        let documentsSection = "";
+        if (options.includeDocuments) {
+          const documents = (
+            await new SQLiteDocumentRepo(db).getForVehicle(options.vehicleId)
+          ).filter((document) => inRange(document.dateTs));
+          const blocks = await Promise.all(
+            documents.map(async (document) => {
+              let pagesHtml = "";
+              if (options.includeDocumentImages && document.pages.length > 0) {
+                const dataUris = await Promise.all(
+                  document.pages.map((page) => imageToDataUri(page.path)),
+                );
+                pagesHtml = `<div class="document-grid">${dataUris
+                  .filter(Boolean)
+                  .map((dataUri) => `<img src="${dataUri}" />`)
+                  .join("")}</div>`;
+              }
+              const ownerLabel =
+                document.ownerType === "vehicle"
+                  ? t("documents.vehicleTitle")
+                  : document.ownerType === "service"
+                    ? t("documents.serviceTitle")
+                    : t("documents.paymentTitle");
+              return `
+                <div class="entry-block">
+                  <div class="entry-header">
+                    <span class="entry-title">${escapeHtml(document.title)}</span>
+                    <span class="document-owner">${escapeHtml(ownerLabel)}</span>
+                  </div>
+                  <div class="entry-meta">${formatPdfDate(document.dateTs)}${document.category ? ` · ${escapeHtml(document.category)}` : ""}</div>
+                  ${options.includeNotes && document.notes ? `<div class="entry-notes">${escapeHtml(document.notes)}</div>` : ""}
+                  ${pagesHtml}
+                </div>`;
+            }),
+          );
+          documentsSection = `
+            <h2>${escapeHtml(t("documents.pdfTitle"))}</h2>
+            ${blocks.length > 0 ? blocks.join("") : `<div class="empty-text">${escapeHtml(t("documents.empty"))}</div>`}`;
+        }
+
         const html = `
           <html>
             <head>
@@ -319,6 +362,17 @@ export function usePdfExport() {
                   border: 1px solid #ECECEF;
                   margin: 0 8px 8px 0;
                 }
+                .document-owner { font-size: 10px; color: #71717A; }
+                .document-grid { margin-top: 10px; font-size: 0; }
+                .document-grid img {
+                  display: inline-block;
+                  width: 160px;
+                  height: 210px;
+                  object-fit: contain;
+                  border: 1px solid #ECECEF;
+                  margin: 0 8px 8px 0;
+                }
+                .empty-text { margin-top: 10px; color: #71717A; }
               </style>
             </head>
             <body>
@@ -353,6 +407,7 @@ export function usePdfExport() {
               ${serviceSection}
               ${fuelSection}
               ${costsSection}
+              ${documentsSection}
             </body>
           </html>`;
 

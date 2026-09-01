@@ -15,6 +15,7 @@ interface VehicleRow {
   year: number | null;
   nickname: string | null;
   current_odometer: number;
+  base_odometer: number;
   photo_path: string | null;
   default_tank_liters: number | null;
   default_fuel_price: number | null;
@@ -32,6 +33,7 @@ function rowToEntity(row: VehicleRow): Vehicle {
     year: row.year,
     nickname: row.nickname,
     currentOdometer: row.current_odometer,
+    baseOdometer: row.base_odometer,
     photoPath: row.photo_path,
     defaultTankLiters: row.default_tank_liters ?? null,
     defaultFuelPrice: row.default_fuel_price ?? null,
@@ -67,10 +69,10 @@ export class SQLiteVehicleRepo implements IVehicleRepo {
     const now = Date.now();
     await this.db.runAsync(
       `INSERT INTO vehicles
-         (id, make, model, year, nickname, current_odometer, photo_path,
+        (id, make, model, year, nickname, current_odometer, base_odometer, photo_path,
           default_tank_liters, default_fuel_price, service_intervals,
           vehicle_type, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       [
         id,
         input.make,
@@ -78,6 +80,7 @@ export class SQLiteVehicleRepo implements IVehicleRepo {
         input.year ?? null,
         input.nickname ?? null,
         input.currentOdometer,
+        input.baseOdometer,
         input.photoPath ?? null,
         input.defaultTankLiters ?? null,
         input.defaultFuelPrice ?? null,
@@ -109,6 +112,8 @@ export class SQLiteVehicleRepo implements IVehicleRepo {
       (sets.push("nickname = ?"), values.push(input.nickname ?? null));
     if (input.currentOdometer !== undefined)
       (sets.push("current_odometer = ?"), values.push(input.currentOdometer));
+    if (input.baseOdometer !== undefined)
+      (sets.push("base_odometer = ?"), values.push(input.baseOdometer));
     if (input.photoPath !== undefined)
       (sets.push("photo_path = ?"), values.push(input.photoPath ?? null));
     if (input.defaultTankLiters !== undefined)
@@ -140,12 +145,4 @@ export class SQLiteVehicleRepo implements IVehicleRepo {
     await this.db.runAsync("DELETE FROM vehicles WHERE id = ?;", [id]);
   }
 
-  async updateOdometer(id: string, odometer: number): Promise<void> {
-    await this.db.runAsync(
-      `UPDATE vehicles
-         SET current_odometer = MAX(current_odometer, ?), updated_at = ?
-       WHERE id = ?;`,
-      [odometer, Date.now(), id],
-    );
-  }
 }

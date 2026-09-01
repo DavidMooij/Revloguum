@@ -7,10 +7,8 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   FlatList,
-  Dimensions,
   TextInput,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRoute } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
@@ -27,19 +25,18 @@ import {
   type DateRangePreset,
 } from "../../utils/date";
 import { formatCost } from "../../utils/format";
-import ScreenHeader from "../components/ScreenHeader";
 import EmptyState from "../components/EmptyState";
 import AlertModal from "../components/AlertModal";
 import QuickFuelModal from "../Fuel/QuickFuelModal";
 import type { FuelEntry } from "../../domain/entities/FuelEntry";
 import { useFeedback } from "../components/feedback/Feedbackprovider";
 import { haptic } from "@/utils/haptics";
+import VehicleHistoryLayout from "./components/VehicleHistoryLayout";
 
 type Props = NativeStackScreenProps<RootStackParamList, "VehicleFuelHistory">;
 
 export default function VehicleFuelHistoryScreen() {
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
 
   const PRESETS: { key: DateRangePreset; label: string }[] = [
     { key: "last30", label: "30d" },
@@ -106,22 +103,11 @@ export default function VehicleFuelHistoryScreen() {
   };
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <ScreenHeader
-        title={t("fuel.title")}
-        showBack
-        rightElement={
-          vehicle ? (
-            <TouchableOpacity
-              style={styles.addBtn}
-              onPress={() => setFuelModal(true)}
-              hitSlop={8}
-            >
-              <Icon name="plus" size={14} color={colors.white} />
-            </TouchableOpacity>
-          ) : null
-        }
-      />
+    <VehicleHistoryLayout
+      title={t("fuel.title")}
+      onAdd={() => setFuelModal(true)}
+      showAdd={!!vehicle}
+    >
 
       <View style={styles.filterContainer}>
         <View style={styles.searchRow}>
@@ -416,20 +402,11 @@ export default function VehicleFuelHistoryScreen() {
           lastEntry={editTarget ? null : (entries[0] ?? null)}
         />
       )}
-    </View>
+    </VehicleHistoryLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg0 },
-  addBtn: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: colors.accent,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   filterContainer: {
     backgroundColor: colors.bg0,
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -557,7 +534,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  list: { padding: spacing.lg },
+  list: { padding: spacing.lg, paddingBottom: 120 },
   entry: {
     flexDirection: "row",
     alignItems: "center",
@@ -606,4 +583,5 @@ const styles = StyleSheet.create({
   entryMetaOneLine: { fontSize: typeScale.captionLarge, color: colors.text2 },
   entryMetaTwoLines: { gap: 1 },
   entryMetaLine: { fontSize: typeScale.captionLarge, color: colors.text2 },
+  entryNotes: { fontSize: typeScale.captionLarge, color: colors.text1 },
 });
