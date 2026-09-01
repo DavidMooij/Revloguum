@@ -45,8 +45,7 @@ async function imageToDataUri(path: string): Promise<string | null> {
     });
     const ext = uri.toLowerCase().endsWith(".png") ? "png" : "jpeg";
     return `data:image/${ext};base64,${base64}`;
-  } catch (e) {
-    console.warn("PDF export: failed to load image", path, e);
+  } catch {
     return null;
   }
 }

@@ -155,9 +155,7 @@ export default function AddEntryScreen() {
           } else {
             result[path] = path;
           }
-        } catch (e) {
-          console.warn("Failed to decrypt image:", path, e);
-        }
+        } catch {}
       }
 
       if (!cancelled) {
