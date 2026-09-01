@@ -17,39 +17,31 @@ Revloguum is a local-first vehicle journal for tracking maintenance, fuel, recur
 			<sub>Swipe between vehicles and open service, fuel, payment, or statistics views.</sub>
 		</td>
 		<td align="center" width="33%">
-			<img src="assets/screenshots/vehicle-management.jpg" width="240" alt="Vehicle management with service and payment intervals"><br>
-			<strong>Vehicle management</strong><br>
-			<sub>Configure service schedules and recurring payment intervals per vehicle.</sub>
-		</td>
-	</tr>
-	<tr>
-		<td align="center">
 			<img src="assets/screenshots/service-history.jpg" width="240" alt="Filterable service history with an add button"><br>
 			<strong>Service history</strong><br>
 			<sub>Search and filter maintenance records, notes, costs, and service types.</sub>
 		</td>
+	</tr>
+	<tr>
 		<td align="center">
 			<img src="assets/screenshots/payment-history.jpg" width="240" alt="Payment history with totals and document actions"><br>
 			<strong>Payment history</strong><br>
 			<sub>Review ownership costs and attach receipts or multi-page documents.</sub>
 		</td>
-		<td align="center">
+		<td align="center" width="33%">
 			<img src="assets/screenshots/statistics.jpg" width="240" alt="Vehicle statistics with metrics and cost charts"><br>
 			<strong>Statistics</strong><br>
 			<sub>Compare fuel, mileage, service, payment, and cost trends.</sub>
 		</td>
-	</tr>
-	<tr>
-		<td align="center">
+		<td align="center" width="33%">
 			<img src="assets/screenshots/settings.jpg" width="240" alt="Settings with exports, type management, and preferences"><br>
 			<strong>Settings</strong><br>
 			<sub>Manage types, encrypted backups, PDF reports, reminders, and accessibility.</sub>
 		</td>
-		<td colspan="2">
-			Screenshots show the English interface. Revloguum also includes a complete German interface. Vehicle photos and values shown here are demonstration data.
-		</td>
 	</tr>
 </table>
+
+Screenshots show the English interface. Revloguum also includes a complete German interface. Vehicle photos and values shown here are demonstration data.
 
 ## Features
 

@@ -106,14 +106,14 @@ export default function DocumentSection({
             {title ?? t("documents.title")}
           </Text>
         </View>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => openEditor(null)}
-          hitSlop={8}
-        >
-          <Icon name="plus" size={13} color={colors.accent} />
-        </TouchableOpacity>
       </View>
+
+      <TouchableOpacity
+        style={styles.addBox}
+        onPress={() => openEditor(null)}
+      >
+        <Icon name="plus" size={14} color={colors.accent} />
+      </TouchableOpacity>
 
       {loading ? (
         <ActivityIndicator color={colors.accent} style={styles.loading} />
@@ -440,10 +440,10 @@ function DocumentEditorModal({
 
 const styles = StyleSheet.create({
   section: { gap: spacing.sm },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  header: { flexDirection: "row", alignItems: "center" },
   headerTitle: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   sectionTitle: { ...typography.overline },
-  addButton: { width: 32, height: 32, borderRadius: radius.sm, backgroundColor: colors.bg2, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: colors.border1 },
+  addBox: { borderWidth: 1, borderStyle: "dashed", borderColor: colors.border1, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: "center", justifyContent: "center" },
   loading: { marginVertical: spacing.lg },
   empty: { fontSize: typeScale.bodySmall, color: colors.text2, fontStyle: "italic" },
   documentRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.bg2, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border1, padding: spacing.sm },

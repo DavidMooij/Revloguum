@@ -16,6 +16,8 @@ export type RootStackParamList = {
   History: { vehicleId: string };
   VehicleDetail: { vehicleId: string };
   VehicleManagement: { vehicleId: string };
+  VehicleServiceIntervals: { vehicleId: string };
+  VehiclePaymentIntervals: { vehicleId: string };
   Documents: {
     vehicleId: string;
     ownerType: "vehicle" | "service" | "cost";

@@ -22,6 +22,8 @@ import VehicleCostsScreen from "@/screens/Vehicles/VehicleCostsScreen";
 import ExportPdfScreen from "@/screens/Settings/ExportPdfScreen";
 import NotificationSettingsScreen from "@/screens/Settings/NotificationSettingsScreen";
 import VehicleManagementScreen from "@/screens/Vehicles/VehicleManagementScreen";
+import VehicleServiceIntervalsScreen from "@/screens/Vehicles/VehicleServiceIntervalsScreen";
+import VehiclePaymentIntervalsScreen from "@/screens/Vehicles/VehiclePaymentIntervalsScreen";
 import DocumentScreen from "@/screens/Documents/DocumentScreen";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { typeScale } from "../../theme/typography";
@@ -107,6 +109,14 @@ export default function RootNavigator() {
       <Stack.Screen name="History" component={HistoryScreen} />
       <Stack.Screen name="VehicleDetail" component={VehicleDetailScreen} />
       <Stack.Screen name="VehicleManagement" component={VehicleManagementScreen} />
+      <Stack.Screen
+        name="VehicleServiceIntervals"
+        component={VehicleServiceIntervalsScreen}
+      />
+      <Stack.Screen
+        name="VehiclePaymentIntervals"
+        component={VehiclePaymentIntervalsScreen}
+      />
       <Stack.Screen name="Documents" component={DocumentScreen} />
       <Stack.Screen name="VehicleCosts" component={VehicleCostsScreen} />
       <Stack.Screen name="VehicleHistory" component={VehicleHistoryScreen} />

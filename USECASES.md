@@ -161,7 +161,7 @@ Revloguum richtet sich an Personen, die eines oder mehrere Fahrzeuge verwalten u
 2. Sie sieht Bild, Bezeichnung und aktuellen Kilometerstand.
 3. Über die vier Kacheln öffnet sie Servicehistorie, Tankhistorie, Zahlungshistorie oder Auswertung.
 4. Über den Stift öffnet sie die Bearbeitung der Fahrzeugstammdaten.
-5. Durch Antippen der übrigen Kartenfläche öffnet sie Serviceintervalle, Zahlungsintervalle und Fahrzeugdokumente.
+5. Durch Antippen der übrigen Kartenfläche öffnet sie eine kompakte Fahrzeugverwaltung mit drei Zielen: Serviceintervalle, Zahlungsintervalle und Fahrzeugdokumente.
 
 ### UC-024: Fahrzeug bearbeiten
 
@@ -183,11 +183,13 @@ Serviceintervalle, Zahlungsintervalle und Fahrzeugdokumente werden getrennt in d
 **Ablauf:**
 
 1. Die Person öffnet über die freie Fläche der Fahrzeugkarte die Fahrzeugverwaltung.
-2. Sie fügt einen Servicetyp hinzu.
-3. Sie legt einen Kilometerabstand, einen Zeitabstand oder beide Werte fest.
-4. Sie kann weitere Servicetypen ergänzen.
-5. Sie kann eine bestehende Intervallzeile ändern oder entfernen.
-6. Sie speichert die Intervalle.
+2. Sie wählt „Service-Intervalle“ und öffnet die eigene Unterseite.
+3. Sie fügt einen Servicetyp hinzu.
+4. Sie legt einen Kilometerabstand, einen Zeitabstand oder beide Werte fest.
+5. Sie kann weitere Servicetypen ergänzen.
+6. Sie kann eine bestehende Intervallzeile ändern oder entfernen.
+7. Sobald gültige ungespeicherte Änderungen vorliegen, erscheint der Speicherbutton.
+8. Sie speichert die Intervalle; danach verschwindet der Speicherbutton wieder.
 
 **Ergebnis:** Dashboard und Erinnerungen können bevorstehende oder überfällige Services anhand der letzten passenden Durchführung bestimmen.
 
@@ -195,13 +197,15 @@ Serviceintervalle, Zahlungsintervalle und Fahrzeugdokumente werden getrennt in d
 
 **Ablauf:**
 
-1. Die Person öffnet die Fahrzeugverwaltung und fügt dort ein Zahlungsintervall hinzu.
-2. Sie wählt einen Zahlungstyp.
-3. Sie gibt den erwarteten Betrag ein.
-4. Sie wählt monatlich, jährlich oder einen benutzerdefinierten Tagesabstand.
-5. Sie legt den Ausgangstermin fest.
-6. Sie kann weitere Intervalle ergänzen, ändern oder entfernen.
-7. Sie speichert die Intervalle.
+1. Die Person öffnet die Fahrzeugverwaltung und wählt „Payment-Intervalle“.
+2. Auf der eigenen Unterseite fügt sie ein Zahlungsintervall hinzu.
+3. Sie wählt einen Zahlungstyp.
+4. Sie gibt den erwarteten Betrag ein.
+5. Sie wählt monatlich, jährlich oder einen benutzerdefinierten Tagesabstand.
+6. Sie legt den Ausgangstermin fest.
+7. Sie kann weitere Intervalle ergänzen, ändern oder entfernen.
+8. Sobald gültige ungespeicherte Änderungen vorliegen, erscheint der Speicherbutton.
+9. Sie speichert die Intervalle; danach verschwindet der Speicherbutton wieder.
 
 **Ergebnis:** Die nächste Fälligkeit, die monatliche Schätzung und optionale Zahlungserinnerungen können berechnet werden.
 
@@ -742,7 +746,7 @@ In den Einstellungen kann die Person sehen, dass lokale Daten und Bilder geschü
 ### UC-140: Fahrzeugdokument hinzufügen
 
 1. Die Person öffnet die Fahrzeugverwaltung über die freie Fläche der Fahrzeugkarte.
-2. Sie scrollt zum Bereich „Fahrzeugdokumente“.
+2. Sie wählt „Fahrzeugdokumente“ und öffnet die eigene Unterseite.
 3. Sie gibt einen Dokumenttitel ein.
 4. Sie kann Kategorie, Datum und Notiz ergänzen.
 5. Sie wählt eine oder mehrere Seiten aus der Galerie oder fotografiert Seiten direkt.
