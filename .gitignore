@@ -13,6 +13,7 @@ expo-env.d.ts
 .kotlin/
 *.orig.*
 *.jks
+*.keystore
 *.p8
 *.p12
 *.key
@@ -31,7 +32,17 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
+.env
+.env.*
+!.env.example
+
+# local databases and exports
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.rvlg
+local.properties
 
 # typescript
 *.tsbuildinfo
@@ -40,8 +51,8 @@ yarn-error.*
 /ios
 /android
 
-# local implementation playbooks (do not commit)
-/docs/
-
 # local encryption testing files (db and images)
 /encryption_testing/
+
+# local stuff
+/local/

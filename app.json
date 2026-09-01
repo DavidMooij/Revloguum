@@ -49,8 +49,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Revloguum uses your photos to add vehicle images and service records.",
-          "cameraPermission": "Revloguum uses your camera to take vehicle photos and service photos."
+          "photosPermission": "Revloguum uses selected photos for vehicle images, service records, and document pages.",
+          "cameraPermission": "Revloguum uses your camera to photograph service records and document pages."
         }
       ],
       [
