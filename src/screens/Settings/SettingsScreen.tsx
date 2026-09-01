@@ -317,7 +317,6 @@ export default function SettingsScreen() {
             }
           />
           <Divider />
-          <Divider />
           <SettingsRow
             icon="wifi"
             label={t("settings.networkAccess")}

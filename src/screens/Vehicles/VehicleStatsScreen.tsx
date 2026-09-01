@@ -7,12 +7,8 @@ import {
   ScrollView,
   Dimensions,
   TouchableOpacity,
-  Modal,
 } from "react-native";
-import {
-  useSafeAreaInsets,
-  SafeAreaView,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRoute } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { FontAwesome5 as Icon } from "@expo/vector-icons";
@@ -27,22 +23,14 @@ import BarChart from "./components/charts/BarChart";
 import DonutChart from "./components/charts/DonutChart";
 import TyreAnalysisSection from "./components/stats/TyreAnalysisSection";
 import { useVehicleStats } from "../../hooks/useVehicleStats";
+import ExpandedChartModal, {
+  type ExpandedChart,
+} from "./components/stats/ExpandedChartModal";
 
 type Props = NativeStackScreenProps<RootStackParamList, "VehicleStats">;
 
-type ExpandedChart =
-  | "price"
-  | "consumption"
-  | "monthlyFuel"
-  | "monthlyPayments"
-  | "yearlyPayments"
-  | "monthlyTotal"
-  | "monthlyKm"
-  | null;
-
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CHART_W = SCREEN_WIDTH - spacing.lg * 4;
-const CHART_W_FULL = SCREEN_WIDTH - spacing.lg * 2;
 
 export default function VehicleStatsScreen() {
   const { t } = useTranslation();
@@ -101,45 +89,6 @@ export default function VehicleStatsScreen() {
     },
     { label: t("costs.serviceEntries"), value: String(count), icon: "wrench" },
   ];
-
-  const expandedChartTitle = (() => {
-    switch (expandedChart) {
-      case "price":
-        return t("stats.gasPriceChart");
-      case "consumption":
-        return t("stats.consumptionChart");
-      case "monthlyFuel":
-        return t("stats.fuelCostChart");
-      case "monthlyPayments":
-        return t("stats.monthlyPaymentCostChart");
-      case "yearlyPayments":
-        return t("stats.yearlyPaymentCostChart");
-      case "monthlyTotal":
-        return t("stats.monthlyTotalCostChart");
-      case "monthlyKm":
-        return t("stats.monthlyKmChart");
-      default:
-        return "";
-    }
-  })();
-
-  const expandedChartUnit = (() => {
-    switch (expandedChart) {
-      case "price":
-        return "CHF/L";
-      case "consumption":
-        return "L/100km";
-      case "monthlyFuel":
-      case "monthlyPayments":
-      case "yearlyPayments":
-      case "monthlyTotal":
-        return "CHF";
-      case "monthlyKm":
-        return t("stats.km");
-      default:
-        return "";
-    }
-  })();
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -342,100 +291,17 @@ export default function VehicleStatsScreen() {
         {tyreData.length >= 1 && <TyreAnalysisSection data={tyreData} />}
       </ScrollView>
 
-      <Modal
-        visible={!!expandedChart}
-        animationType="slide"
-        statusBarTranslucent
-      >
-        <SafeAreaView style={styles.fullscreenModal}>
-          <View style={styles.fullscreenHeader}>
-            <View>
-              <Text style={styles.fullscreenTitle}>{expandedChartTitle}</Text>
-              <Text style={styles.fullscreenSubtitle}>{expandedChartUnit}</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => setExpandedChart(null)}
-              style={styles.closeBtn}
-              hitSlop={12}
-            >
-              <Icon name="times" size={16} color={colors.text1} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.fullscreenChartArea}>
-            {expandedChart === "price" && priceLineData.length >= 2 && (
-              <LineChart
-                data={priceLineData}
-                width={CHART_W_FULL}
-                height={420}
-                color={colors.accent}
-                unit="CHF/L"
-                formatY={(v) => v.toFixed(2)}
-                showDots
-              />
-            )}
-            {expandedChart === "consumption" &&
-              consumptionLineData.length >= 2 && (
-                <LineChart
-                  data={consumptionLineData}
-                  width={CHART_W_FULL}
-                  height={420}
-                  color={colors.accentBright}
-                  unit="L/100km"
-                  formatY={(v) => v.toFixed(1)}
-                  showDots
-                />
-              )}
-            {expandedChart === "monthlyFuel" && (
-              <BarChart
-                data={monthlyFuelCostBarData}
-                width={CHART_W_FULL}
-                height={420}
-                color={colors.accentBright}
-                formatValue={(v) => v.toFixed(0)}
-              />
-            )}
-            {expandedChart === "monthlyPayments" && (
-              <BarChart
-                data={monthlyPaymentCostBarData}
-                width={CHART_W_FULL}
-                height={420}
-                color={colors.warning}
-                formatValue={(v) => v.toFixed(0)}
-              />
-            )}
-            {expandedChart === "yearlyPayments" && (
-              <BarChart
-                data={yearlyPaymentCostBarData}
-                width={CHART_W_FULL}
-                height={420}
-                color={colors.success}
-                formatValue={(v) => v.toFixed(0)}
-              />
-            )}
-            {expandedChart === "monthlyTotal" && (
-              <BarChart
-                data={monthlyTotalCostBarData}
-                width={CHART_W_FULL}
-                height={420}
-                color={colors.accent}
-                formatValue={(v) => v.toFixed(0)}
-              />
-            )}
-            {expandedChart === "monthlyKm" && monthlyKmLineData.length >= 2 && (
-              <LineChart
-                data={monthlyKmLineData}
-                width={CHART_W_FULL}
-                height={420}
-                color={colors.success}
-                unit={t("stats.km")}
-                formatY={(v) => v.toFixed(0)}
-                showDots
-              />
-            )}
-          </View>
-        </SafeAreaView>
-      </Modal>
+      <ExpandedChartModal
+        chart={expandedChart}
+        onClose={() => setExpandedChart(null)}
+        priceData={priceLineData}
+        consumptionData={consumptionLineData}
+        monthlyFuelData={monthlyFuelCostBarData}
+        monthlyPaymentData={monthlyPaymentCostBarData}
+        yearlyPaymentData={yearlyPaymentCostBarData}
+        monthlyTotalData={monthlyTotalCostBarData}
+        monthlyKmData={monthlyKmLineData}
+      />
     </View>
   );
 }
@@ -535,32 +401,6 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: radius.sm,
-    backgroundColor: colors.bg2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  fullscreenModal: { flex: 1, backgroundColor: colors.bg0 },
-  fullscreenHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border0,
-  },
-  fullscreenSubtitle: { fontSize: typeScale.caption, color: colors.text2, marginTop: 2 },
-  fullscreenChartArea: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: spacing.lg,
-  },
-  fullscreenTitle: { ...typography.buttonLarge, fontWeight: "700", color: colors.text0 },
-  closeBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
     backgroundColor: colors.bg2,
     alignItems: "center",
     justifyContent: "center",
