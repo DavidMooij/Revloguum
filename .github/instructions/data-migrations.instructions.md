@@ -15,5 +15,4 @@ applyTo: "src/domain/**/*.ts,src/data/**/*.ts,src/hooks/**/*.ts,src/utils/update
 - Schema changes must be reflected in backup export/import and full-data deletion.
 - When deleting database rows that reference encrypted files, collect file paths before the rows cascade away, then remove files only after successful persistence.
 - Avoid `any` in new domain and repository APIs. Existing untyped backup compatibility code may remain localized.
-
-See `docs/skills/10-feature-implementation-checklist.md` and `docs/skills/30-data-migrations-and-group-id.md`.
+- Validate affected persistence flows on both a fresh database and an upgraded existing database.

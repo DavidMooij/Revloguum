@@ -10,9 +10,9 @@ Use GitHub private vulnerability reporting for this repository when it is availa
 
 Do not publish exploit details, private vehicle data, decrypted files, passwords, keys, or backup contents in a public issue. If private reporting is unavailable, open a minimal public issue asking the maintainer for a private contact channel without including sensitive details.
 
-## Scope and Goals
+## Security Scope and Goals
 
-Revloguum is a local-first mobile application. Its security goals are to:
+Revloguum is intended to be a local-first mobile application. Its security goals are to:
 
 - protect persisted vehicle data from casual offline access;
 - keep encryption keys out of application files and source code;
@@ -22,38 +22,42 @@ Revloguum is a local-first mobile application. Its security goals are to:
 
 Sensitive data includes vehicle details, odometer history, service records, fuel entries, payments, notes, vehicle and service photos, document metadata, document pages, and exported reports or backups.
 
-## Implemented Controls
+## Current Implementation
+
+The following describes how the current source code is intended to work. It is not a guarantee that the implementation is complete, defect-free, correctly integrated into every build, or resistant to a determined attacker. Independent review and device-level verification are still required.
 
 ### Database
 
-- Expo SQLite is built with SQLCipher enabled through [app.json](app.json).
-- A random 32-byte database key is generated on first use.
-- The key is requested from platform keychain/keystore storage and is not written to the database or source tree.
-- Foreign keys, secure deletion, cipher memory security, and full synchronous writes are enabled when the database opens.
+- [app.json](app.json) configures Expo SQLite to use SQLCipher.
+- The source code attempts to generate a random 32-byte database key on first use.
+- The implementation requests the key from platform keychain/keystore storage rather than intentionally writing it to the database or source tree.
+- The database initialization code requests foreign keys, secure deletion, cipher memory security, and full synchronous writes.
 
 Relevant code: [database.ts](src/data/db/database.ts), [keyGenerator.ts](src/security/keyGenerator.ts), and [keyManager.ts](src/security/keyManager.ts).
 
 ### Persistent Images and Document Pages
 
-- New vehicle photos, service photos, and document pages are encrypted individually before being stored in the app's persistent directory.
-- Media encryption uses AES-256-GCM with a fresh random 12-byte IV and authentication tag for each file.
-- Document pages use the same central encryption helper as other persistent images.
-- Imported media is encrypted again with the destination device's database key.
+- The source code attempts to encrypt new vehicle photos, service photos, and document pages individually before storing managed copies in the app's persistent directory.
+- The media helper is implemented using AES-256-GCM and requests a fresh random 12-byte IV and authentication tag for each file.
+- Document pages are routed through the same helper as other managed images.
+- Import code is intended to encrypt imported media again with the destination device's database key.
 
 Relevant code: [imageEncryption.ts](src/security/imageEncryption.ts) and [SQLiteDocumentRepo.ts](src/data/repositories/SQLiteDocumentRepo.ts).
 
 ### Backups
 
-- Backup payloads contain database records and the contents of referenced media and document pages.
-- A 32-byte random salt and PBKDF2-HMAC-SHA256 with 650,000 iterations derive a 256-bit key from the user's password.
-- AES-256-GCM with a fresh 12-byte IV provides confidentiality and integrity for the backup payload.
-- Import rejects an invalid envelope, a wrong password, failed authentication, malformed core data, or missing document-page data.
-- Import uses merge/replace-by-identifier semantics; it is not a destructive full-database replacement.
-- Import retains compatibility with backups created using the historical authenticated app identifier.
+- Backup code is intended to include database records and referenced media and document pages.
+- The current implementation requests a 32-byte random salt and uses PBKDF2-HMAC-SHA256 with 650,000 iterations to derive a 256-bit key from the user's password.
+- It uses AES-256-GCM with a requested fresh 12-byte IV for the backup payload.
+- Import code attempts to reject an invalid envelope, wrong password, authentication failure, malformed core data, or missing document-page data.
+- Import is implemented with merge/replace-by-identifier semantics rather than a destructive full-database replacement.
+- The code includes a compatibility path for backups created using the historical authenticated app identifier.
 
 Backup compatibility is security-sensitive. Authenticated metadata, envelope versions, KDF parameters, and cipher parameters must not be changed without an explicit compatibility path for existing `.rvlg` files.
 
 Relevant code: [useExport.ts](src/hooks/useExport.ts).
+
+These descriptions have not been independently audited and must not be treated as a promise that data is encrypted in every state or build.
 
 ### Local Notifications
 
@@ -71,6 +75,33 @@ Encryption at rest does not mean data is encrypted at every moment:
 
 Users should treat unlocked devices, notification previews, screenshots, PDFs, and external share destinations as sensitive.
 
+## Privacy and Data Handling
+
+This section describes the current open-source application. Distributors who modify the app, add services, or publish a build under another identity must review and update it.
+
+### Locally Stored Data
+
+Depending on use, the app may store vehicle details and odometer values; service, fuel, cost, and payment records; notes and dates; photos and document pages; reminder settings; and interface preferences. The implementation is designed to keep core records in the local app database and managed media in app storage.
+
+### Data Collection
+
+The current source code contains no Revloguum account system, advertising SDK, analytics integration, or application backend intended to receive personal vehicle records. This does not control data processing by operating systems, app stores, build providers, devices, forks, or destinations selected through the system sharing interface.
+
+### Permissions
+
+- Camera access is requested when the user chooses to capture a service image or document page.
+- Photo-library access is used when the user selects a vehicle image, service image, or document page through the platform picker.
+- Notification permission is requested for local reminders. The operating system controls lock-screen visibility.
+- The system document picker and sharing interface are used for user-directed backup and report operations.
+
+### Exports and Sharing
+
+The backup implementation is intended to password-protect `.rvlg` files, but this property is not guaranteed without independent verification. Generated PDF reports are plaintext and may contain sensitive records and media. Once a file leaves the app, its retention and protection depend on the selected destination and the user.
+
+### Retention and Deletion
+
+Data normally remains until it is edited or deleted, the in-app delete-all flow is used, app storage is cleared, or the app is uninstalled according to operating-system behavior. Deletion code attempts to remove associated managed media, but immediate or forensic deletion from flash storage, caches, system backups, exports, or other apps is not guaranteed.
+
 ## Threat Model
 
 ### Considered
@@ -87,10 +118,6 @@ Users should treat unlocked devices, notification previews, screenshots, PDFs, a
 - Compromise of an external app, cloud drive, messenger, or recipient selected by the user for sharing.
 - Weak, reused, disclosed, or socially engineered backup passwords.
 - Guaranteed forensic erasure from flash storage, operating-system caches, backups, or external destinations.
-
-## Deletion and Retention
-
-Normal deletion removes database records and attempts to remove their managed encrypted media. Cascading owner deletion covers vehicle, service, payment, and document relationships. The in-app "delete all data" flow clears user records and managed image directories, but it is not presented as a forensic secure-wipe guarantee.
 
 ## Release Verification
 

@@ -1,793 +1,793 @@
-# Revloguum: Funktionale Anwendungsfälle
+# Revloguum: Functional Use Cases
 
-Dieses Dokument beschreibt aus Sicht der Nutzerinnen und Nutzer, was in Revloguum getan werden kann. Es beschreibt Abläufe, Varianten, Voraussetzungen, Eingabeprüfungen und Ergebnisse, aber keine technische Umsetzung.
+This document describes, from a user perspective, what can be done in Revloguum. It outlines workflows, variants, prerequisites, input validations, and outcomes, but does not describe technical implementation.
 
-## Haftungsausschluss
+## Disclaimer
 
 **This software is provided "as is", without warranty of any kind. Use it at your own risk.**
 
-Revloguum übernimmt keine Gewähr für die Richtigkeit, Vollständigkeit oder rechtzeitige Anzeige von Erinnerungen, Berechnungen, Berichten, gespeicherten Angaben und Dokumentationen. Markdown-Dateien in diesem Repository können unvollständig, veraltet oder falsch sein. Sie beschreiben beabsichtigtes oder beobachtetes Verhalten, sind aber keine verbindliche Zusicherung, dass sich die Software exakt wie dokumentiert verhält. Die App und ihre Dokumentation ersetzen keine professionelle technische, rechtliche, versicherungsbezogene, steuerliche oder finanzielle Beratung. Soweit gesetzlich zulässig, haften Autorinnen, Autoren und Mitwirkende nicht für Schäden, Datenverlust, versäumte Wartungen, versäumte Zahlungen oder andere Folgen der Nutzung der Software oder ihrer Dokumentation. Die vollständigen Gewährleistungs- und Haftungsbedingungen stehen in der [MIT-Lizenz](LICENSE).
+Revloguum makes no warranty regarding the accuracy, completeness, or timeliness of reminders, calculations, reports, saved entries, or documentation. Markdown files in this repository may be incomplete, outdated, or incorrect. They describe intended or observed behavior but are not a binding guarantee that the software will behave exactly as documented. The app and its documentation do not replace professional technical, legal, insurance, tax, or financial advice. To the extent permitted by law, authors and contributors are not liable for damages, data loss, missed maintenance, missed payments, or other consequences arising from use of the software or its documentation. Full warranty and liability terms are available in the [MIT License](LICENSE).
 
-## 1. Grundlagen
+## 1. Fundamentals
 
-### 1.1 Zielgruppe
+### 1.1 Target audience
 
-Revloguum richtet sich an Personen, die eines oder mehrere Fahrzeuge verwalten und deren Services, Tankvorgänge, Zahlungen und laufende Kosten nachvollziehbar dokumentieren möchten.
+Revloguum targets people who manage one or more vehicles and want to document services, refuelings, payments, and ongoing costs in a traceable way.
 
-### 1.2 Grundannahmen
+### 1.2 Assumptions
 
-- Die App kann ohne Benutzerkonto verwendet werden.
-- Die persönlichen Fahrzeugdaten bleiben lokal auf dem Gerät.
-- Viele Aktionen benötigen ein bereits angelegtes Fahrzeug.
-- Deutsch und Englisch stehen als Oberflächensprachen zur Verfügung.
-- Geldbeträge werden in Schweizer Franken dargestellt.
-- Kilometerstände werden fahrzeugbezogen geführt.
+- The app can be used without an account.
+- Personal vehicle data remains local to the device.
+- Many actions require a vehicle to be created first.
+- German and English are available as UI languages.
+- Monetary amounts are displayed in Swiss francs (CHF).
+- Odometer readings are tracked per vehicle.
 
-### 1.3 Zentrale Bereiche
+### 1.3 Core areas
 
-- Das Dashboard zeigt den aktuellen Zustand des ausgewählten Fahrzeugs.
-- Die Garage enthält alle angelegten Fahrzeuge.
-- Die Einstellungen enthalten Exporte, Datensicherung, Erinnerungen und Verwaltungsfunktionen.
-- Fahrzeugspezifische Unterseiten enthalten Servicehistorie, Tankhistorie, Zahlungshistorie und Auswertungen.
+- The Dashboard shows the current state of the selected vehicle.
+- The Garage contains all created vehicles.
+- Settings contain exports, backups, reminders, and management functions.
+- Vehicle-specific subpages contain service history, fuel history, payment history, and analytics.
 
-## 2. App starten und Grundzustand laden
+## 2. Launching the app and loading the initial state
 
-### UC-001: App öffnen
+### UC-001: Open app
 
-**Ziel:** Die zuletzt vorhandenen Fahrzeugdaten und Einstellungen verwenden.
+**Goal:** Use the most recently available vehicle data and settings.
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person öffnet Revloguum.
-2. Die App lädt lokale Daten und persönliche Anzeigeeinstellungen.
-3. Bestehende Erinnerungen werden mit den aktuellen Fahrzeugdaten abgeglichen.
-4. Nach erfolgreichem Laden erscheint die Hauptnavigation.
+1. The user opens Revloguum.
+2. The app loads local data and personal display settings.
+3. Existing reminders are reconciled with current vehicle data.
+4. After successful loading the main navigation appears.
 
-**Varianten und Ergebnisse:**
+**Variants and outcomes:**
 
-- Sind noch keine Fahrzeuge vorhanden, zeigt das Dashboard einen leeren Zustand mit einer Möglichkeit zum Anlegen des ersten Fahrzeugs.
-- Können die lokalen Daten nicht geöffnet werden, wird statt der normalen App eine Fehlermeldung angezeigt.
-- Kehrt die App aus dem Hintergrund zurück, werden geplante Erinnerungen erneut abgeglichen.
+- If no vehicles exist yet, the Dashboard shows an empty state with an option to create the first vehicle.
+- If local data cannot be opened, an error screen is shown instead of the normal app.
+- When returning from background, scheduled reminders are rechecked.
 
 ## 3. Dashboard
 
-### UC-010: Fahrzeugstatus überblicken
+### UC-010: Overview vehicle status
 
-**Voraussetzung:** Mindestens ein Fahrzeug ist vorhanden.
+**Prerequisite:** At least one vehicle exists.
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person öffnet das Dashboard.
-2. Sie sieht das aktuell ausgewählte Fahrzeug mit Name und Kilometerstand.
-3. Sie sieht den letzten Tankvorgang oder einen Hinweis, wenn noch keiner existiert.
-4. Sie sieht, ob Services überfällig sind.
-5. Sie sieht den nächsten anstehenden Service.
-6. Sie sieht, ob Zahlungen überfällig sind.
-7. Sie sieht die nächste anstehende wiederkehrende Zahlung.
-8. Sie sieht einen kurzen, zum Kilometerstand passenden Fahrzeughinweis.
-9. Sie kann die jeweilige Kachel öffnen, um zur passenden Historie zu gelangen.
+1. The user opens the Dashboard.
+2. They see the currently selected vehicle with name and odometer.
+3. They see the last refueling or a hint if none exists.
+4. They see whether services are overdue.
+5. They see the next upcoming service.
+6. They see whether payments are overdue.
+7. They see the next upcoming recurring payment.
+8. They see a short vehicle note relevant to the odometer.
+9. They can open any tile to go to the matching history.
 
-**Sonderfälle:**
+**Edge cases:**
 
-- Ohne konfigurierte Serviceintervalle wird kein künstlicher Fälligkeitstermin behauptet.
-- Ohne wiederkehrende Zahlungen wird ein entsprechender Leerhinweis gezeigt.
-- Überfällige Punkte werden deutlich von unkritischen Zuständen unterschieden.
+- If no service intervals are configured, no artificial due date is displayed.
+- If there are no recurring payments, an appropriate empty hint is shown.
+- Overdue items are clearly distinguished from non-critical states.
 
-### UC-011: Aktives Fahrzeug wechseln
+### UC-011: Switch active vehicle
 
-**Voraussetzung:** Mehrere Fahrzeuge sind vorhanden.
+**Prerequisite:** Multiple vehicles exist.
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person öffnet die Fahrzeugauswahl im Dashboard.
-2. Sie wählt ein anderes Fahrzeug.
-3. Das Dashboard lädt Tankstatus, Services, Zahlungen und Fälligkeiten des gewählten Fahrzeugs.
-4. Nachfolgende Schnellaktionen beziehen sich auf dieses Fahrzeug.
+1. The user opens the vehicle selector on the Dashboard.
+2. They choose another vehicle.
+3. The Dashboard loads fuel status, services, payments and due items for the selected vehicle.
+4. Subsequent quick actions apply to that vehicle.
 
-### UC-012: Ersten Fahrzeugdatensatz vom Dashboard anlegen
+### UC-012: Create first vehicle from Dashboard
 
-**Voraussetzung:** Es ist noch kein Fahrzeug vorhanden.
+**Prerequisite:** No vehicle exists yet.
 
-**Ablauf:**
+**Flow:**
 
-1. Das Dashboard zeigt den leeren Zustand.
-2. Die Person wählt „Fahrzeug hinzufügen“.
-3. Das Formular zum Anlegen eines Fahrzeugs wird geöffnet.
+1. The Dashboard shows the empty state.
+2. The user chooses "Add vehicle".
+3. The vehicle creation form opens.
 
-### UC-013: Tankvorgang per Schnellaktion erfassen
+### UC-013: Quick refuel entry
 
-**Voraussetzung:** Ein aktives Fahrzeug ist ausgewählt.
+**Prerequisite:** An active vehicle is selected.
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person betätigt die Tank-Schnellaktion.
-2. Die schrittweise Tankeingabe öffnet sich für das aktive Fahrzeug.
-3. Nach dem Speichern werden Dashboard, Kilometerstand und Tankauswertungen aktualisiert.
+1. The user triggers the quick-refuel action.
+2. The step-by-step refuel input opens for the active vehicle.
+3. After saving, the Dashboard, odometer, and refuel analytics are updated.
 
-## 4. Garage und Fahrzeuge
+## 4. Garage and vehicles
 
-### UC-020: Alle Fahrzeuge ansehen
+### UC-020: View all vehicles
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person öffnet die Garage.
-2. Jedes angelegte Fahrzeug wird mit seinen wesentlichen Angaben dargestellt.
-3. Bei mehreren Fahrzeugen kann zwischen den Fahrzeugkarten gewechselt werden.
-4. Eine zusätzliche Karte ermöglicht das Anlegen eines weiteren Fahrzeugs.
-5. Der Stift auf einer Fahrzeugkarte öffnet die Bearbeitung der Stammdaten.
-6. Die vier Kacheln öffnen Servicehistorie, Tankhistorie, Zahlungshistorie oder Auswertung.
-7. Die freie Fläche der Fahrzeugkarte öffnet die Fahrzeugverwaltung.
+1. The user opens the Garage.
+2. Each created vehicle is shown with its essential data.
+3. For multiple vehicles the user can switch between vehicle cards.
+4. An additional card allows creating another vehicle.
+5. The pencil icon on a vehicle card opens editing of core data.
+6. The four tiles open service history, fuel history, payment history or analytics.
+7. Tapping the free area of the vehicle card opens vehicle management.
 
-### UC-021: Fahrzeug anlegen
+### UC-021: Create vehicle
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person startet „Fahrzeug hinzufügen“.
-2. Sie wählt den Fahrzeugtyp Motorrad, Auto oder Sonstiges.
-3. Sie kann ein Fahrzeugbild aus der Galerie auswählen.
-4. Sie gibt Hersteller und Modell ein.
-5. Sie kann Baujahr und Spitzname ergänzen.
-6. Sie gibt den aktuellen Kilometerstand ein.
-7. Sie gibt die Standard-Tankmenge ein.
-8. Sie kann einen Standardpreis pro Liter hinterlegen.
-9. Sie speichert das Fahrzeug.
+1. The user starts "Add vehicle".
+2. They select vehicle type: motorcycle, car, or other.
+3. They can pick a vehicle image from the gallery.
+4. They enter make and model.
+5. They may add manufacture year and a nickname.
+6. They enter the current odometer reading.
+7. They enter the default tank capacity.
+8. They may set a default price per litre.
+9. They save the vehicle.
 
-**Pflichtangaben und Prüfungen:**
+**Required fields and validations:**
 
-- Hersteller darf nicht leer sein.
-- Modell darf nicht leer sein.
-- Kilometerstand muss eine gültige, nicht negative Zahl sein.
-- Die Standard-Tankmenge muss eine gültige Zahl grösser als null sein.
-- Ungültige Angaben verhindern das Speichern und werden im Formular kenntlich gemacht.
+- Make must not be empty.
+- Model must not be empty.
+- Odometer must be a valid non-negative number.
+- Default tank capacity must be a valid number greater than zero.
+- Invalid values prevent saving and are indicated in the form.
 
-**Ergebnis:** Das Fahrzeug erscheint in der Garage und kann als aktives Fahrzeug verwendet werden.
+**Outcome:** The vehicle appears in the Garage and can be used as the active vehicle.
 
-### UC-022: Fahrzeugbild auswählen oder ersetzen
+### UC-022: Select or replace vehicle image
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person tippt im Fahrzeugformular auf den Bildbereich.
-2. Sie wählt ein Bild aus der Gerätegalerie.
-3. Eine Vorschau ersetzt den bisherigen Platzhalter oder das bisherige Bild.
-4. Beim Speichern wird das neue Bild dem Fahrzeug zugeordnet.
+1. The user taps the image area in the vehicle form.
+2. They choose an image from the device gallery.
+3. A preview replaces the placeholder or previous image.
+4. On save the new image is assigned to the vehicle.
 
-**Variante:** Wird das Bearbeiten ohne neues Bild abgeschlossen, bleibt das vorhandene Bild erhalten.
+**Variant:** If editing completes without a new image, the existing image remains.
 
-### UC-023: Fahrzeugkarte und Schnellzugriffe verwenden
+### UC-023: Use vehicle card and quick actions
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person öffnet die Garage und wechselt zur gewünschten Fahrzeugkarte.
-2. Sie sieht Bild, Bezeichnung und aktuellen Kilometerstand.
-3. Über die vier Kacheln öffnet sie Servicehistorie, Tankhistorie, Zahlungshistorie oder Auswertung.
-4. Über den Stift öffnet sie die Bearbeitung der Fahrzeugstammdaten.
-5. Durch Antippen der übrigen Kartenfläche öffnet sie eine kompakte Fahrzeugverwaltung mit drei Zielen: Serviceintervalle, Zahlungsintervalle und Fahrzeugdokumente.
+1. The user opens the Garage and switches to the desired vehicle card.
+2. They see image, label and current odometer.
+3. Via the four tiles they open service history, fuel history, payment history or analytics.
+4. The pencil opens vehicle core data editing.
+5. Tapping the rest of the card opens compact vehicle management with three targets: service intervals, payment intervals and vehicle documents.
 
-### UC-024: Fahrzeug bearbeiten
+### UC-024: Edit vehicle
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person öffnet die Bearbeitung über den Stift auf der Fahrzeugkarte.
-2. Die vorhandenen Stammdaten sind vorausgefüllt.
-3. Sie ändert beliebige Angaben.
-4. Sie speichert die Änderungen.
+1. The user opens editing via the pencil on the vehicle card.
+2. Existing core data is prefilled.
+3. They change any values.
+4. They save changes.
 
-**Ergebnis:** Übersichten und zukünftige Eingaben verwenden die geänderten Angaben. Der manuell gesetzte Kilometerstand bildet die Untergrenze; ein höherer Kilometerstand aus verbleibenden Service- oder Tankeinträgen bleibt weiterhin massgeblich.
+**Outcome:** Overviews and future entries use the updated values. A manually set odometer serves as a lower bound; a higher odometer from remaining service or fuel entries remains authoritative.
 
-Serviceintervalle, Zahlungsintervalle und Fahrzeugdokumente werden getrennt in der Fahrzeugverwaltung bearbeitet.
+Service intervals, payment intervals and vehicle documents are edited separately in vehicle management.
 
-### UC-025: Serviceintervall am Fahrzeug konfigurieren
+### UC-025: Configure service interval for a vehicle
 
-**Ziel:** Einen Servicetyp anhand von Zeit, Kilometerstand oder beiden Grössen überwachen.
+**Goal:** Monitor a service type by time, mileage, or both.
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person öffnet über die freie Fläche der Fahrzeugkarte die Fahrzeugverwaltung.
-2. Sie wählt „Service-Intervalle“ und öffnet die eigene Unterseite.
-3. Sie fügt einen Servicetyp hinzu.
-4. Sie legt einen Kilometerabstand, einen Zeitabstand oder beide Werte fest.
-5. Sie kann weitere Servicetypen ergänzen.
-6. Sie kann eine bestehende Intervallzeile ändern oder entfernen.
-7. Sobald gültige ungespeicherte Änderungen vorliegen, erscheint der Speicherbutton.
-8. Sie speichert die Intervalle; danach verschwindet der Speicherbutton wieder.
+1. The user opens vehicle management from the free area of the vehicle card.
+2. They choose "Service intervals" and open that subpage.
+3. They add a service type.
+4. They set a mileage interval, a time interval, or both values.
+5. They can add additional service types.
+6. They can edit or remove an existing interval row.
+7. When there are valid unsaved changes the Save button appears.
+8. They save the intervals; the Save button then disappears.
 
-**Ergebnis:** Dashboard und Erinnerungen können bevorstehende oder überfällige Services anhand der letzten passenden Durchführung bestimmen.
+**Outcome:** The Dashboard and reminders can determine upcoming or overdue services based on the most recent matching execution.
 
-### UC-026: Wiederkehrende Zahlung am Fahrzeug konfigurieren
+### UC-026: Configure recurring payment for a vehicle
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person öffnet die Fahrzeugverwaltung und wählt „Payment-Intervalle“.
-2. Auf der eigenen Unterseite fügt sie ein Zahlungsintervall hinzu.
-3. Sie wählt einen Zahlungstyp.
-4. Sie gibt den erwarteten Betrag ein.
-5. Sie wählt monatlich, jährlich oder einen benutzerdefinierten Tagesabstand.
-6. Sie legt den Ausgangstermin fest.
-7. Sie kann weitere Intervalle ergänzen, ändern oder entfernen.
-8. Sobald gültige ungespeicherte Änderungen vorliegen, erscheint der Speicherbutton.
-9. Sie speichert die Intervalle; danach verschwindet der Speicherbutton wieder.
+1. The user opens vehicle management and selects "Payment intervals".
+2. On its subpage they add a payment interval.
+3. They select a payment type.
+4. They enter the expected amount.
+5. They choose monthly, yearly, or a custom day interval.
+6. They set the start date.
+7. They can add, edit or remove intervals.
+8. When there are valid unsaved changes the Save button appears.
+9. They save the intervals; the Save button then disappears.
 
-**Ergebnis:** Die nächste Fälligkeit, die monatliche Schätzung und optionale Zahlungserinnerungen können berechnet werden.
+**Outcome:** Next due date, monthly estimate and optional payment reminders can be calculated.
 
-### UC-027: Fahrzeug löschen
+### UC-027: Delete vehicle
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person startet das Löschen in der Fahrzeugbearbeitung.
-2. Ein Bestätigungsdialog weist auf die endgültige Aktion hin.
-3. Die Person bestätigt oder bricht ab.
+1. The user initiates deletion in vehicle editing.
+2. A confirmation dialog highlights that the action is final.
+3. The user confirms or cancels.
 
-**Ergebnis bei Bestätigung:** Das Fahrzeug wird aus der Garage entfernt. Zugehörige Historien stehen danach nicht mehr zur Auswahl.
+**Outcome on confirmation:** The vehicle is removed from the Garage. Related histories are no longer available for selection.
 
-## 5. Serviceeinträge
+## 5. Service entries
 
-### UC-030: Einzelnen Service erfassen
+### UC-030: Record a single service
 
-**Voraussetzung:** Mindestens ein Fahrzeug ist vorhanden.
+**Prerequisite:** At least one vehicle exists.
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person startet über den Plus-Button einer Servicehistorie einen neuen Eintrag.
-2. Das betroffene Fahrzeug ist vorausgewählt.
-3. Sie wählt einen Servicetyp.
-4. Sie kann Kosten und Notizen ergänzen.
-5. Sie gibt den Kilometerstand ein.
-6. Sie wählt das Datum.
-7. Sie kann Bilder aus der Galerie oder über die Kamera hinzufügen.
-8. Sie speichert den Eintrag.
+1. The user starts a new entry via the plus button in a service history.
+2. The affected vehicle is preselected.
+3. They choose a service type.
+4. They may add costs and notes.
+5. They enter the odometer reading.
+6. They pick the date.
+7. They may add images from the gallery or camera.
+8. They save the entry.
 
-**Prüfungen:**
+**Validations:**
 
-- Mindestens ein Servicetyp muss gewählt sein.
-- Der Kilometerstand muss eine gültige, nicht negative Zahl sein.
-- Optionale Kosten müssen als gültiger Betrag eingegeben werden.
+- At least one service type must be chosen.
+- Odometer must be a valid non-negative number.
+- Optional costs must be entered as a valid amount.
 
-**Ergebnis:** Der Eintrag erscheint in der Servicehistorie und kann Fälligkeiten sowie den Fahrzeugkilometerstand beeinflussen.
+**Outcome:** The entry appears in service history and can affect due dates and the vehicle odometer.
 
-### UC-031: Mehrere Services als gemeinsamen Werkstattbesuch erfassen
+### UC-031: Record multiple services as a single workshop visit
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person beginnt einen neuen Serviceeintrag.
-2. Sie fügt über „Weiterer Service“ zusätzliche Serviceblöcke hinzu.
-3. Für jeden Block wählt sie Typ, optionale Kosten und optionale Notizen.
-4. Datum, Kilometerstand und Bilder gelten gemeinsam für den Besuch.
-5. Sie speichert alle Services zusammen.
+1. The user begins a new service entry.
+2. They add additional service blocks using "Add service".
+3. For each block they pick type, optional cost and optional notes.
+4. Date, odometer and images apply to the entire visit.
+5. They save all services together.
 
-**Ergebnis:** Die Services werden in der Historie als zusammengehörige Gruppe dargestellt, bleiben in der Detailansicht aber einzeln nachvollziehbar.
+**Outcome:** Services appear grouped in history but remain individually auditable in details.
 
-### UC-032: Fotos zu einem Service hinzufügen
+### UC-032: Add photos to a service
 
-**Galerieablauf:**
+**Gallery flow:**
 
-1. Die Person wählt „Galerie“.
-2. Sie wählt ein oder mehrere Bilder.
-3. Vorschaubilder erscheinen im Formular.
+1. The user selects "Gallery".
+2. They choose one or several images.
+3. Preview thumbnails appear in the form.
 
-**Kameraablauf:**
+**Camera flow:**
 
-1. Die Person wählt „Kamera“.
-2. Falls nötig, fragt die App nach Kamerazugriff.
-3. Bei erteilter Berechtigung nimmt die Person ein Bild auf.
-4. Das Bild erscheint in der Vorschau.
+1. The user selects "Camera".
+2. If required the app requests camera access.
+3. With permission the user takes a photo.
+4. The image appears in preview.
 
-**Varianten:**
+**Variants:**
 
-- Ein Vorschaubild kann vor dem Speichern wieder entfernt werden.
-- Wird die Kameraberechtigung abgelehnt, informiert die App darüber und speichert den Service ohne neues Kamerabild weiter.
+- A preview image can be removed before saving.
+- If camera permission is denied the app informs the user and continues saving the service without a new camera image.
 
-### UC-033: Servicedatum auswählen
+### UC-033: Choose service date
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person öffnet das Datumsfeld.
-2. Tag, Monat und Jahr können schrittweise verändert oder direkt eingegeben werden.
-3. Sie bestätigt das Datum.
-4. Das gewählte Datum wird im Serviceformular angezeigt.
+1. The user opens the date field.
+2. Day, month and year can be changed stepwise or entered directly.
+3. They confirm the date.
+4. The chosen date is shown in the service form.
 
-### UC-034: Servicehistorie ansehen
+### UC-034: View service history
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person öffnet die Servicehistorie eines Fahrzeugs.
-2. Einträge werden chronologisch und bei gemeinsamen Besuchen gruppiert dargestellt.
-3. Beim Scrollen werden bei Bedarf weitere Einträge geladen.
-4. Durch Antippen einer Gruppe wird die Detailansicht geöffnet.
-5. Über den schwebenden Plus-Button wird ein neuer Eintrag angelegt.
+1. The user opens a vehicle's service history.
+2. Entries are shown chronologically and grouped for combined visits.
+3. Additional entries are loaded when scrolling if needed.
+4. Tapping a group opens the detail view.
+5. The floating plus button creates a new entry.
 
-**Leerer Zustand:** Ohne Einträge weist die Ansicht darauf hin, dass noch keine Services erfasst wurden.
+**Empty state:** If no entries exist the view indicates that no services have been recorded.
 
-### UC-035: Servicehistorie filtern und durchsuchen
+### UC-035: Filter and search service history
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person kann einen oder mehrere Servicetypen auswählen.
-2. Sie kann die letzten 30 Tage, 90 Tage, 365 Tage oder den gesamten Zeitraum wählen.
-3. Sie kann einen Suchtext eingeben.
-4. Die Liste zeigt nur passende Einträge.
-5. Mit „Filter löschen“ kehrt sie zur vollständigen Historie zurück.
+1. The user can select one or more service types.
+2. They may choose the last 30 days, 90 days, 365 days or the entire period.
+3. They can enter a search text.
+4. The list shows matching entries only.
+5. "Clear filters" returns to the full history.
 
-### UC-036: Servicedetails ansehen
+### UC-036: View service details
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person öffnet einen Eintrag oder eine Servicegruppe.
-2. Sie sieht Fahrzeug, Datum, Kilometerstand und Erfassungszeitpunkt.
-3. Bei einer Gruppe sieht sie alle enthaltenen Servicetypen einzeln.
-4. Kosten und Notizen werden angezeigt, sofern vorhanden.
-5. Zugeordnete Bilder werden als Galerie dargestellt.
-6. Zugeordnete Dokumente werden mit Titel, Datum, Kategorie und Seitenzahl dargestellt.
-7. Die Person kann den Eintrag bearbeiten oder löschen.
+1. The user opens an entry or a service group.
+2. They see vehicle, date, odometer and creation timestamp.
+3. For a group they see every included service type separately.
+4. Costs and notes are shown if present.
+5. Associated images are displayed as a gallery.
+6. Attached documents are shown with title, date, category and page count.
+7. The user can edit or delete the entry.
 
-### UC-037: Servicebild im Vollbild ansehen
+### UC-037: View service image fullscreen
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person tippt in den Servicedetails auf ein Bild.
-2. Das Bild wird gross angezeigt.
-3. Bei mehreren Bildern kann zwischen ihnen gewechselt werden.
-4. Die Vollbildansicht kann wieder geschlossen werden.
+1. The user taps an image in service details.
+2. The image is shown large.
+3. With multiple images they can switch between them.
+4. The fullscreen view can be closed.
 
-### UC-038: Service oder Servicegruppe bearbeiten
+### UC-038: Edit service or service group
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person wählt in der Historie per langem Druck „Bearbeiten“ oder nutzt die Bearbeitung in den Details.
-2. Das Serviceformular öffnet sich mit den bisherigen Werten.
-3. Sie ändert Typen, Kosten, Notizen, Kilometerstand, Datum oder Bilder.
-4. Sie speichert die Änderungen.
+1. The user selects "Edit" via long press in history or uses edit in details.
+2. The service form opens with previous values.
+3. They change types, costs, notes, odometer, date or images.
+4. They save changes.
 
-**Ergebnis:** Die bisherige Einzel- oder Gruppendarstellung wird durch die bearbeitete Fassung ersetzt.
+**Outcome:** The previous single or grouped representation is replaced by the edited version.
 
-### UC-039: Service oder Servicegruppe löschen
+### UC-039: Delete service or service group
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person startet das Löschen über einen langen Druck oder die Detailansicht.
-2. Die App weist darauf hin, dass die Aktion nicht rückgängig gemacht werden kann.
-3. Sie bestätigt oder bricht ab.
+1. The user starts deletion via long press or the detail view.
+2. The app warns that the action is irreversible.
+3. They confirm or cancel.
 
-**Ergebnis bei Bestätigung:** Bei einem gruppierten Werkstattbesuch wird die gesamte Gruppe gelöscht.
+**Outcome on confirmation:** For a grouped workshop visit the entire group is deleted.
 
-Nach der Löschung wird der Fahrzeugkilometerstand aus dem manuell gesetzten Basiswert sowie den verbleibenden Service- und Tankeinträgen neu bestimmt.
+After deletion the vehicle odometer is recalculated from the manually set baseline and the remaining service and fuel entries.
 
-## 6. Tankvorgänge
+## 6. Fuel entries
 
-### UC-040: Tankvorgang schrittweise erfassen
+### UC-040: Stepwise refuel entry
 
-**Voraussetzung:** Ein Fahrzeug ist ausgewählt.
+**Prerequisite:** A vehicle is selected.
 
-**Schritt 1 – Kilometerstand:**
+**Step 1 – Odometer:**
 
-1. Die Person gibt den Kilometerstand über das Zahlenfeld ein.
-2. Der letzte Tank-Kilometerstand wird als Orientierung angezeigt, sofern vorhanden.
-3. Bei einem neuen Eintrag darf der Wert nicht unter dem aktuellen Fahrzeugkilometerstand liegen.
+1. The user enters the odometer value using the numeric field.
+2. The last refuel odometer is shown as orientation if available.
+3. For a new entry the value must not be below the vehicle's current odometer.
 
-**Schritt 2 – Liter:**
+**Step 2 – Litres:**
 
-1. Die Standard-Tankmenge des Fahrzeugs ist vorausgewählt.
-2. Die Person erhöht oder verringert die Menge in kleinen oder grossen Schritten.
-3. Sie kann zur Standardmenge zurückkehren.
-4. Eine Füllstandsanzeige setzt die Menge ins Verhältnis zur hinterlegten Standard-Tankmenge.
+1. The vehicle's default tank capacity is preselected.
+2. The user increases or decreases the amount in small or large steps.
+3. They can revert to the default amount.
+4. A fill-level indicator relates the amount to the stored default tank capacity.
 
-**Schritt 3 – Preis:**
+**Step 3 – Price:**
 
-1. Die Person wählt zwischen Gesamtpreis und Preis pro Liter.
-2. Im Gesamtpreis-Modus gibt sie den bezahlten Gesamtbetrag ein und sieht den errechneten Literpreis.
-3. Im Literpreis-Modus passt sie den Preis schrittweise an und sieht den errechneten Gesamtbetrag.
+1. The user chooses between total price and price per litre.
+2. In total-price mode they enter the paid total and see the calculated price per litre.
+3. In price-per-litre mode they adjust the price and see the calculated total.
 
-**Schritt 4 – Bestätigung und Notizen:**
+**Step 4 – Confirmation and notes:**
 
-1. Kilometerstand, Liter, Literpreis und Gesamtbetrag werden zusammengefasst.
-2. Die Person kann optional eine Notiz ergänzen, etwa Tankstelle, Kraftstoffsorte oder Reisebezug.
-3. Sie speichert den Tankvorgang.
+1. Odometer, litres, price-per-litre and total amount are summarised.
+2. The user may add an optional note, e.g. station, fuel type or trip context.
+3. They save the refuel entry.
 
-**Ergebnis:** Der Eintrag erscheint in der Tankhistorie. Ein höherer Kilometerstand aktualisiert das Fahrzeug.
+**Outcome:** The entry appears in fuel history. A higher odometer updates the vehicle.
 
-### UC-041: Tankerfassung vor dem Speichern korrigieren oder abbrechen
+### UC-041: Correct or cancel refuel before saving
 
-- Mit „Zurück“ kann die Person zu jedem vorherigen Schritt zurückgehen.
-- Über das Schliessen-Symbol oder den Bereich ausserhalb des Fensters kann sie die Eingabe abbrechen.
-- Nicht gespeicherte Eingaben werden beim erneuten Öffnen zurückgesetzt.
-- Alle Schritte behalten dieselbe Fensterhöhe, damit die Bedienung beim Weitergehen nicht springt.
+- The user can go back to any previous step using "Back".
+- They can cancel the input via the close icon or tapping outside the dialog.
+- Unsaved inputs are reset on re-opening.
+- All steps keep the same dialog height to avoid visual jumps while progressing.
 
-### UC-042: Tankhistorie ansehen
+### UC-042: View fuel history
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person öffnet die Tankhistorie eines Fahrzeugs.
-2. Die Übersicht zeigt Gesamtliter, Gesamtkosten, Durchschnittsverbrauch und durchschnittlichen Literpreis für den aktuellen Filter.
-3. Jeder Eintrag zeigt Liter, Kilometerstand, Literpreis, Gesamtbetrag und Datum.
-4. Notizen werden angezeigt, sofern vorhanden.
-5. Der schwebende Plus-Button öffnet eine neue Tankeingabe.
+1. The user opens a vehicle's fuel history.
+2. The overview shows total litres, total cost, average consumption and average price per litre for the current filter.
+3. Each entry shows litres, odometer, price per litre, total amount and date.
+4. Notes are shown if present.
+5. The floating plus button opens a new refuel entry.
 
-### UC-043: Tankhistorie filtern und durchsuchen
+### UC-043: Filter and search fuel history
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person durchsucht Notizen oder Kosten über das Suchfeld.
-2. Sie kann auf 30 Tage, 90 Tage, ein Jahr oder den gesamten Zeitraum begrenzen.
-3. Ein sichtbarer Punkt zeigt an, dass ein Filter aktiv ist.
-4. Aktive Filter können gemeinsam zurückgesetzt werden.
+1. The user searches notes or costs using the search field.
+2. They may limit to 30 days, 90 days, one year or the entire period.
+3. A visible indicator shows when a filter is active.
+4. Active filters can be cleared together.
 
-### UC-044: Tankvorgang bearbeiten
+### UC-044: Edit a fuel entry
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person drückt lange auf einen Tankeintrag.
-2. Sie wählt „Bearbeiten“.
-3. Die schrittweise Eingabe öffnet sich mit Kilometerstand, Litern, Betrag und Notiz.
-4. Sie ändert Werte und speichert.
+1. The user long-presses a fuel entry.
+2. They choose "Edit".
+3. The step-by-step input opens with odometer, litres, amount and note.
+4. They change values and save.
 
-### UC-045: Tankvorgang löschen
+### UC-045: Delete a fuel entry
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person drückt lange auf einen Tankeintrag.
-2. Sie wählt „Löschen“.
-3. Sie bestätigt den endgültigen Löschvorgang.
-4. Historie und Tankstatistik werden aktualisiert.
-5. Der Fahrzeugkilometerstand fällt auf den höchsten verbleibenden Service- oder Tankstand zurück, mindestens jedoch auf den manuell gesetzten Basiswert.
+1. The user long-presses a fuel entry.
+2. They choose "Delete".
+3. They confirm the final deletion.
+4. History and fuel statistics are updated.
+5. The vehicle odometer falls back to the highest remaining service or fuel reading, but at least to the manually set baseline.
 
-## 7. Zahlungen und weitere Fahrzeugkosten
+## 7. Payments and other vehicle costs
 
-### UC-050: Zahlung oder Ausgabe erfassen
+### UC-050: Record a payment or expense
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person öffnet die Zahlungshistorie.
-2. Sie betätigt den schwebenden Plus-Button.
-3. Sie wählt einen Zahlungstyp.
-4. Sie gibt Betrag und Datum ein.
-5. Sie kann eine Notiz ergänzen.
-6. Sie kann den Eintrag einer konfigurierten wiederkehrenden Zahlung zuordnen.
-7. Sie speichert den Eintrag.
+1. The user opens the payment history.
+2. They tap the floating plus button.
+3. They select a payment type.
+4. They enter amount and date.
+5. They may add a note.
+6. They may associate the entry with a configured recurring payment.
+7. They save the entry.
 
-**Ergebnis:** Die Ausgabe erscheint in der Historie und wird in Kostenübersichten berücksichtigt. Bei Zuordnung zu einem Intervall gilt die passende Fälligkeit als bezahlt.
+**Outcome:** The expense appears in the history and is included in cost overviews. If associated with an interval, the matching due item is considered paid.
 
-### UC-051: Zahlungshistorie ansehen
+### UC-051: View payment history
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person sieht den insgesamt bezahlten Betrag.
-2. Sie sieht die aus Intervallen berechnete monatliche Kostenschätzung.
-3. Zahlungen werden chronologisch dargestellt.
-4. Der schwebende Plus-Button ist an derselben Position wie in Service- und Tankhistorie verfügbar.
+1. The user sees the total paid amount.
+2. They see the monthly cost estimate calculated from intervals.
+3. Payments are shown chronologically.
+4. The floating plus button is available at the same position as in service and fuel histories.
 
-### UC-052: Zahlungshistorie filtern und durchsuchen
+### UC-052: Filter and search payment history
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person sucht nach Notiz, Betrag oder Bezeichnung des Zahlungstyps.
-2. Sie wählt einen oder mehrere Zahlungstypen.
-3. Sie begrenzt den Zeitraum auf 30 Tage, 90 Tage, ein Jahr oder alle Einträge.
-4. Sie kann alle Filter gemeinsam löschen.
+1. The user searches by note, amount or payment type label.
+2. They select one or more payment types.
+3. They limit the period to 30 days, 90 days, one year or all entries.
+4. They can clear all filters together.
 
-### UC-053: Zahlung bearbeiten
+### UC-053: Edit a payment
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person öffnet einen bestehenden Zahlungseintrag zur Bearbeitung.
-2. Typ, Betrag, Datum, Notiz und Intervallzuordnung sind vorausgefüllt.
-3. Sie passt die Angaben an und speichert.
-4. Summen und Fälligkeiten werden neu berechnet.
+1. The user opens an existing payment entry for editing.
+2. Type, amount, date, note and interval association are prefilled.
+3. They adjust the values and save.
+4. Totals and due items are recalculated.
 
-### UC-054: Zahlung löschen
+### UC-054: Delete a payment
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person startet beim Eintrag die Löschaktion.
-2. Ein Bestätigungsdialog weist auf die endgültige Löschung hin.
-3. Nach Bestätigung verschwindet der Eintrag und die Summen werden aktualisiert.
+1. The user triggers the delete action on the entry.
+2. A confirmation dialog warns about final deletion.
+3. After confirmation the entry is removed and totals are updated.
 
-## 8. Auswertungen
+## 8. Analytics
 
-### UC-060: Gesamtkosten und Kennzahlen ansehen
+### UC-060: View total costs and key metrics
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person öffnet die Auswertung eines Fahrzeugs.
-2. Sie sieht die gesamten erfassten Kosten und deren Verteilung.
-3. Sie sieht Kosten pro Kilometer, Durchschnittsverbrauch, Durchschnittspreis pro Liter und Gesamtliter.
-4. Sie sieht die monatliche Schätzung wiederkehrender Zahlungen.
-5. Sie sieht die Anzahl erfasster Services.
+1. The user opens a vehicle's analytics.
+2. They see total recorded costs and their distribution.
+3. They see cost per kilometre, average consumption, average price per litre and total litres.
+4. They see the monthly estimate of recurring payments.
+5. They see the number of recorded services.
 
-### UC-061: Kostenverteilungen vergleichen
+### UC-061: Compare cost distributions
 
-- Die Gesamtkostenverteilung vergleicht Service, Kraftstoff, Versicherung, Wartung und sonstige Zahlungen.
-- Die Servicetyp-Verteilung zeigt, welche Servicearten die höchsten erfassten Kosten verursacht haben.
-- Die Zahlungstyp-Verteilung zeigt, wie sich weitere Ausgaben auf die vorhandenen Zahlungstypen verteilen.
-- Kategorien ohne Kosten werden nicht als künstliche Segmente dargestellt.
+- Total cost distribution compares service, fuel, insurance, maintenance and other payments.
+- Service-type distribution shows which service categories caused the highest recorded costs.
+- Payment-type distribution shows how other expenses map to configured payment types.
+- Categories without costs are not shown as artificial segments.
 
-### UC-062: Zeitliche Entwicklungen ansehen
+### UC-062: View temporal developments
 
-- Kraftstoffkosten werden für die letzten sechs Kalendermonate verglichen.
-- Zahlungskosten werden für die letzten sechs Kalendermonate verglichen.
-- Zahlungskosten werden zusätzlich für die letzten fünf Kalenderjahre verglichen.
-- Gesamtkosten aus Kraftstoff, Services und Zahlungen werden für die letzten sechs Monate verglichen.
-- Der Literpreis wird entlang der Tankdaten als Zeitreihe gezeigt.
-- Der berechnete Verbrauch wird zwischen aufeinanderfolgenden Tankständen als Zeitreihe gezeigt.
-- Die aus Tank-Kilometerständen abgeleitete Monatsfahrleistung wird als Zeitreihe gezeigt.
-- Monats- und Datumsbezeichnungen folgen der gewählten App-Sprache.
+- Fuel costs are compared across the last six calendar months.
+- Payment costs are compared across the last six calendar months.
+- Payment costs are also compared across the last five calendar years.
+- Total costs from fuel, services and payments are compared for the last six months.
+- Price per litre is shown as a time series along refuel data.
+- Calculated consumption is shown as a time series between consecutive refuels.
+- Monthly mileage derived from refuel odometers is shown as a time series.
+- Month and date labels follow the chosen app language.
 
-### UC-063: Diagramm vergrössern
+### UC-063: Enlarge a chart
 
-1. Die Person tippt bei einem Zeit- oder Balkendiagramm auf das Vergrössern-Symbol.
-2. Das Diagramm wird in einer grossen Ansicht mit Titel und Einheit dargestellt.
-3. Sie schliesst die Ansicht über das Schliessen-Symbol.
+1. The user taps the enlarge icon on a time or bar chart.
+2. The chart opens in a large view with title and unit.
+3. They close the view with the close icon.
 
-### UC-064: Reifenhistorie auswerten
+### UC-064: Analyse tyre history
 
-**Voraussetzung:** Services des Typs Reifen wurden erfasst.
+**Prerequisite:** Service entries of type "tyres" have been recorded.
 
-**Ablauf:**
+**Flow:**
 
-1. Die Person sieht die Anzahl dokumentierter Reifenwechsel.
-2. Ab dem zweiten Wechsel wird die Kilometerdifferenz zum vorherigen Wechsel angezeigt.
-3. Aus positiven, vorhandenen Intervallen wird eine durchschnittliche Reifenlebensdauer gebildet.
-4. Datum, Kilometerstand und optionale Notizen jedes Reifenwechsels bleiben sichtbar.
+1. The user sees the number of documented tyre changes.
+2. From the second change onward the kilometre difference to the previous change is shown.
+3. Positive intervals are used to compute an average tyre life.
+4. Date, odometer and optional notes for each tyre change remain visible.
 
-### UC-065: Aussagekraft der Auswertungen einordnen
+### UC-065: Interpret analytics accuracy
 
-- Der Verbrauch zwischen zwei Tankvorgängen ist nur dann als realer Verbrauch aussagekräftig, wenn die Tankstände vergleichbar sind, typischerweise bei Volltankungen. Eine eigene Volltank-Markierung gibt es derzeit nicht.
-- Die Monatskilometer werden aus vorhandenen Tank-Kilometerständen abgeleitet. Gibt es in einem Monat keinen Tankvorgang, kann die nächste sichtbare Differenz Fahrstrecke aus mehreren Monaten enthalten.
-- „Kosten pro Kilometer“ verwendet die erfassten Gesamtkosten im Verhältnis zum aktuellen Kilometerstand. Bei gebraucht übernommenen Fahrzeugen ist dieser Wert nicht identisch mit den Kosten pro Kilometer seit Beginn der App-Nutzung.
-- Auswertungen zeigen nur Daten, die tatsächlich erfasst wurden. Fehlende Tank-, Service- oder Zahlungseinträge können nicht geschätzt werden.
-- Wiederkehrende Zahlungen fliessen als Schätzung in die Monatskennzahl ein; als tatsächlich bezahlte Kosten gelten nur erfasste Zahlungseinträge.
+- Consumption between two refuels is only meaningful if the refuel fill levels are comparable, typically full refuels. There is currently no dedicated “full tank” flag.
+- Monthly kilometres are derived from existing refuel odometer readings. If no refuel occurred in a month, the next visible difference may span multiple months.
+- "Cost per kilometre" uses recorded total costs relative to the current odometer. For used vehicles taken over, this value is not identical to cost per kilometre since app usage started.
+- Analytics only show data that was actually recorded. Missing fuel, service or payment entries are not estimated.
+- Recurring payments are included as an estimate in monthly metrics; only recorded payment entries count as actually paid costs.
 
-## 9. Eigene Service- und Zahlungstypen
+## 9. Custom service and payment types
 
-### UC-070: Servicetypen ansehen und verwalten
+### UC-070: View and manage service types
 
-1. Die Person öffnet in den Einstellungen die Servicetypen.
-2. Systemtypen und eigene Typen werden gemeinsam angezeigt.
-3. Systemtypen behalten ihre vorgegebenen Bezeichnungen und Symbole.
-4. Eigene Typen können hinzugefügt, bearbeitet und gelöscht werden.
+1. The user opens service types in Settings.
+2. System types and custom types are shown together.
+3. System types keep their predefined labels and icons.
+4. Custom types can be added, edited and deleted.
 
-### UC-071: Eigenen Servicetyp hinzufügen
+### UC-071: Add a custom service type
 
-1. Die Person startet „Hinzufügen“.
-2. Sie gibt einen Namen ein.
-3. Sie wählt ein Symbol.
-4. Sie speichert den Typ.
+1. The user starts "Add".
+2. They enter a name.
+3. They select an icon.
+4. They save the type.
 
-**Prüfung:** Ein leerer Name kann nicht gespeichert werden.
+**Validation:** A blank name cannot be saved.
 
-### UC-072: Eigenen Servicetyp bearbeiten oder löschen
+### UC-072: Edit or delete a custom service type
 
-- Beim Bearbeiten können Name und Symbol geändert werden.
-- Vor dem Löschen wird eine Bestätigung verlangt.
-- Nicht löschbare Systemtypen werden vor versehentlichen Änderungen geschützt.
-- Ein eigener Servicetyp, der noch von Serviceeinträgen verwendet wird, kann nicht gelöscht werden.
-- Schlägt Speichern oder Löschen fehl, bleibt der vorhandene Typ erhalten.
+- While editing the name and icon can be changed.
+- A confirmation is required before deletion.
+- Non-deletable system types are protected against accidental changes.
+- A custom service type used by existing service entries cannot be deleted.
+- If save or delete fails, the existing type remains unchanged.
 
-### UC-073: Zahlungstypen ansehen und verwalten
+### UC-073: View and manage payment types
 
-1. Die Person öffnet in den Einstellungen die Zahlungstypen.
-2. Vorgegebene und eigene Typen werden angezeigt.
-3. Eigene Typen können mit Name und Symbol ergänzt werden.
-4. Eigene Typen können bearbeitet oder nach Bestätigung gelöscht werden.
-5. Der Typ steht anschliessend in Zahlungen, Intervallen, Filtern und Auswertungen zur Verfügung.
+1. The user opens payment types in Settings.
+2. Built-in and custom types are displayed.
+3. Custom types can be added with a name and icon.
+4. Custom types can be edited or deleted after confirmation.
+5. The type is then available in payments, intervals, filters and analytics.
 
-**Variante:** Ein Zahlungstyp, der noch von Zahlungen oder Intervallen verwendet wird, kann nicht gelöscht werden.
+**Variant:** A payment type still used by payments or intervals cannot be deleted.
 
-## 10. Erinnerungen
+## 10. Reminders
 
-### UC-080: Zahlungserinnerungen konfigurieren
+### UC-080: Configure payment reminders
 
-1. Die Person öffnet die Benachrichtigungseinstellungen.
-2. Sie aktiviert Zahlungserinnerungen.
-3. Sie legt fest, wie viele Tage vor der Fälligkeit erinnert wird.
-4. Sie wählt die Wiederholung täglich, alle drei Tage, wöchentlich oder in einem eigenen Tagesabstand.
-5. Sie speichert die Einstellungen.
+1. The user opens notification settings.
+2. They enable payment reminders.
+3. They set how many days before due date to remind.
+4. They choose repetition: daily, every three days, weekly or a custom day interval.
+5. They save the settings.
 
-### UC-081: Erinnerungen für bevorstehende Services konfigurieren
+### UC-081: Configure reminders for upcoming services
 
-1. Die Person aktiviert Erinnerungen für bevorstehende Services.
-2. Sie legt einen Vorlauf in Tagen fest.
-3. Sie legt einen Vorlauf in Kilometern fest.
-4. Sie bestimmt den Wiederholungsabstand.
-5. Sie speichert die Einstellungen.
+1. The user enables reminders for upcoming services.
+2. They set a lead time in days.
+3. They set a lead in kilometres.
+4. They determine the repetition interval.
+5. They save the settings.
 
-### UC-082: Erinnerungen für überfällige Services konfigurieren
+### UC-082: Configure reminders for overdue services
 
-1. Die Person aktiviert Erinnerungen für überfällige Services.
-2. Sie legt fest, nach wie vielen Tagen oder Kilometern über Fälligkeit erinnert wird.
-3. Sie bestimmt den Wiederholungsabstand.
-4. Sie speichert die Einstellungen.
+1. The user enables reminders for overdue services.
+2. They set after how many days or kilometres past due they want to be reminded.
+3. They determine the repetition interval.
+4. They save the settings.
 
-### UC-083: Benachrichtigungsberechtigung erteilen oder verweigern
+### UC-083: Grant or deny notification permission
 
-- Sobald mindestens eine Erinnerungsart aktiv ist, kann das Betriebssystem nach der Benachrichtigungsberechtigung fragen.
-- Bei Erteilung werden passende lokale Erinnerungen geplant.
-- Bei Verweigerung bleiben die App-Daten und Einstellungen erhalten, es erscheinen aber keine Systembenachrichtigungen.
-- Die App bleibt auch bei einem Fehler der Benachrichtigungsplanung bedienbar.
+- Once at least one reminder type is active, the OS may request notification permission.
+- On grant, appropriate local reminders are scheduled.
+- On denial, app data and settings remain intact but no system notifications are shown.
+- The app remains usable even if scheduling fails.
 
-### UC-084: Erinnerungen in der gewählten Sprache erhalten
+### UC-084: Receive reminders in the chosen language
 
-1. Beim Planen setzt die App Titel, Fahrzeugname, Servicename und Nachricht in der aktuell gewählten Sprache zusammen.
-2. Wechselt die Person Deutsch oder Englisch, werden bestehende geplante Erinnerungen neu erstellt.
-3. Das Betriebssystem zeigt die bereits fertig übersetzten Texte an; es übersetzt sie nicht selbst.
+1. When scheduling, the app composes title, vehicle name, service name and message in the currently chosen language.
+2. If the user switches German or English, existing scheduled reminders are recreated.
+3. The OS shows the already translated texts; it does not translate them itself.
 
-## 11. PDF-Bericht
+## 11. PDF report
 
-### UC-090: Fahrzeugbericht zusammenstellen
+### UC-090: Assemble vehicle report
 
-1. Die Person öffnet „PDF exportieren“.
-2. Sie wählt das Fahrzeug für den Bericht.
-3. Sie entscheidet getrennt, ob Servicehistorie, Tankhistorie und Zahlungshistorie enthalten sein sollen.
-4. Sie kann Fotos ein- oder ausschliessen.
-5. Sie kann Kostenbeträge ein- oder ausschliessen.
-6. Sie kann Notizen ein- oder ausschliessen.
-7. Sie kann Dokumente ein- oder ausschliessen.
-8. Sie entscheidet separat, ob die Bildseiten der Dokumente eingebettet werden.
-9. Sie startet die Erstellung.
+1. The user opens "Export PDF".
+2. They select the vehicle for the report.
+3. They decide separately whether to include service history, fuel history and payment history.
+4. They may include or exclude photos.
+5. They may include or exclude cost amounts.
+6. They may include or exclude notes.
+7. They may include or exclude documents.
+8. They decide separately whether to embed document image pages.
+9. They start generation.
 
-**Prüfung:** Mindestens ein Inhaltsbereich muss ausgewählt sein.
+**Validation:** At least one content area must be selected.
 
-### UC-091: PDF erstellen und weitergeben
+### UC-091: Generate and share PDF
 
-1. Während der Erstellung zeigt die App einen Verarbeitungszustand.
-2. Nach erfolgreicher Erstellung öffnet sich die Teilen- oder Speichern-Auswahl des Geräts.
-3. Die Person kann den Bericht in einer verfügbaren Ziel-App speichern oder weitergeben.
-4. Bei einem Fehler erscheint eine verständliche Fehlermeldung.
+1. During generation the app shows a processing state.
+2. After successful generation the device's share or save picker opens.
+3. The user can save or share the report in an available target app.
+4. On error a clear error message is shown.
 
-## 12. Datensicherung und Wiederherstellung
+## 12. Backup and restore
 
-### UC-100: Verschlüsselte Datensicherung erstellen
+### UC-100: Create encrypted backup
 
-1. Die Person wählt „Daten exportieren“.
-2. Sie gibt ein selbst gewähltes Passwort ein.
-3. Ohne Passwort kann der Export nicht gestartet werden.
-4. Die App bereitet Fahrzeuge, Services, Tankvorgänge, Zahlungen, Intervalle, eigene Typen, Dokumente und Bildseiten als Sicherungsdatei vor.
-5. Nach Abschluss bestätigt die App, dass die Datei bereit ist.
-6. Die Person öffnet den Systemdialog zum Speichern oder Teilen der Datei.
+1. The user selects "Export data".
+2. They enter a user-chosen password.
+3. Export cannot start without a password.
+4. The app prepares vehicles, services, fuel entries, payments, intervals, custom types, documents and image pages as a backup file.
+5. After completion the app confirms the file is ready.
+6. The user opens the system dialog to save or share the file.
 
-**Wichtiger Nutzungshinweis:** Das Passwort wird zum späteren Import benötigt. Die App bietet keine Wiederherstellung eines vergessenen Exportpassworts.
+**Important note:** The password is required for later import. The app does not provide recovery for a forgotten export password.
 
-### UC-101: Datensicherung importieren
+### UC-101: Import backup
 
-1. Die Person wählt „Daten importieren“.
-2. Sie gibt das Passwort der Sicherung ein.
-3. Sie wählt eine Revloguum-Sicherungsdatei auf dem Gerät.
-4. Die App prüft Datei und Passwort.
-5. Gültige Inhalte werden übernommen.
-6. Datensätze mit derselben Kennung werden durch den Stand der Sicherung ersetzt; andere vorhandene Daten bleiben erhalten.
-7. Fahrzeuglisten und Ansichten werden nach erfolgreichem Import aktualisiert.
-8. Dokumentseiten werden beim Import erneut geschützt auf dem Gerät gespeichert.
+1. The user selects "Import data".
+2. They enter the backup password.
+3. They choose a Revloguum backup file on the device.
+4. The app validates file and password.
+5. Valid contents are imported.
+6. Records with the same identifier are replaced by the backup state; other existing data remains.
+7. Vehicle lists and views are updated after successful import.
+8. Document pages are re-protected on the device during import.
 
-**Fehlerfälle:**
+**Error cases:**
 
-- Kein Passwort: Import wird nicht gestartet.
-- Auswahl abgebrochen: Es werden keine Daten verändert.
-- Falsches Passwort oder beschädigte Datei: Es werden keine unbestätigten Inhalte angezeigt; die App meldet den Fehler.
-- Datei gehört nicht zum erwarteten Sicherungsformat: Import wird abgelehnt.
+- No password: Import will not start.
+- Selection cancelled: No data is changed.
+- Wrong password or corrupted file: No unconfirmed content is shown; the app reports the error.
+- File not in expected backup format: Import is rejected.
 
-## 13. Darstellung und Bedienung
+## 13. Presentation and interaction
 
-### UC-110: Sprache wechseln
+### UC-110: Change language
 
-1. Die Person öffnet die Spracheinstellung.
-2. Sie wählt Deutsch oder Englisch.
-3. Sichtbare Texte wechseln unmittelbar.
-4. Diagrammbeschriftungen und neu geplante Erinnerungen verwenden ebenfalls die neue Sprache.
+1. The user opens language settings.
+2. They choose German or English.
+3. Visible texts update immediately.
+4. Chart labels and newly scheduled reminders also use the new language.
 
-### UC-111: Clear-View-Modus verwenden
+### UC-111: Use Clear View mode
 
-1. Die Person aktiviert Clear View in den Einstellungen.
-2. Unterstützte Oberflächen verwenden eine besser lesbare Darstellung und angepasste Farben.
-3. Die Einstellung bleibt für spätere App-Starts erhalten.
-4. Durch erneutes Ausschalten kehrt die normale Darstellung zurück.
+1. The user enables Clear View in Settings.
+2. Supported surfaces use a more readable layout and adjusted colors.
+3. The setting persists across app restarts.
+4. Turning it off again returns to the normal presentation.
 
-### UC-112: Haptisches Feedback ein- oder ausschalten
+### UC-112: Toggle haptic feedback
 
-1. Die Person schaltet haptisches Feedback in den Einstellungen ein oder aus.
-2. Im eingeschalteten Zustand quittiert die App ausgewählte Eingaben, Erfolge und Fehler durch kurze Geräteimpulse.
-3. Im ausgeschalteten Zustand bleiben alle Aktionen ohne diese Impulse bedienbar.
+1. The user toggles haptic feedback in Settings.
+2. When enabled the app acknowledges selected inputs, successes and errors with short device vibrations.
+3. When disabled all actions remain usable without haptic cues.
 
-### UC-113: Datenschutzstatus ansehen
+### UC-113: View privacy status
 
-In den Einstellungen kann die Person sehen, dass lokale Daten und Bilder geschützt gespeichert werden, dass kein Netzwerkzugriff für die Kerndaten vorgesehen ist und dass keine Nutzungsanalyse für persönliche Fahrzeugdaten aktiv ist.
+In Settings the user can see that local data and images are stored protected, that no network access is intended for core data and that no usage analytics for personal vehicle data is active.
 
-### UC-114: App-Informationen ansehen
+### UC-114: View app information
 
-1. Die Person öffnet „Über Revloguum“.
-2. Ein Dialog zeigt Informationen zur App und ihrer Version.
-3. Der Dialog kann ohne Änderung von Daten geschlossen werden.
+1. The user opens "About Revloguum".
+2. A dialog shows app information and version.
+3. The dialog can be closed without changing data.
 
-## 14. Alle Daten löschen
+## 14. Delete all data
 
-### UC-120: Vollständige lokale Datenlöschung vorbereiten
+### UC-120: Prepare full local data deletion
 
-1. Die Person wählt „Alle Daten löschen“.
-2. Die App zeigt einen zufällig erzeugten Bestätigungscode.
-3. Die Person muss den Code exakt in das Eingabefeld übertragen.
-4. Solange der Code nicht stimmt, bleibt die endgültige Löschaktion deaktiviert.
+1. The user selects "Delete all data".
+2. The app shows a randomly generated confirmation code.
+3. The user must enter the code exactly into the input field.
+4. Until the code matches the final delete action remains disabled.
 
-### UC-121: Alle lokalen Daten endgültig löschen
+### UC-121: Permanently delete all local data
 
-1. Die Person gibt den richtigen Bestätigungscode ein.
-2. Sie bestätigt die Löschung.
-3. Fahrzeuge, Historien, eigene Typen, Intervalle, Dokumente und zugehörige Bilddateien werden entfernt.
-4. Die Fahrzeugauswahl wird geleert.
-5. Die App zeigt danach den Zustand ohne Fahrzeuge.
+1. The user enters the correct confirmation code.
+2. They confirm deletion.
+3. Vehicles, histories, custom types, intervals, documents and associated image files are removed.
+4. The vehicle selection is cleared.
+5. The app then shows the empty state without vehicles.
 
-**Abbruch:** Wird der Dialog geschlossen oder stimmt der Code nicht, bleiben alle Daten unverändert.
+**Abort:** Closing the dialog or entering an incorrect code leaves all data unchanged.
 
-## 15. Gemeinsame Verhaltensregeln
+## 15. Common behaviour rules
 
-### UC-130: Einheitlich neue Historieneinträge anlegen
+### UC-130: Consistent creation of new history entries
 
-- Servicehistorie, Tankhistorie und Zahlungshistorie verwenden jeweils einen schwebenden Plus-Button unten rechts.
-- Der Button bezieht sich immer auf das Fahrzeug der geöffneten Historie.
-- Nach erfolgreichem Speichern kehrt die Person in den fachlich passenden Kontext zurück.
+- Service, fuel and payment histories each use a floating plus button at bottom right.
+- The button always applies to the vehicle of the open history.
+- After successful save the user returns to the appropriate context.
 
-### UC-131: Listen ohne Daten verstehen
+### UC-131: Understand lists without data
 
-- Leere Fahrzeug-, Service-, Tank- und Zahlungslisten zeigen einen eigenen Hinweis statt einer leeren Fläche.
-- Ein leerer gefilterter Zustand bedeutet nicht automatisch, dass überhaupt keine Daten existieren.
-- Durch Zurücksetzen der Filter kann die vollständige Liste wiederhergestellt werden.
+- Empty vehicle, service, fuel and payment lists show a dedicated hint instead of a blank area.
+- An empty filtered state does not mean there is no data at all.
+- Resetting filters restores the full list.
 
-### UC-132: Endgültige Aktionen absichern
+### UC-132: Safeguard final actions
 
-- Das Löschen einzelner Einträge verlangt eine Bestätigung.
-- Das Löschen eines Fahrzeugs verlangt eine Bestätigung.
-- Das Löschen aller App-Daten verlangt zusätzlich einen exakten Bestätigungscode.
-- Abbrechen schliesst den Dialog ohne Datenänderung.
+- Deleting individual entries requires confirmation.
+- Deleting a vehicle requires confirmation.
+- Deleting all app data additionally requires entering an exact confirmation code.
+- Cancel closes the dialog without changing data.
 
-### UC-133: Längere Vorgänge erkennen
+### UC-133: Recognise longer operations
 
-- Beim Laden grosser Historien können weitere Einträge nachgeladen werden.
-- Während Speichern, Import, Export und PDF-Erstellung zeigt die App einen Warte- oder Verarbeitungszustand.
-- Fehler werden so angezeigt, dass die Person in der App weiterarbeiten oder die Aktion erneut versuchen kann.
+- When loading large histories additional entries may be loaded incrementally.
+- During saving, import, export and PDF generation the app shows a busy or processing state.
+- Errors are displayed in a way that allows the user to continue working or retry the action.
 
-## 16. Fahrzeug- und Eintragsdokumente
+## 16. Vehicle and entry documents
 
-### UC-140: Fahrzeugdokument hinzufügen
+### UC-140: Add a vehicle document
 
-1. Die Person öffnet die Fahrzeugverwaltung über die freie Fläche der Fahrzeugkarte.
-2. Sie wählt „Fahrzeugdokumente“ und öffnet die eigene Unterseite.
-3. Sie gibt einen Dokumenttitel ein.
-4. Sie kann Kategorie, Datum und Notiz ergänzen.
-5. Sie wählt eine oder mehrere Seiten aus der Galerie oder fotografiert Seiten direkt.
-6. Sie kann Seiten entfernen und ihre Reihenfolge ändern.
-7. Sie speichert das Dokument.
+1. The user opens vehicle management from the free area of the vehicle card.
+2. They choose "Vehicle documents" and open the dedicated subpage.
+3. They enter a document title.
+4. They may add category, date and a note.
+5. They select one or more pages from the gallery or photograph pages directly.
+6. They can remove pages and change the order.
+7. They save the document.
 
-**Beispiele:** Versicherungspolice, Fahrzeugausweis, Drehmomenttabelle, Bedienhinweise oder Garantiedokument.
+**Examples:** Insurance policy, vehicle registration, torque table, owner manual or warranty document.
 
-### UC-141: Dokument an einen Service anhängen
+### UC-141: Attach a document to a service
 
-1. Die Person öffnet die Details eines bestehenden Services oder Werkstattbesuchs.
-2. Sie fügt im Bereich „Servicedokumente“ ein Dokument hinzu.
-3. Sie erfasst einen Titel und mindestens eine Bildseite.
-4. Optional ergänzt sie Kategorie, Datum und Notiz.
-5. Das Dokument bleibt dem Service auch nach einer Bearbeitung des Eintrags zugeordnet.
+1. The user opens details of an existing service or workshop visit.
+2. They add a document in the "Service documents" area.
+3. They enter a title and at least one image page.
+4. Optionally they add category, date and a note.
+5. The document remains attached to the service even after editing the entry.
 
-### UC-142: Beleg oder Dokument an eine Zahlung anhängen
+### UC-142: Attach a receipt or document to a payment
 
-1. Die Person öffnet die Zahlungshistorie.
-2. Sie wählt beim betreffenden Eintrag das Dokument-Symbol.
-3. Sie fügt Rechnung, Quittung, Police oder einen anderen Beleg mit einer oder mehreren Seiten hinzu.
-4. Das Dokument wird ausschliesslich diesem Zahlungseintrag zugeordnet.
+1. The user opens payment history.
+2. They choose the document icon on the relevant entry.
+3. They add an invoice, receipt, policy or other proof with one or more pages.
+4. The document is exclusively associated with that payment entry.
 
-### UC-143: Dokument ansehen und bearbeiten
+### UC-143: View and edit a document
 
-- Durch Antippen wird das Dokument seitenweise im Vollbild geöffnet.
-- Bei mehreren Seiten kann zwischen den Seiten gewechselt und eine Seite vergrössert werden.
-- Titel, Kategorie, Datum und Notiz können geändert werden.
-- Seiten können ergänzt, entfernt und neu geordnet werden.
-- Dokumentseiten werden ebenso geschützt gespeichert wie andere Bilder der App.
+- Tapping opens the document page-by-page in fullscreen.
+- With multiple pages the user can switch between pages and enlarge a page.
+- Title, category, date and note can be edited.
+- Pages can be added, removed and reordered.
+- Document pages are stored protected like other app images.
 
-### UC-144: Dokument löschen
+### UC-144: Delete a document
 
-1. Die Person startet die Löschaktion am Dokument.
-2. Die App verlangt eine Bestätigung.
-3. Nach der Bestätigung werden Dokument und Bildseiten entfernt.
-4. Wird stattdessen der zugehörige Service, die Zahlung oder das Fahrzeug gelöscht, werden die zugehörigen Dokumente ebenfalls entfernt.
+1. The user initiates the delete action on the document.
+2. The app requests confirmation.
+3. After confirmation the document and image pages are removed.
+4. If the related service, payment or vehicle is deleted instead, related documents are also removed.
 
-### UC-145: Dokumente sichern und in Berichte aufnehmen
+### UC-145: Backup and include documents in reports
 
-- Die verschlüsselte Datensicherung enthält Dokumentmetadaten und sämtliche Seiten.
-- Beim Import werden die Seiten für das Zielgerät erneut geschützt gespeichert.
-- Im PDF-Export können Dokumentmetadaten unabhängig von den eigentlichen Bildseiten gewählt werden.
-- Fahrzeug-, Service- und Zahlungsdokumente werden im Bericht mit ihrer Zuordnung gekennzeichnet.
+- The encrypted backup contains document metadata and all pages.
+- On import the pages are re-protected for the target device.
+- In the PDF export document metadata can be chosen independently of the image pages.
+- Vehicle, service and payment documents are labeled with their association in the report.

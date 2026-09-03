@@ -20,10 +20,10 @@ npm ci
 Run an Android development build:
 
 ```bash
-npm run android
+npx expo run:android
 ```
 
-On macOS, use `npm run ios` for iOS. The complete app depends on native modules such as SQLCipher and platform key storage, so Expo Go is not a supported runtime.
+On macOS, use `npx expo run:ios` for iOS. The complete app depends on native modules such as SQLCipher and platform key storage, so Expo Go is not a supported runtime.
 
 Forks intended for distribution must replace the owner, EAS project ID, Android package, and iOS bundle identifier in [app.json](app.json).
 
@@ -48,7 +48,7 @@ Zustand owns shared application state. React Navigation owns navigation. Persist
 - Do not log personal vehicle data, document contents, passwords, keys, or decrypted paths.
 - Do not include generated native folders, build output, local databases, encryption fixtures, or editor state.
 
-Project coding-agent rules are in [.github/copilot-instructions.md](.github/copilot-instructions.md). Additional implementation checklists are in [docs/skills](docs/skills).
+Project coding-agent rules are in [.github/copilot-instructions.md](.github/copilot-instructions.md).
 
 ## Persistent Data and Migrations
 
@@ -68,7 +68,7 @@ Project coding-agent rules are in [.github/copilot-instructions.md](.github/copi
 ## Documentation and Localization
 
 - Update [USECASES.md](USECASES.md) when functional behavior or limitations change.
-- Update [README.md](README.md), [PRIVACY.md](PRIVACY.md), and [SECURITY.md](SECURITY.md) when public behavior, data flow, permissions, or guarantees change.
+- Update [README.md](README.md) and [SECURITY.md](SECURITY.md) when public behavior, data flow, permissions, or security claims change.
 - Keep English and German locale files synchronized.
 - Verify every relative documentation link points to a tracked file.
 

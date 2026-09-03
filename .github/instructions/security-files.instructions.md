@@ -1,7 +1,7 @@
 ---
 name: "Security and encrypted files"
 description: "Use when changing encryption, key management, images, document pages, backup import/export, PDF generation, file sharing, permissions, or secure deletion in Revloguum."
-applyTo: "src/security/**/*.ts,src/hooks/useExport.ts,src/hooks/usePdfExport.ts,src/data/repositories/SQLiteDocumentRepo.ts,src/screens/Documents/**/*.tsx,src/screens/components/documents/**/*.tsx,SECURITY.md,PRIVACY.md"
+applyTo: "src/security/**/*.ts,src/hooks/useExport.ts,src/hooks/usePdfExport.ts,src/data/repositories/SQLiteDocumentRepo.ts,src/screens/Documents/**/*.tsx,src/screens/components/documents/**/*.tsx,SECURITY.md"
 ---
 # Security and encrypted files
 
@@ -14,4 +14,4 @@ applyTo: "src/security/**/*.ts,src/hooks/useExport.ts,src/hooks/usePdfExport.ts,
 - Imported images and document pages must be encrypted again with the destination device key before being persisted.
 - PDF options must distinguish metadata inclusion from embedding potentially large image pages when the UI offers that distinction.
 - Deleting or replacing owners, documents, or images must clean up encrypted files without deleting files still referenced by a replacement record.
-- Update `SECURITY.md`, `PRIVACY.md`, and manual verification guidance whenever storage, permissions, cryptography, sharing, or data flow changes.
+- Update `SECURITY.md` and manual verification guidance whenever storage, permissions, cryptography, sharing, or data flow changes.

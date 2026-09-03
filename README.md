@@ -63,13 +63,13 @@ The complete functional behavior and known calculation limits are documented in 
 
 Core vehicle data is stored on the device. Revloguum has no account system and the application code does not send personal vehicle data to a Revloguum backend or analytics service.
 
-- The SQLite database is configured to use SQLCipher.
-- Persistent vehicle photos, service photos, and document pages are individually encrypted.
-- Backups use password-based authenticated encryption.
+- The project configures SQLite to use SQLCipher.
+- The source code attempts to encrypt managed persistent photos and document pages.
+- The backup implementation is designed to use password-based authenticated encryption.
 - PDF reports are not encrypted and may contain sensitive information.
 - Sharing a PDF or backup sends it to a destination chosen through the operating system.
 
-See [PRIVACY.md](PRIVACY.md) for data handling and permissions. See [SECURITY.md](SECURITY.md) for the threat model, cryptographic controls, limitations, and vulnerability reporting.
+See [SECURITY.md](SECURITY.md) for data handling, permissions, the threat model, implementation details, limitations, and vulnerability reporting. These mechanisms have not been independently audited and are not security guarantees.
 
 ## Technology
 
@@ -102,10 +102,10 @@ Revloguum uses native modules including SQLCipher and platform key storage. Use 
 
 ```bash
 npm ci
-npm run android
+npx expo run:android
 ```
 
-On macOS, `npm run ios` starts the currently unverified iOS development build. `npm start` starts the Expo development server for an already installed compatible development build.
+On macOS, `npx expo run:ios` starts the currently unverified iOS development build. `npm start` starts the Expo development server for an already installed compatible development build.
 
 Fork maintainers should replace the Expo owner/project ID, Android package name, and iOS bundle identifier in [app.json](app.json) before publishing builds under their own identity. Build profiles are defined in [eas.json](eas.json).
 
@@ -121,15 +121,17 @@ There is currently no automated test suite. Security-sensitive and user-facing c
 ## Documentation
 
 - [USECASES.md](USECASES.md): detailed functional use cases and limitations
-- [SECURITY.md](SECURITY.md): security model and reporting process
-- [PRIVACY.md](PRIVACY.md): local data handling, permissions, exports, and retention
+- [SECURITY.md](SECURITY.md): privacy, data handling, security model, limitations, and reporting process
 - [CONTRIBUTING.md](CONTRIBUTING.md): setup, architecture, coding rules, and validation
-- [docs/skills](docs/skills): focused implementation and review playbooks
 - [.github/copilot-instructions.md](.github/copilot-instructions.md): project-wide coding-agent guidance
 
 ## Contributing
 
 Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before making changes. Report security vulnerabilities privately according to [SECURITY.md](SECURITY.md), not in a public issue.
+
+## Acknowledgements
+
+Development was assisted by AI tools, including GitHub Copilot, ChatGPT, and Claude. Their output was reviewed and adapted as part of the normal development process; responsibility for the resulting code and documentation remains with the project maintainers.
 
 ## Disclaimer
 
