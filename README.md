@@ -36,7 +36,7 @@ Revloguum is a local-first vehicle journal for tracking maintenance, fuel, recur
 		<td align="center" width="33%">
 			<img src="assets/screenshots/settings.jpg" width="240" alt="Settings with exports, type management, and preferences"><br>
 			<strong>Settings</strong><br>
-			<sub>Manage types, encrypted backups, PDF reports, reminders, and accessibility.</sub>
+			<sub>Manage types, protected backups, PDF reports, reminders, and accessibility.</sub>
 		</td>
 	</tr>
 </table>
@@ -53,7 +53,7 @@ Screenshots show the English interface. Revloguum also includes a complete Germa
 - Store multi-page vehicle, service, and payment documents from camera or gallery
 - Review cost, fuel, mileage, service, and tyre statistics
 - Generate configurable vehicle reports as PDF
-- Export and restore password-encrypted backups
+- Export and restore password-protected backups
 - Switch between English and German
 - Use the optional Clear View readability mode
 
@@ -131,7 +131,7 @@ Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) be
 
 ## Acknowledgements
 
-Development was assisted by AI tools, including GitHub Copilot, ChatGPT, and Claude. Their output was reviewed and adapted as part of the normal development process; responsibility for the resulting code and documentation remains with the project maintainers.
+Development was assisted by AI tools including GitHub Copilot, ChatGPT, and Claude.
 
 ## Disclaimer
 
