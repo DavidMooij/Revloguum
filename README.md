@@ -2,6 +2,12 @@
 
 Revloguum is a local-first vehicle journal for tracking maintenance, fuel, recurring payments, documents, and ownership costs without requiring an account or application backend.
 
+## Download
+
+The latest stable Android release is [Revloguum v1.0.0](https://github.com/DavidMooij/RevLog/releases/tag/v1.0.0). Download [Revloguum-v1.0.0.apk](https://github.com/DavidMooij/RevLog/releases/download/v1.0.0/Revloguum-v1.0.0.apk) from GitHub Releases. Android 7.0 or later is required.
+
+The APK is distributed directly through GitHub and is not available from Google Play. Android may ask for permission to install apps from the download source.
+
 ## Screenshots
 
 <table>
