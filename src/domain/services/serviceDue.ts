@@ -72,28 +72,12 @@ export function computeServiceDueStatus(input: {
   };
 }
 
-export function isUpcomingByDays(
-  status: ServiceDueStatus,
-  offsetDays: number,
-): boolean {
-  if (status.nextDays == null) return false;
-  return !isServiceOverdue(status) && status.nextDays > 0 && status.nextDays <= offsetDays;
-}
-
 export function isUpcomingByKm(
   status: ServiceDueStatus,
   offsetKm: number,
 ): boolean {
   if (status.nextKm == null) return false;
   return !isServiceOverdue(status) && status.nextKm > 0 && status.nextKm <= offsetKm;
-}
-
-export function isOverdueByDays(
-  status: ServiceDueStatus,
-  offsetDays: number,
-): boolean {
-  if (status.daysOverdue == null) return false;
-  return status.daysOverdue >= offsetDays;
 }
 
 export function isOverdueByKm(

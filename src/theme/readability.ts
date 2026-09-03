@@ -1,6 +1,6 @@
 import { colors } from "./colors";
 
-export const readabilityColors = {
+const readabilityColors = {
   text0: "#FFFFFF",
   text1: "#E3E3EC",
   text2: "#C3C3D2",

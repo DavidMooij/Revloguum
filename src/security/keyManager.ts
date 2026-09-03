@@ -24,9 +24,3 @@ export async function getDatabaseKey(): Promise<string> {
 
   return key;
 }
-
-export async function deleteDatabaseKey(): Promise<void> {
-  await Keychain.resetGenericPassword({
-    service: SERVICE_KEY,
-  });
-}

@@ -20,7 +20,7 @@ export interface ToastItem extends Required<Pick<ToastOptions, "variant" | "dura
   icon: string;
 }
 
-export type CelebrationVariant = "milestone" | "streak" | "success";
+type CelebrationVariant = "milestone" | "streak" | "success";
 
 export interface CelebrationOptions {
   titleKey?: string;

@@ -45,5 +45,3 @@ export const colors = {
   cardGlow: "rgba(139, 92, 246, 0.25)",
   cardGlowStrong: "rgba(139, 92, 246, 0.45)",
 } as const;
-
-export type Colors = typeof colors;

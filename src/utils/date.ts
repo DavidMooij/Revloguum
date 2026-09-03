@@ -1,31 +1,11 @@
-import { format, formatDistanceToNow, startOfDay, endOfDay, subDays, subMonths, subYears } from 'date-fns';
-
-export function tsToDate(ts: number): Date {
-  return new Date(ts);
-}
-
-export function dateToTs(date: Date): number {
-  return date.getTime();
-}
+import { format, formatDistanceToNow, subDays, subYears } from 'date-fns';
 
 export function todayTs(): number {
   return Date.now();
 }
 
-export function startOfDayTs(ts: number): number {
-  return startOfDay(new Date(ts)).getTime();
-}
-
-export function endOfDayTs(ts: number): number {
-  return endOfDay(new Date(ts)).getTime();
-}
-
 export function formatDate(ts: number): string {
   return format(new Date(ts), 'dd MMM yyyy');
-}
-
-export function formatDateShort(ts: number): string {
-  return format(new Date(ts), 'dd MMM');
 }
 
 export function formatDateRelative(ts: number): string {

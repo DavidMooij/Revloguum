@@ -32,11 +32,3 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
 
   return _initPromise;
 }
-
-export async function closeDatabase(): Promise<void> {
-  if (_db) {
-    await _db.closeAsync();
-    _db = null;
-    _initPromise = null;
-  }
-}

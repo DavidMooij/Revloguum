@@ -4,20 +4,6 @@ export type CostKind = "history" | "interval";
 
 export type IntervalType = "monthly" | "yearly" | "custom" | null;
 
-export const COST_CATEGORIES: {
-  key: CostCategory;
-  icon: string;
-}[] = [
-  { key: "purchase", icon: "tag" },
-  { key: "insurance", icon: "shield-alt" },
-  { key: "tax", icon: "file-invoice" },
-  { key: "parking", icon: "parking" },
-  { key: "accessory", icon: "tools" },
-  { key: "gear", icon: "hard-hat" },
-  { key: "maintenance", icon: "wrench" },
-  { key: "other", icon: "ellipsis-h" },
-];
-
 export interface VehicleCost {
   id: string;
   vehicleId: string;

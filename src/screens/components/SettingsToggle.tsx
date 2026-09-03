@@ -6,7 +6,7 @@ import { spacing, radius } from "../../theme/spacing";
 import { typeScale } from "../../theme/typography";
 import { useAppStore } from "../../store/appStore";
 
-export interface ToggleOption<T extends string> {
+interface ToggleOption<T extends string> {
   label: string;
   value: T;
 }

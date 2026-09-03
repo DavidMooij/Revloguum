@@ -319,7 +319,7 @@ async function ensurePermissionIfNeeded(): Promise<boolean> {
   return requested.granted;
 }
 
-export async function initLocalNotifications(): Promise<void> {
+async function initLocalNotifications(): Promise<void> {
   if (initialized) return;
 
   Notifications.setNotificationHandler({

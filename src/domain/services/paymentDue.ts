@@ -26,11 +26,11 @@ export interface PaymentDueOccurrences {
   upcoming: PaymentDueOccurrence[];
 }
 
-export function isPaymentInterval(entry: VehicleCost): boolean {
+function isPaymentInterval(entry: VehicleCost): boolean {
   return entry.kind === "interval" && entry.intervalType !== null;
 }
 
-export function paymentIntervalDays(
+function paymentIntervalDays(
   interval: Pick<VehicleCost, "intervalType" | "intervalDays">,
 ): number | null {
   if (interval.intervalType === "monthly") return 30;
@@ -42,11 +42,11 @@ export function paymentIntervalDays(
   return null;
 }
 
-export function buildPaymentDueKey(intervalId: string, dueTs: number): string {
+function buildPaymentDueKey(intervalId: string, dueTs: number): string {
   return `${intervalId}:${dueTs}`;
 }
 
-export function buildPaidDueKeySet(historyEntries: VehicleCost[]): Set<string> {
+function buildPaidDueKeySet(historyEntries: VehicleCost[]): Set<string> {
   const set = new Set<string>();
   for (const entry of historyEntries) {
     if (!entry.paymentIntervalId || entry.intervalDueTs == null) continue;
