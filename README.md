@@ -65,6 +65,24 @@ Screenshots show the English interface. Revloguum also includes a complete Germa
 
 The complete functional behavior and known calculation limits are documented in [USECASES.md](USECASES.md).
 
+## Roadmap
+
+The roadmap reflects current priorities and may change as implementation and testing progress.
+
+### v2.0 priorities
+
+- **Faster image loading:** Investigate optional image encryption because encrypted images currently cause the largest performance impact. Any change must make the privacy trade-off explicit and keep encryption enabled by default.
+- **Better document navigation:** Support horizontal swiping between document pages and improve the multi-page viewing experience.
+- **Documents during service entry:** Allow documents to be attached while adding a service instead of requiring users to save first and add them from the detail screen. Explore whether this should extend the existing photo gallery or use a dedicated document section.
+- **Faster opening:** Diagnose and reduce occasional delays when opening the app and individual records.
+- **Simpler cost attachments:** Allow documents to be attached directly while creating a cost, reuse the cost metadata instead of asking for title and details again, and support adding multiple documents without creating each one separately.
+- **Document workflow overhaul:** Streamline document creation, editing, attachment, and navigation as one coherent workflow.
+
+### v3.0 exploration
+
+- **Cloud sync between devices:** Research whether Revloguum should expand beyond its local-only model to support optional cross-device sync, and evaluate whether a useful approach can meet appropriate privacy and security standards.
+- **Connected vehicles:** Explore how Revloguum could connect to vehicles through CAN bus, OBD-II, manufacturer interfaces, or other suitable protocols, and discover which useful integrations are technically feasible, safe, and legally viable.
+
 ## Privacy and Security
 
 Core vehicle data is stored on the device. Revloguum has no account system and the application code does not send personal vehicle data to a Revloguum backend or analytics service.
