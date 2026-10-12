@@ -1,10 +1,10 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { colors } from "../../theme/colors";
-import { readableColor, readableSize } from "../../theme/readability";
-import { spacing, radius } from "../../theme/spacing";
-import { typeScale } from "../../theme/typography";
-import { useAppStore } from "../../store/appStore";
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { colors } from '../../theme/colors';
+import { readableColor, readableSize } from '../../theme/readability';
+import { spacing, radius } from '../../theme/spacing';
+import { typeScale } from '../../theme/typography';
+import { useAppStore } from '../../store/appStore';
 
 interface ToggleOption<T extends string> {
   label: string;
@@ -18,22 +18,11 @@ interface Props<T extends string> {
   fullWidth?: boolean;
 }
 
-export function SettingsToggle<T extends string>({
-  options,
-  value,
-  onChange,
-  fullWidth,
-}: Props<T>) {
+export function SettingsToggle<T extends string>({ options, value, onChange, fullWidth }: Props<T>) {
   const readabilityMode = useAppStore((s) => s.readabilityMode);
 
   return (
-    <View
-      style={[
-        styles.container,
-        fullWidth && styles.containerFullWidth,
-        { backgroundColor: readableColor("bg3", readabilityMode) },
-      ]}
-    >
+    <View style={[styles.container, fullWidth && styles.containerFullWidth, { backgroundColor: readableColor('bg3', readabilityMode) }]}>
       {options.map((opt) => {
         const active = opt.value === value;
         return (
@@ -43,7 +32,7 @@ export function SettingsToggle<T extends string>({
               styles.option,
               fullWidth && styles.optionFullWidth,
               readabilityMode && styles.optionReadable,
-              active && styles.optionActive,
+              active && styles.optionActive
             ]}
             onPress={() => onChange(opt.value)}
             activeOpacity={0.7}
@@ -52,10 +41,10 @@ export function SettingsToggle<T extends string>({
               style={[
                 styles.label,
                 {
-                  color: readableColor("text2", readabilityMode),
-                  fontSize: readableSize(typeScale.caption, readabilityMode, 1),
+                  color: readableColor('text2', readabilityMode),
+                  fontSize: readableSize(typeScale.caption, readabilityMode, 1)
                 },
-                active && styles.labelActive,
+                active && styles.labelActive
               ]}
             >
               {opt.label}
@@ -69,41 +58,41 @@ export function SettingsToggle<T extends string>({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
+    flexDirection: 'row',
     backgroundColor: colors.bg3,
     borderRadius: radius.sm,
     padding: 2,
-    gap: 2,
+    gap: 2
   },
   containerFullWidth: {
-    width: "100%",
+    width: '100%'
   },
   option: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: radius.sm - 2,
-    alignItems: "center",
-    justifyContent: "center",
-    minWidth: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 36
   },
   optionFullWidth: {
     flex: 1,
-    minWidth: 0,
+    minWidth: 0
   },
   optionReadable: {
     minWidth: 42,
     paddingHorizontal: spacing.md,
-    paddingVertical: 6,
+    paddingVertical: 6
   },
   optionActive: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.accent
   },
   label: {
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: 0.6,
-    textTransform: "uppercase",
+    textTransform: 'uppercase'
   },
   labelActive: {
-    color: colors.white,
-  },
+    color: colors.white
+  }
 });

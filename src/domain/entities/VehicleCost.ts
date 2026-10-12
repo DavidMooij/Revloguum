@@ -1,8 +1,8 @@
 export type CostCategory = string;
 
-export type CostKind = "history" | "interval";
+export type CostKind = 'history' | 'interval';
 
-export type IntervalType = "monthly" | "yearly" | "custom" | null;
+export type IntervalType = 'monthly' | 'yearly' | 'custom' | null;
 
 export interface VehicleCost {
   id: string;
@@ -21,11 +21,6 @@ export interface VehicleCost {
 
 export type CreateVehicleCostInput = Omit<
   VehicleCost,
-  "id" | "createdAt" | "kind" | "intervalDays" | "paymentIntervalId" | "intervalDueTs"
+  'id' | 'createdAt' | 'kind' | 'intervalDays' | 'paymentIntervalId' | 'intervalDueTs'
 > &
-  Partial<
-    Pick<
-      VehicleCost,
-      "kind" | "intervalDays" | "paymentIntervalId" | "intervalDueTs"
-    >
-  >;
+  Partial<Pick<VehicleCost, 'kind' | 'intervalDays' | 'paymentIntervalId' | 'intervalDueTs'>>;

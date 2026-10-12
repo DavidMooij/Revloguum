@@ -1,7 +1,4 @@
-import type {
-  PaymentType,
-  CreatePaymentTypeInput,
-} from "../entities/PaymentType";
+import type { PaymentType, CreatePaymentTypeInput } from '../entities/PaymentType';
 
 export interface IPaymentTypeRepo {
   getAll(): Promise<PaymentType[]>;

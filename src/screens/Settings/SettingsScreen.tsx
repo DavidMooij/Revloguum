@@ -1,39 +1,32 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Switch,
-  TextInput,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../../app/navigation/routes";
-import { colors } from "../../theme/colors";
-import { typography, typeScale } from "../../theme/typography";
-import { spacing, radius } from "../../theme/spacing";
-import { useExport } from "../../hooks/useExport";
-import Divider from "../components/Divider";
-import AlertModal from "../components/AlertModal";
-import LoadingOverlay from "../components/LoadingOverlay";
-import { SettingsToggle } from "../components/SettingsToggle";
-import SettingsRow from "../components/SettingsRow";
-import { useTranslation } from "react-i18next";
-import i18n from "../../i18n";
-import { useAppStore } from "../../store/appStore";
-import { getDatabase } from "../../data/db/database";
-import { SQLiteVehicleRepo } from "../../data/repositories/SQLiteVehicleRepo";
-import { haptic, setHapticsEnabled } from "@/utils/haptics";
-import { readableColor } from "../../theme/readability";
-import { syncNotifications } from "@/notifications/syncNotifications";
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Switch, TextInput } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../../app/navigation/routes';
+import { colors } from '../../theme/colors';
+import { typography, typeScale } from '../../theme/typography';
+import { spacing, radius } from '../../theme/spacing';
+import { useExport } from '../../hooks/useExport';
+import Divider from '../components/Divider';
+import AlertModal from '../components/AlertModal';
+import LoadingOverlay from '../components/LoadingOverlay';
+import { SettingsToggle } from '../components/SettingsToggle';
+import SettingsRow from '../components/SettingsRow';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
+import { useAppStore } from '../../store/appStore';
+import { getDatabase } from '../../data/db/database';
+import { SQLiteVehicleRepo } from '../../data/repositories/SQLiteVehicleRepo';
+import { haptic, setHapticsEnabled } from '@/utils/haptics';
+import { readableColor } from '../../theme/readability';
+import { syncNotifications } from '@/notifications/syncNotifications';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 function generateConfirmCode(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "";
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
   for (let i = 0; i < 16; i++) {
     code += chars[Math.floor(Math.random() * chars.length)];
   }
@@ -41,37 +34,34 @@ function generateConfirmCode(): string {
 }
 
 type ModalState =
-  | { type: "none" }
-  | { type: "exportPasswordEntry" }
-  | { type: "exportReady"; fileUri: string }
-  | { type: "importPasswordEntry" }
-  | { type: "deleteConfirm"; code: string }
-  | { type: "result"; success: boolean; message: string };
+  | { type: 'none' }
+  | { type: 'exportPasswordEntry' }
+  | { type: 'exportReady'; fileUri: string }
+  | { type: 'importPasswordEntry' }
+  | { type: 'deleteConfirm'; code: string }
+  | { type: 'result'; success: boolean; message: string };
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
-  const { exportDatabase, shareExportFile, importDatabase, clearAllData } =
-    useExport();
+  const { exportDatabase, shareExportFile, importDatabase, clearAllData } = useExport();
   const setVehicles = useAppStore((s) => s.setVehicles);
   const readabilityMode = useAppStore((s) => s.readabilityMode);
   const setReadabilityMode = useAppStore((s) => s.setReadabilityMode);
   const [aboutVisible, setAboutVisible] = useState(false);
   const [hapticsOn, setHapticsOn] = useState(true);
 
-  const [lang, setLang] = useState<"en" | "de">(
-    (i18n.language?.slice(0, 2) as "en" | "de") ?? "en",
-  );
-  const [modal, setModal] = useState<ModalState>({ type: "none" });
-  const [keyInput, setKeyInput] = useState("");
-  const [deleteInput, setDeleteInput] = useState("");
+  const [lang, setLang] = useState<'en' | 'de'>((i18n.language?.slice(0, 2) as 'en' | 'de') ?? 'en');
+  const [modal, setModal] = useState<ModalState>({ type: 'none' });
+  const [keyInput, setKeyInput] = useState('');
+  const [deleteInput, setDeleteInput] = useState('');
   const [loading, setLoading] = useState(false);
 
   const close = () => {
-    setModal({ type: "none" });
-    setKeyInput("");
-    setDeleteInput("");
+    setModal({ type: 'none' });
+    setKeyInput('');
+    setDeleteInput('');
   };
 
   const toggleHaptics = (value: boolean) => {
@@ -80,30 +70,30 @@ export default function SettingsScreen() {
     if (value) haptic.medium();
   };
 
-  const changeLanguage = async (value: "en" | "de") => {
+  const changeLanguage = async (value: 'en' | 'de') => {
     setLang(value);
     await i18n.changeLanguage(value);
     await syncNotifications();
     haptic?.light?.();
   };
 
-  const handleExport = () => setModal({ type: "exportPasswordEntry" });
+  const handleExport = () => setModal({ type: 'exportPasswordEntry' });
 
   const handleExportWithPassword = async () => {
     if (!keyInput.trim()) return;
-    setModal({ type: "none" });
-    setKeyInput("");
+    setModal({ type: 'none' });
+    setKeyInput('');
     setLoading(true);
     await new Promise((r) => setTimeout(r, 50));
     const result = await exportDatabase(keyInput.trim());
     setLoading(false);
     if (result.success) {
-      setModal({ type: "exportReady", fileUri: result.fileUri });
+      setModal({ type: 'exportReady', fileUri: result.fileUri });
     } else {
       setModal({
-        type: "result",
+        type: 'result',
         success: false,
-        message: result.error ?? t("settings.exportFailed"),
+        message: result.error ?? t('settings.exportFailed')
       });
     }
   };
@@ -113,17 +103,17 @@ export default function SettingsScreen() {
     close();
     if (!result.success) {
       setModal({
-        type: "result",
+        type: 'result',
         success: false,
-        message: result.error ?? t("settings.exportFailed"),
+        message: result.error ?? t('settings.exportFailed')
       });
     }
   };
 
   const handleImport = async () => {
     if (!keyInput.trim()) return;
-    setModal({ type: "none" });
-    setKeyInput("");
+    setModal({ type: 'none' });
+    setKeyInput('');
     setLoading(true);
     await new Promise((r) => setTimeout(r, 50));
     const result = await importDatabase(keyInput.trim());
@@ -135,15 +125,15 @@ export default function SettingsScreen() {
         setVehicles(all);
       } catch {}
       setModal({
-        type: "result",
+        type: 'result',
         success: true,
-        message: t("settings.dataRestored"),
+        message: t('settings.dataRestored')
       });
-    } else if (result.error !== "Cancelled") {
+    } else if (result.error !== 'Cancelled') {
       setModal({
-        type: "result",
+        type: 'result',
         success: false,
-        message: result.error ?? t("settings.importFailed"),
+        message: result.error ?? t('settings.importFailed')
       });
     } else {
       close();
@@ -151,7 +141,7 @@ export default function SettingsScreen() {
   };
 
   const handleDeleteAll = async () => {
-    if (modal.type !== "deleteConfirm") return;
+    if (modal.type !== 'deleteConfirm') return;
     if (deleteInput.trim() !== modal.code) return;
 
     setLoading(true);
@@ -161,89 +151,75 @@ export default function SettingsScreen() {
     if (result.success) {
       setVehicles([]);
       setModal({
-        type: "result",
+        type: 'result',
         success: true,
-        message: t("settings.deleteAllSuccess"),
+        message: t('settings.deleteAllSuccess')
       });
     } else {
       setModal({
-        type: "result",
+        type: 'result',
         success: false,
-        message: result.error ?? t("settings.deleteAllFailed"),
+        message: result.error ?? t('settings.deleteAllFailed')
       });
     }
   };
 
-  const deleteConfirmMatch =
-    modal.type === "deleteConfirm" && deleteInput.trim() === modal.code;
+  const deleteConfirmMatch = modal.type === 'deleteConfirm' && deleteInput.trim() === modal.code;
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <LoadingOverlay
-        visible={loading}
-        label={t("settings.processingExportImport")}
-      />
+      <LoadingOverlay visible={loading} label={t('settings.processingExportImport')} />
       <View style={styles.header}>
-        <Text style={typography.h2}>{t("settings.title")}</Text>
-        <Text style={typography.bodySmall}>{t("settings.subtitle")}</Text>
+        <Text style={typography.h2}>{t('settings.title')}</Text>
+        <Text style={typography.bodySmall}>{t('settings.subtitle')}</Text>
       </View>
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={styles.sectionLabel}>{t("settings.sectionData")}</Text>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <Text style={styles.sectionLabel}>{t('settings.sectionData')}</Text>
         <View style={styles.section}>
           <SettingsRow
             icon="list-ul"
-            label={t("settings.manageServiceTypes")}
-            sublabel={t("settings.manageServiceTypesHint")}
-            onPress={() => navigation.navigate("ManageServiceTypes")}
+            label={t('settings.manageServiceTypes')}
+            sublabel={t('settings.manageServiceTypesHint')}
+            onPress={() => navigation.navigate('ManageServiceTypes')}
           />
           <Divider />
           <SettingsRow
             icon="receipt"
-            label={t("settings.managePaymentTypes")}
-            sublabel={t("settings.managePaymentTypesHint")}
-            onPress={() => navigation.navigate("ManagePaymentTypes")}
+            label={t('settings.managePaymentTypes')}
+            sublabel={t('settings.managePaymentTypesHint')}
+            onPress={() => navigation.navigate('ManagePaymentTypes')}
           />
           <Divider />
           <SettingsRow
             icon="file-pdf"
-            label={t("settings.exportPdf")}
-            sublabel={t("settings.exportPdfHint")}
-            onPress={() => navigation.navigate("ExportPdf")}
+            label={t('settings.exportPdf')}
+            sublabel={t('settings.exportPdfHint')}
+            onPress={() => navigation.navigate('ExportPdf')}
           />
           <Divider />
-          <SettingsRow
-            icon="file-export"
-            label={t("settings.exportData")}
-            sublabel={t("settings.exportDataHint")}
-            onPress={handleExport}
-          />
+          <SettingsRow icon="file-export" label={t('settings.exportData')} sublabel={t('settings.exportDataHint')} onPress={handleExport} />
           <Divider />
           <SettingsRow
             icon="file-import"
-            label={t("settings.importData")}
-            sublabel={t("settings.importDataHint")}
-            onPress={() => setModal({ type: "importPasswordEntry" })}
+            label={t('settings.importData')}
+            sublabel={t('settings.importDataHint')}
+            onPress={() => setModal({ type: 'importPasswordEntry' })}
           />
         </View>
 
-        <Text style={styles.sectionLabel}>
-          {t("settings.sectionPreferences")}
-        </Text>
+        <Text style={styles.sectionLabel}>{t('settings.sectionPreferences')}</Text>
         <View style={styles.section}>
           <SettingsRow
             icon="eye"
-            label={t("settings.clearViewMode")}
-            sublabel={t("settings.clearViewModeHint")}
+            label={t('settings.clearViewMode')}
+            sublabel={t('settings.clearViewModeHint')}
             right={
               <Switch
                 value={readabilityMode}
                 onValueChange={setReadabilityMode}
                 trackColor={{
-                  false: readableColor("bg4", readabilityMode),
-                  true: readableColor("accent", readabilityMode),
+                  false: readableColor('bg4', readabilityMode),
+                  true: readableColor('accent', readabilityMode)
                 }}
                 thumbColor={colors.white}
               />
@@ -252,14 +228,14 @@ export default function SettingsScreen() {
           <Divider />
           <SettingsRow
             icon="mobile-alt"
-            label={t("settings.hapticFeedback")}
+            label={t('settings.hapticFeedback')}
             right={
               <Switch
                 value={hapticsOn}
                 onValueChange={toggleHaptics}
                 trackColor={{
-                  false: readableColor("bg4", readabilityMode),
-                  true: readableColor("accent", readabilityMode),
+                  false: readableColor('bg4', readabilityMode),
+                  true: readableColor('accent', readabilityMode)
                 }}
                 thumbColor={colors.white}
               />
@@ -268,20 +244,20 @@ export default function SettingsScreen() {
           <Divider />
           <SettingsRow
             icon="bell"
-            label={t("settings.notifications")}
-            sublabel={t("settings.notificationsHint")}
-            onPress={() => navigation.navigate("NotificationSettings")}
+            label={t('settings.notifications')}
+            sublabel={t('settings.notificationsHint')}
+            onPress={() => navigation.navigate('NotificationSettings')}
           />
           <Divider />
           <SettingsRow
             icon="globe"
-            label={t("settings.language")}
-            sublabel={t("settings.languageHint")}
+            label={t('settings.language')}
+            sublabel={t('settings.languageHint')}
             right={
               <SettingsToggle
                 options={[
-                  { label: "EN", value: "en" },
-                  { label: "DE", value: "de" },
+                  { label: 'EN', value: 'en' },
+                  { label: 'DE', value: 'de' }
                 ]}
                 value={lang}
                 onChange={changeLanguage}
@@ -290,82 +266,70 @@ export default function SettingsScreen() {
           />
         </View>
 
-        <Text style={styles.sectionLabel}>{t("settings.sectionPrivacy")}</Text>
+        <Text style={styles.sectionLabel}>{t('settings.sectionPrivacy')}</Text>
         <View style={styles.section}>
           <SettingsRow
             icon="lock"
-            label={t("settings.dbEncryption")}
-            sublabel={t("settings.dbEncryptionHint")}
+            label={t('settings.dbEncryption')}
+            sublabel={t('settings.dbEncryptionHint')}
             right={
               <View style={[styles.pill, styles.pillGood]}>
-                <Text style={[styles.pillText, styles.pillTextGood]}>
-                  {t("settings.statusOn")}
-                </Text>
+                <Text style={[styles.pillText, styles.pillTextGood]}>{t('settings.statusOn')}</Text>
               </View>
             }
           />
           <SettingsRow
             icon="images"
-            label={t("settings.imageEncryption")}
-            sublabel={t("settings.imageEncryptionHint")}
+            label={t('settings.imageEncryption')}
+            sublabel={t('settings.imageEncryptionHint')}
             right={
               <View style={[styles.pill, styles.pillGood]}>
-                <Text style={[styles.pillText, styles.pillTextGood]}>
-                  {t("settings.statusOn")}
-                </Text>
+                <Text style={[styles.pillText, styles.pillTextGood]}>{t('settings.statusOn')}</Text>
               </View>
             }
           />
           <Divider />
           <SettingsRow
             icon="wifi"
-            label={t("settings.networkAccess")}
-            sublabel={t("settings.networkAccessHint")}
+            label={t('settings.networkAccess')}
+            sublabel={t('settings.networkAccessHint')}
             right={
               <View style={[styles.pill, styles.pillGood]}>
-                <Text style={[styles.pillText, styles.pillTextGood]}>
-                  {t("settings.statusNone")}
-                </Text>
+                <Text style={[styles.pillText, styles.pillTextGood]}>{t('settings.statusNone')}</Text>
               </View>
             }
           />
           <Divider />
           <SettingsRow
             icon="database"
-            label={t("settings.analytics")}
-            sublabel={t("settings.analyticsHint")}
+            label={t('settings.analytics')}
+            sublabel={t('settings.analyticsHint')}
             right={
               <View style={[styles.pill, styles.pillGood]}>
-                <Text style={[styles.pillText, styles.pillTextGood]}>
-                  {t("settings.statusOff")}
-                </Text>
+                <Text style={[styles.pillText, styles.pillTextGood]}>{t('settings.statusOff')}</Text>
               </View>
             }
           />
         </View>
 
-        <Text style={styles.sectionLabel}>{t("settings.sectionAbout")}</Text>
+        <Text style={styles.sectionLabel}>{t('settings.sectionAbout')}</Text>
         <View style={styles.section}>
           <SettingsRow
             icon="info-circle"
-            label={t("settings.about")}
-            sublabel={t("settings.aboutVersion")}
+            label={t('settings.about')}
+            sublabel={t('settings.aboutVersion')}
             onPress={() => setAboutVisible(true)}
           />
         </View>
 
-        <Text style={[styles.sectionLabel, styles.sectionLabelDanger]}>
-          {t("settings.dangerZone")}
-        </Text>
+        <Text style={[styles.sectionLabel, styles.sectionLabelDanger]}>{t('settings.dangerZone')}</Text>
         <View style={[styles.section, styles.sectionDanger]}>
           <SettingsRow
             icon="trash-alt"
-            label={t("settings.deleteAllData")}
-            sublabel={t("settings.deleteAllDataHint")}
+            label={t('settings.deleteAllData')}
+            sublabel={t('settings.deleteAllDataHint')}
             danger
-            onPress={() =>
-              setModal({ type: "deleteConfirm", code: generateConfirmCode() })
-            }
+            onPress={() => setModal({ type: 'deleteConfirm', code: generateConfirmCode() })}
           />
         </View>
 
@@ -376,41 +340,39 @@ export default function SettingsScreen() {
         onClose={() => setAboutVisible(false)}
         icon="shield-alt"
         iconColor={colors.accentText}
-        title={t("settings.exportImportTitle")}
-        message={t("settings.aboutMessage")}
-        actions={[
-          { label: t("common.ok"), variant: "primary", onPress: () => {} },
-        ]}
+        title={t('settings.exportImportTitle')}
+        message={t('settings.aboutMessage')}
+        actions={[{ label: t('common.ok'), variant: 'primary', onPress: () => {} }]}
       />
-      {modal.type === "exportPasswordEntry" && (
+      {modal.type === 'exportPasswordEntry' && (
         <AlertModal
           visible
           onClose={close}
           icon="lock"
           iconColor={colors.accentText}
-          title={t("settings.exportPasswordTitle")}
-          message={t("settings.exportPasswordMessage")}
+          title={t('settings.exportPasswordTitle')}
+          message={t('settings.exportPasswordMessage')}
           actions={[
             {
-              label: t("common.cancel"),
-              variant: "secondary",
+              label: t('common.cancel'),
+              variant: 'secondary',
               onPress: close,
-              disabled: loading,
+              disabled: loading
             },
             {
-              label: t("settings.exportEncryptBtn"),
-              variant: "primary",
+              label: t('settings.exportEncryptBtn'),
+              variant: 'primary',
               onPress: handleExportWithPassword,
-              disabled: loading,
-            },
+              disabled: loading
+            }
           ]}
         >
           <TextInput
             style={styles.keyInput}
             value={keyInput}
             onChangeText={setKeyInput}
-            placeholder={t("settings.passwordPlaceholder")}
-            placeholderTextColor={readableColor("text2", readabilityMode)}
+            placeholder={t('settings.passwordPlaceholder')}
+            placeholderTextColor={readableColor('text2', readabilityMode)}
             autoCapitalize="none"
             autoCorrect={false}
             secureTextEntry
@@ -418,53 +380,53 @@ export default function SettingsScreen() {
           />
         </AlertModal>
       )}
-      {modal.type === "exportReady" && (
+      {modal.type === 'exportReady' && (
         <AlertModal
           visible
-          title={t("settings.exportReadyTitle")}
+          title={t('settings.exportReadyTitle')}
           onClose={close}
           icon="check-circle"
           iconColor={colors.successText}
-          message={t("settings.exportReadyMessage")}
+          message={t('settings.exportReadyMessage')}
           actions={[
-            { label: t("common.cancel"), variant: "secondary", onPress: close },
+            { label: t('common.cancel'), variant: 'secondary', onPress: close },
             {
-              label: t("settings.exportSaveFile"),
-              variant: "primary",
-              onPress: () => handleShareExportFile(modal.fileUri),
-            },
+              label: t('settings.exportSaveFile'),
+              variant: 'primary',
+              onPress: () => handleShareExportFile(modal.fileUri)
+            }
           ]}
         />
       )}
-      {modal.type === "importPasswordEntry" && (
+      {modal.type === 'importPasswordEntry' && (
         <AlertModal
           visible
           onClose={close}
           icon="file-import"
           iconColor={colors.accentText}
-          title={t("settings.importPasswordTitle")}
-          message={t("settings.importPasswordMessage")}
+          title={t('settings.importPasswordTitle')}
+          message={t('settings.importPasswordMessage')}
           actions={[
             {
-              label: t("common.cancel"),
-              variant: "secondary",
+              label: t('common.cancel'),
+              variant: 'secondary',
               onPress: close,
-              disabled: loading,
+              disabled: loading
             },
             {
-              label: t("settings.importAction"),
-              variant: "primary",
+              label: t('settings.importAction'),
+              variant: 'primary',
               onPress: handleImport,
-              disabled: loading,
-            },
+              disabled: loading
+            }
           ]}
         >
           <TextInput
             style={styles.keyInput}
             value={keyInput}
             onChangeText={setKeyInput}
-            placeholder={t("settings.passwordPlaceholder")}
-            placeholderTextColor={readableColor("text2", readabilityMode)}
+            placeholder={t('settings.passwordPlaceholder')}
+            placeholderTextColor={readableColor('text2', readabilityMode)}
             autoCapitalize="none"
             autoCorrect={false}
             secureTextEntry
@@ -472,26 +434,26 @@ export default function SettingsScreen() {
           />
         </AlertModal>
       )}
-      {modal.type === "deleteConfirm" && (
+      {modal.type === 'deleteConfirm' && (
         <AlertModal
           visible
           onClose={close}
           icon="exclamation-triangle"
           iconColor={colors.dangerText}
-          title={t("settings.deleteAllDataTitle")}
-          message={t("settings.deleteAllDataMessage")}
+          title={t('settings.deleteAllDataTitle')}
+          message={t('settings.deleteAllDataMessage')}
           actions={[
             {
-              label: t("common.cancel"),
-              variant: "secondary",
-              onPress: close,
+              label: t('common.cancel'),
+              variant: 'secondary',
+              onPress: close
             },
             {
-              label: loading ? "..." : t("settings.deleteAllDataAction"),
-              variant: "danger",
+              label: loading ? '...' : t('settings.deleteAllDataAction'),
+              variant: 'danger',
               onPress: handleDeleteAll,
-              disabled: !deleteConfirmMatch,
-            },
+              disabled: !deleteConfirmMatch
+            }
           ]}
         >
           <View style={styles.deleteCodeBox}>
@@ -500,48 +462,29 @@ export default function SettingsScreen() {
             </Text>
           </View>
           <TextInput
-            style={[
-              styles.keyInput,
-              { marginTop: spacing.sm },
-              deleteConfirmMatch && styles.keyInputValid,
-            ]}
+            style={[styles.keyInput, { marginTop: spacing.sm }, deleteConfirmMatch && styles.keyInputValid]}
             value={deleteInput}
             onChangeText={setDeleteInput}
-            placeholder={t("settings.deleteAllDataConfirmPlaceholder")}
-            placeholderTextColor={readableColor("text2", readabilityMode)}
+            placeholder={t('settings.deleteAllDataConfirmPlaceholder')}
+            placeholderTextColor={readableColor('text2', readabilityMode)}
             autoCapitalize="characters"
             autoCorrect={false}
           />
         </AlertModal>
       )}
       <AlertModal
-        visible={modal.type === "result"}
+        visible={modal.type === 'result'}
         onClose={close}
-        icon={
-          modal.type === "result" && modal.success
-            ? "check-circle"
-            : "exclamation-triangle"
-        }
-        iconColor={
-          modal.type === "result" && modal.success
-            ? colors.successText
-            : colors.dangerText
-        }
-        title={
-          modal.type === "result" && modal.success
-            ? t("common.ok")
-            : t("common.error")
-        }
-        message={modal.type === "result" ? modal.message : ""}
+        icon={modal.type === 'result' && modal.success ? 'check-circle' : 'exclamation-triangle'}
+        iconColor={modal.type === 'result' && modal.success ? colors.successText : colors.dangerText}
+        title={modal.type === 'result' && modal.success ? t('common.ok') : t('common.error')}
+        message={modal.type === 'result' ? modal.message : ''}
         actions={[
           {
-            label: t("common.ok"),
-            variant:
-              modal.type === "result" && modal.success
-                ? "primary"
-                : "secondary",
-            onPress: close,
-          },
+            label: t('common.ok'),
+            variant: modal.type === 'result' && modal.success ? 'primary' : 'secondary',
+            onPress: close
+          }
         ]}
       />
     </View>
@@ -553,7 +496,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.sm
   },
   scroll: { padding: spacing.lg, paddingBottom: 60, gap: spacing.sm },
   sectionLabel: {
@@ -561,7 +504,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginTop: spacing.md,
     marginBottom: spacing.xs,
-    marginLeft: spacing.xs,
+    marginLeft: spacing.xs
   },
   sectionLabelDanger: { color: colors.dangerText },
   section: {
@@ -569,39 +512,39 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border1,
-    overflow: "hidden",
+    overflow: 'hidden'
   },
   sectionDanger: {
-    borderColor: colors.danger,
+    borderColor: colors.danger
   },
   pill: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
     borderRadius: radius.full,
-    backgroundColor: colors.bg3,
+    backgroundColor: colors.bg3
   },
   pillText: {
     ...typography.overline,
-    color: colors.text2,
+    color: colors.text2
   },
   pillGood: { backgroundColor: colors.successMuted },
   pillTextGood: { color: colors.successText },
   notice: {
-    flexDirection: "row",
-    alignItems: "flex-start",
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     gap: spacing.md,
     backgroundColor: colors.successMuted,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.success,
     padding: spacing.md,
-    marginTop: spacing.lg,
+    marginTop: spacing.lg
   },
   noticeText: {
     flex: 1,
     fontSize: typeScale.bodySmall,
     color: colors.successText,
-    lineHeight: 18,
+    lineHeight: 18
   },
   keyBox: {
     backgroundColor: colors.bg3,
@@ -610,29 +553,29 @@ const styles = StyleSheet.create({
     borderColor: colors.border1,
     padding: spacing.md,
     marginTop: spacing.sm,
-    gap: spacing.sm,
+    gap: spacing.sm
   },
   copyBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-end",
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-end',
     gap: 5,
     paddingVertical: 4,
     paddingHorizontal: spacing.sm,
     backgroundColor: colors.bg4,
-    borderRadius: radius.sm,
+    borderRadius: radius.sm
   },
   copyBtnText: {
     fontSize: typeScale.caption,
-    fontWeight: "600",
-    color: colors.accent,
+    fontWeight: '600',
+    color: colors.accent
   },
   keyText: {
     fontSize: typeScale.caption,
-    fontFamily: "monospace",
+    fontFamily: 'monospace',
     color: colors.accent,
     letterSpacing: 0.5,
-    lineHeight: 18,
+    lineHeight: 18
   },
   keyInput: {
     backgroundColor: colors.bg3,
@@ -642,13 +585,13 @@ const styles = StyleSheet.create({
     color: colors.text0,
     fontSize: typeScale.captionLarge,
     padding: spacing.md,
-    fontFamily: "monospace",
+    fontFamily: 'monospace',
     marginTop: spacing.sm,
     minHeight: 56,
-    width: "90%",
+    width: '90%'
   },
   keyInputValid: {
-    borderColor: colors.success,
+    borderColor: colors.success
   },
   deleteCodeBox: {
     backgroundColor: colors.dangerMuted,
@@ -657,14 +600,14 @@ const styles = StyleSheet.create({
     borderColor: colors.danger,
     padding: spacing.md,
     marginTop: spacing.sm,
-    alignItems: "center",
-    width: "90%",
+    alignItems: 'center',
+    width: '90%'
   },
   deleteCode: {
     fontSize: typeScale.titleMedium,
-    fontFamily: "monospace",
+    fontFamily: 'monospace',
     color: colors.dangerText,
-    fontWeight: "700",
-    letterSpacing: 3,
-  },
+    fontWeight: '700',
+    letterSpacing: 3
+  }
 });

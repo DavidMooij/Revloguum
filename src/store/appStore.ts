@@ -30,14 +30,10 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   setVehicles: (vehicles) => {
     const current = get().activeVehicleId;
-    const stillExists = vehicles.some(b => b.id === current);
+    const stillExists = vehicles.some((b) => b.id === current);
     set({
       vehicles: vehicles,
-      activeVehicleId: stillExists
-        ? current
-        : vehicles.length > 0
-          ? vehicles[0].id
-          : null,
+      activeVehicleId: stillExists ? current : vehicles.length > 0 ? vehicles[0].id : null
     });
   },
 
@@ -46,10 +42,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   setReadabilityMode: async (enabled) => {
     set({ readabilityMode: enabled });
     try {
-      await SecureStore.setItemAsync(
-        READABILITY_MODE_KEY,
-        enabled ? '1' : '0',
-      );
+      await SecureStore.setItemAsync(READABILITY_MODE_KEY, enabled ? '1' : '0');
     } catch {}
   },
 
@@ -64,6 +57,6 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   getActiveVehicle: () => {
     const { vehicles, activeVehicleId } = get();
-    return vehicles.find(b => b.id === activeVehicleId) ?? null;
-  },
+    return vehicles.find((b) => b.id === activeVehicleId) ?? null;
+  }
 }));

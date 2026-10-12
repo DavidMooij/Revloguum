@@ -3,7 +3,7 @@ import type {
   ServiceEntryWithDetails,
   CreateServiceEntryInput,
   UpdateServiceEntryInput,
-  ServiceEntryFilter,
+  ServiceEntryFilter
 } from '../entities/ServiceEntry';
 
 export interface IServiceEntryRepo {

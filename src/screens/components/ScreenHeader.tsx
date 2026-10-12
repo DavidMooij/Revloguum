@@ -28,8 +28,8 @@ export default function ScreenHeader({ title, subtitle, showBack, rightElement }
         {
           paddingTop: insets.top + 8,
           backgroundColor: readableColor('bg0', readabilityMode),
-          borderBottomColor: readableColor('border0', readabilityMode),
-        },
+          borderBottomColor: readableColor('border0', readabilityMode)
+        }
       ]}
     >
       <View style={styles.row}>
@@ -41,8 +41,8 @@ export default function ScreenHeader({ title, subtitle, showBack, rightElement }
                 width: readableTouchSize(36, readabilityMode),
                 height: readableTouchSize(36, readabilityMode),
                 borderRadius: readableTouchSize(18, readabilityMode, 2),
-                backgroundColor: readableColor('bg2', readabilityMode),
-              },
+                backgroundColor: readableColor('bg2', readabilityMode)
+              }
             ]}
             onPress={() => navigation.goBack()}
             hitSlop={12}
@@ -58,8 +58,8 @@ export default function ScreenHeader({ title, subtitle, showBack, rightElement }
               typography.h3,
               {
                 color: readableColor('text0', readabilityMode),
-                fontSize: readableSize(18, readabilityMode, 2),
-              },
+                fontSize: readableSize(18, readabilityMode, 2)
+              }
             ]}
             numberOfLines={1}
           >
@@ -72,8 +72,8 @@ export default function ScreenHeader({ title, subtitle, showBack, rightElement }
                 {
                   color: readableColor('text1', readabilityMode),
                   fontSize: readableSize(13, readabilityMode, 1),
-                  lineHeight: readabilityMode ? 20 : 18,
-                },
+                  lineHeight: readabilityMode ? 20 : 18
+                }
               ]}
             >
               {subtitle}
@@ -92,12 +92,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border0,
+    borderBottomColor: colors.border0
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 44,
+    minHeight: 44
   },
   backBtn: {
     width: 36,
@@ -106,9 +106,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg2,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.sm,
+    marginRight: spacing.sm
   },
   backPlaceholder: { width: 36 },
   titleWrapper: { flex: 1 },
-  right: { minWidth: 36, alignItems: 'flex-end' },
+  right: { minWidth: 36, alignItems: 'flex-end' }
 });

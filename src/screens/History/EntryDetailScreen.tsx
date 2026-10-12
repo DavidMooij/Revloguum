@@ -1,43 +1,29 @@
-import React, { useCallback, useState } from "react";
-import { useTranslation } from "react-i18next";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  useNavigation,
-  useRoute,
-  useFocusEffect,
-} from "@react-navigation/native";
-import type {
-  NativeStackNavigationProp,
-  NativeStackScreenProps,
-} from "@react-navigation/native-stack";
-import { FontAwesome5 as Icon } from "@expo/vector-icons";
-import type { RootStackParamList } from "../../app/navigation/routes";
-import { colors } from "../../theme/colors";
-import { spacing, radius } from "../../theme/spacing";
-import { typography, typeScale } from "../../theme/typography";
-import { getDatabase } from "../../data/db/database";
-import { SQLiteServiceEntryRepo } from "../../data/repositories/SQLiteServiceEntryRepo";
-import { useServiceEntryActions } from "../../hooks/useServiceHistory";
-import type { ServiceEntryWithDetails } from "../../domain/entities/ServiceEntry";
-import { formatDate, formatDateTime } from "../../utils/date";
-import { formatOdometer, formatCost } from "../../utils/format";
-import ScreenHeader from "../components/ScreenHeader";
-import AlertModal from "../components/AlertModal";
-import { haptic } from "@/utils/haptics";
-import { decryptImage } from "@/security/imageEncryption";
-import EncryptedImage from "../components/EncryptedImage";
-import { useServiceTypeLabel } from "@/hooks/useServiceTypeLabel";
-import DocumentSection from "../components/documents/DocumentSection";
+import React, { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import { FontAwesome5 as Icon } from '@expo/vector-icons';
+import type { RootStackParamList } from '../../app/navigation/routes';
+import { colors } from '../../theme/colors';
+import { spacing, radius } from '../../theme/spacing';
+import { typography, typeScale } from '../../theme/typography';
+import { getDatabase } from '../../data/db/database';
+import { SQLiteServiceEntryRepo } from '../../data/repositories/SQLiteServiceEntryRepo';
+import { useServiceEntryActions } from '../../hooks/useServiceHistory';
+import type { ServiceEntryWithDetails } from '../../domain/entities/ServiceEntry';
+import { formatDate, formatDateTime } from '../../utils/date';
+import { formatOdometer, formatCost } from '../../utils/format';
+import ScreenHeader from '../components/ScreenHeader';
+import AlertModal from '../components/AlertModal';
+import { haptic } from '@/utils/haptics';
+import { decryptImage } from '@/security/imageEncryption';
+import EncryptedImage from '../components/EncryptedImage';
+import { useServiceTypeLabel } from '@/hooks/useServiceTypeLabel';
+import DocumentSection from '../components/documents/DocumentSection';
 
-type Props = NativeStackScreenProps<RootStackParamList, "EntryDetail">;
+type Props = NativeStackScreenProps<RootStackParamList, 'EntryDetail'>;
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 export default function EntryDetailScreen() {
@@ -45,7 +31,7 @@ export default function EntryDetailScreen() {
   const getLabel = useServiceTypeLabel();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
-  const route = useRoute<Props["route"]>();
+  const route = useRoute<Props['route']>();
   const { entryId } = route.params;
   const { deleteEntry, deleteGroup } = useServiceEntryActions();
 
@@ -76,14 +62,14 @@ export default function EntryDetailScreen() {
       return () => {
         isActive = false;
       };
-    }, [entryId, navigation]),
+    }, [entryId, navigation])
   );
 
   const openImage = (index: number) => {
     if (!entry?.imagePaths) return;
-    navigation.navigate("ImageViewer", {
+    navigation.navigate('ImageViewer', {
       images: entry.imagePaths,
-      initialIndex: index,
+      initialIndex: index
     });
   };
 
@@ -92,55 +78,29 @@ export default function EntryDetailScreen() {
   const serviceLabel = getLabel({ name: entry.serviceTypeName, translationKey: entry.translationKey });
   const isGroup = !!entry.groupId && groupItems.length > 1;
   const totalCost = (() => {
-    const costs = groupItems
-      .map((i) => i.cost)
-      .filter((c): c is number => c != null);
+    const costs = groupItems.map((i) => i.cost).filter((c): c is number => c != null);
     return costs.length ? costs.reduce((a, b) => a + b, 0) : null;
   })();
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <ScreenHeader
-        title={
-          isGroup
-            ? t("history.servicesCount", { count: groupItems.length })
-            : serviceLabel
-        }
+        title={isGroup ? t('history.servicesCount', { count: groupItems.length }) : serviceLabel}
         subtitle={entry.vehicleDisplayName}
         showBack
         rightElement={
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("AddEntry", { editEntryId: entry.id })
-            }
-            hitSlop={10}
-            style={styles.editBtn}
-          >
+          <TouchableOpacity onPress={() => navigation.navigate('AddEntry', { editEntryId: entry.id })} hitSlop={10} style={styles.editBtn}>
             <Icon name="pen" size={13} color={colors.accent} />
           </TouchableOpacity>
         }
       />
 
-      <ScrollView
-        contentContainerStyle={[
-          styles.scroll,
-          { paddingBottom: insets.bottom + 48 },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 48 }]} showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
           <View style={styles.heroIcon}>
-            <Icon
-              name={isGroup ? "layer-group" : entry.serviceTypeIcon}
-              size={36}
-              color={colors.accent}
-            />
+            <Icon name={isGroup ? 'layer-group' : entry.serviceTypeIcon} size={36} color={colors.accent} />
           </View>
-          <Text style={styles.heroTitle}>
-            {isGroup
-              ? t("history.servicesCount", { count: groupItems.length })
-              : serviceLabel}
-          </Text>
+          <Text style={styles.heroTitle}>{isGroup ? t('history.servicesCount', { count: groupItems.length }) : serviceLabel}</Text>
           <Text style={styles.heroDate}>{formatDate(entry.dateTs)}</Text>
           {totalCost != null && (
             <View style={styles.costBadge}>
@@ -150,70 +110,43 @@ export default function EntryDetailScreen() {
         </View>
 
         <View style={styles.section}>
-          <InfoRow
-            label={t("entryDetail.odometer")}
-            value={formatOdometer(entry.odometerKm)}
-            icon="tachometer-alt"
-          />
-          <InfoRow
-            label={t("entryDetail.vehicle")}
-            value={entry.vehicleDisplayName}
-            icon="car"
-            last
-          />
+          <InfoRow label={t('entryDetail.odometer')} value={formatOdometer(entry.odometerKm)} icon="tachometer-alt" />
+          <InfoRow label={t('entryDetail.vehicle')} value={entry.vehicleDisplayName} icon="car" last />
         </View>
 
         {isGroup ? (
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>
-              {t("entryDetail.servicesTitle")}
-            </Text>
+            <Text style={styles.sectionLabel}>{t('entryDetail.servicesTitle')}</Text>
             {groupItems.map((it, i) => (
-              <View
-                key={it.id}
-                style={[
-                  styles.groupItem,
-                  i === groupItems.length - 1 && styles.groupItemLast,
-                ]}
-              >
+              <View key={it.id} style={[styles.groupItem, i === groupItems.length - 1 && styles.groupItemLast]}>
                 <View style={styles.groupItemIcon}>
-                  <Icon
-                    name={it.serviceTypeIcon}
-                    size={12}
-                    color={colors.accent}
-                  />
+                  <Icon name={it.serviceTypeIcon} size={12} color={colors.accent} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <View style={styles.groupItemTop}>
                     <Text style={styles.groupItemLabel}>
                       {getLabel({
                         name: it.serviceTypeName,
-                        translationKey: it.translationKey,
+                        translationKey: it.translationKey
                       })}
                     </Text>
-                    {it.cost != null && (
-                      <Text style={styles.groupItemCost}>
-                        {formatCost(it.cost)}
-                      </Text>
-                    )}
+                    {it.cost != null && <Text style={styles.groupItemCost}>{formatCost(it.cost)}</Text>}
                   </View>
-                  {it.notes ? (
-                    <Text style={styles.groupItemNote}>{it.notes}</Text>
-                  ) : null}
+                  {it.notes ? <Text style={styles.groupItemNote}>{it.notes}</Text> : null}
                 </View>
               </View>
             ))}
           </View>
         ) : entry.notes ? (
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>{t("entryDetail.notes")}</Text>
+            <Text style={styles.sectionLabel}>{t('entryDetail.notes')}</Text>
             <Text style={styles.notesText}>{entry.notes}</Text>
           </View>
         ) : null}
 
         {(entry.imagePaths?.length ?? 0) > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>{t("addEntry.photos")}</Text>
+            <Text style={styles.sectionLabel}>{t('addEntry.photos')}</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -221,11 +154,7 @@ export default function EntryDetailScreen() {
               contentContainerStyle={styles.imageScrollContent}
             >
               {entry.imagePaths?.map((uri, i) => (
-                <TouchableOpacity
-                  key={i}
-                  onPress={() => openImage(i)}
-                  activeOpacity={0.85}
-                >
+                <TouchableOpacity key={i} onPress={() => openImage(i)} activeOpacity={0.85}>
                   <EncryptedImage path={uri} style={styles.image} />
                 </TouchableOpacity>
               ))}
@@ -234,21 +163,16 @@ export default function EntryDetailScreen() {
         )}
 
         <View style={styles.section}>
-          <DocumentSection
-            vehicleId={entry.vehicleId}
-            ownerType="service"
-            ownerId={entry.id}
-            title={t("documents.serviceTitle")}
-          />
+          <DocumentSection vehicleId={entry.vehicleId} ownerType="service" ownerId={entry.id} title={t('documents.serviceTitle')} />
         </View>
 
         <View style={styles.metaSection}>
           <Text style={styles.metaText}>
-            {t("entryDetail.recorded")} · {formatDateTime(entry.createdAt)}
+            {t('entryDetail.recorded')} · {formatDateTime(entry.createdAt)}
           </Text>
           {entry.updatedAt !== entry.createdAt && (
             <Text style={styles.metaText}>
-              {t("entryDetail.lastEdited")} · {formatDateTime(entry.updatedAt)}
+              {t('entryDetail.lastEdited')} · {formatDateTime(entry.updatedAt)}
             </Text>
           )}
         </View>
@@ -262,9 +186,7 @@ export default function EntryDetailScreen() {
           activeOpacity={0.7}
         >
           <Icon name="trash-alt" size={13} color={colors.dangerText} />
-          <Text style={styles.deleteBtnText}>
-            {t("entryDetail.deleteEntry").replace("?", "")}
-          </Text>
+          <Text style={styles.deleteBtnText}>{t('entryDetail.deleteEntry').replace('?', '')}</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -273,45 +195,33 @@ export default function EntryDetailScreen() {
         onClose={() => setDeleteAlert(false)}
         icon="trash-alt"
         iconColor={colors.dangerText}
-        title={t("entryDetail.deleteEntry")}
-        message={t("common.cannotBeUndone")}
+        title={t('entryDetail.deleteEntry')}
+        message={t('common.cannotBeUndone')}
         actions={[
           {
-            label: t("common.cancel"),
-            variant: "secondary",
-            onPress: () => {},
+            label: t('common.cancel'),
+            variant: 'secondary',
+            onPress: () => {}
           },
           {
-            label: t("common.delete"),
-            variant: "danger",
+            label: t('common.delete'),
+            variant: 'danger',
             onPress: async () => {
               if (entry.groupId) await deleteGroup(entry.groupId);
               else await deleteEntry(entryId);
               navigation.goBack();
-            },
-          },
+            }
+          }
         ]}
       />
     </View>
   );
 }
 
-function InfoRow({
-  label,
-  value,
-  icon,
-  last,
-}: {
-  label: string;
-  value: string;
-  icon?: string;
-  last?: boolean;
-}) {
+function InfoRow({ label, value, icon, last }: { label: string; value: string; icon?: string; last?: boolean }) {
   return (
     <View style={[infoRowStyles.row, last && infoRowStyles.rowLast]}>
-      <View style={infoRowStyles.iconWrap}>
-        {icon && <Icon name={icon as any} size={13} color={colors.text2} />}
-      </View>
+      <View style={infoRowStyles.iconWrap}>{icon && <Icon name={icon as any} size={13} color={colors.text2} />}</View>
       <Text style={infoRowStyles.label}>{label}</Text>
       <Text style={infoRowStyles.value}>{value}</Text>
     </View>
@@ -320,17 +230,17 @@ function InfoRow({
 
 const infoRowStyles = StyleSheet.create({
   row: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: spacing.sm + 2,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border0,
-    gap: spacing.sm,
+    gap: spacing.sm
   },
   rowLast: { borderBottomWidth: 0 },
-  iconWrap: { width: 20, alignItems: "center" },
+  iconWrap: { width: 20, alignItems: 'center' },
   label: { flex: 1, fontSize: typeScale.bodySmall, color: colors.text2 },
-  value: { fontSize: typeScale.bodyMedium, fontWeight: "500", color: colors.text0 },
+  value: { fontSize: typeScale.bodyMedium, fontWeight: '500', color: colors.text0 }
 });
 
 const styles = StyleSheet.create({
@@ -342,11 +252,11 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     backgroundColor: colors.accentMuted,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center'
   },
 
-  hero: { alignItems: "center", paddingVertical: spacing.xl, gap: spacing.sm },
+  hero: { alignItems: 'center', paddingVertical: spacing.xl, gap: spacing.sm },
   heroIcon: {
     width: 90,
     height: 90,
@@ -354,14 +264,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentMuted,
     borderWidth: 1,
     borderColor: colors.accentDark,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: spacing.xs,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xs
   },
   heroTitle: {
     ...typography.titleMedium,
     color: colors.text0,
-    textAlign: "center",
+    textAlign: 'center'
   },
   heroDate: { fontSize: typeScale.bodySmall, color: colors.text2 },
   costBadge: {
@@ -369,9 +279,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.successMuted,
     borderRadius: radius.full,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.xs
   },
-  costBadgeText: { fontSize: typeScale.bodyLarge, fontWeight: "700", color: colors.successText },
+  costBadgeText: { fontSize: typeScale.bodyLarge, fontWeight: '700', color: colors.successText },
 
   section: {
     backgroundColor: colors.bg1,
@@ -380,26 +290,26 @@ const styles = StyleSheet.create({
     borderColor: colors.border1,
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.sm
   },
   sectionLabel: {
     ...typography.overline,
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.xs
   },
   notesText: {
     fontSize: typeScale.bodyMedium,
     color: colors.text1,
     lineHeight: 22,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.sm
   },
 
   groupItem: {
-    flexDirection: "row",
-    alignItems: "flex-start",
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     gap: spacing.sm,
     paddingVertical: spacing.sm + 2,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border0,
+    borderBottomColor: colors.border0
   },
   groupItemLast: { borderBottomWidth: 0 },
   groupItemIcon: {
@@ -407,49 +317,49 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: radius.sm,
     backgroundColor: colors.accentMuted,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   groupItemTop: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
   },
   groupItemLabel: {
     fontSize: typeScale.bodyMedium,
-    fontWeight: "600",
+    fontWeight: '600',
     color: colors.text0,
-    flex: 1,
+    flex: 1
   },
   groupItemCost: {
     fontSize: typeScale.bodySmall,
     color: colors.successText,
-    marginLeft: spacing.sm,
+    marginLeft: spacing.sm
   },
   groupItemNote: {
     fontSize: typeScale.bodySmall,
     color: colors.text1,
     marginTop: 2,
-    lineHeight: 18,
+    lineHeight: 18
   },
 
   imageScroll: { marginHorizontal: -spacing.md },
   imageScrollContent: {
     paddingHorizontal: spacing.md,
     gap: spacing.sm,
-    paddingBottom: spacing.xs,
+    paddingBottom: spacing.xs
   },
   image: { width: 200, height: 140, borderRadius: radius.md },
 
-  metaSection: { paddingTop: spacing.xs, paddingBottom: spacing.xs, gap: 4, alignItems: "center" },
+  metaSection: { paddingTop: spacing.xs, paddingBottom: spacing.xs, gap: 4, alignItems: 'center' },
   metaText: { fontSize: typeScale.caption, color: colors.text3 },
 
   deleteBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: spacing.sm,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.md
   },
-  deleteBtnText: { color: colors.dangerText, fontSize: typeScale.bodySmall, fontWeight: "600" },
+  deleteBtnText: { color: colors.dangerText, fontSize: typeScale.bodySmall, fontWeight: '600' }
 });

@@ -1,5 +1,5 @@
-import type * as SQLite from "expo-sqlite";
-import { SYSTEM_PAYMENT_TYPES } from "../../../domain/entities/PaymentType";
+import type * as SQLite from 'expo-sqlite';
+import { SYSTEM_PAYMENT_TYPES } from '../../../domain/entities/PaymentType';
 
 interface ExistingCategoryRow {
   category: string;
@@ -11,11 +11,11 @@ interface ExistingNameRow {
 
 function titleCase(input: string): string {
   return input
-    .replace(/[_-]+/g, " ")
+    .replace(/[_-]+/g, ' ')
     .trim()
     .split(/\s+/)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
+    .join(' ');
 }
 
 export async function migrateV10(db: SQLite.SQLiteDatabase): Promise<void> {
@@ -48,37 +48,25 @@ export async function migrateV10(db: SQLite.SQLiteDatabase): Promise<void> {
         created_at
       )
       VALUES (?, ?, ?, ?, 1, ?, ?);`,
-      [
-        pt.id,
-        pt.name,
-        pt.translationKey ?? null,
-        pt.icon,
-        pt.sortOrder,
-        now,
-      ],
+      [pt.id, pt.name, pt.translationKey ?? null, pt.icon, pt.sortOrder, now]
     );
   }
 
   const rows = await db.getAllAsync<ExistingCategoryRow>(
     `SELECT DISTINCT category
      FROM vehicle_costs
-     WHERE category IS NOT NULL AND TRIM(category) != '';`,
+     WHERE category IS NOT NULL AND TRIM(category) != '';`
   );
 
   if (rows.length === 0) return;
 
-  const nameRows = await db.getAllAsync<ExistingNameRow>(
-    "SELECT name FROM payment_types;",
-  );
+  const nameRows = await db.getAllAsync<ExistingNameRow>('SELECT name FROM payment_types;');
   const usedNames = new Set(nameRows.map((r) => r.name.toLowerCase()));
 
   for (const row of rows) {
     const categoryId = row.category;
 
-    const existing = await db.getFirstAsync<{ id: string }>(
-      "SELECT id FROM payment_types WHERE id = ? LIMIT 1;",
-      [categoryId],
-    );
+    const existing = await db.getFirstAsync<{ id: string }>('SELECT id FROM payment_types WHERE id = ? LIMIT 1;', [categoryId]);
 
     if (existing) continue;
 
@@ -105,7 +93,7 @@ export async function migrateV10(db: SQLite.SQLiteDatabase): Promise<void> {
         created_at
       )
       VALUES (?, ?, NULL, 'receipt', 0, 999, ?);`,
-      [categoryId, name, now],
+      [categoryId, name, now]
     );
   }
 }

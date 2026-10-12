@@ -1,52 +1,35 @@
-import React, { useCallback, useState } from "react";
-import { useTranslation } from "react-i18next";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  useNavigation,
-  useRoute,
-  useFocusEffect,
-} from "@react-navigation/native";
-import type {
-  NativeStackNavigationProp,
-  NativeStackScreenProps,
-} from "@react-navigation/native-stack";
-import { FontAwesome5 as Icon } from "@expo/vector-icons";
-import type { RootStackParamList } from "../../app/navigation/routes";
-import { colors } from "../../theme/colors";
-import { typography } from "../../theme/typography";
-import { spacing, radius } from "../../theme/spacing";
-import { getDatabase } from "../../data/db/database";
-import { SQLiteVehicleRepo } from "../../data/repositories/SQLiteVehicleRepo";
-import { SQLiteServiceEntryRepo } from "../../data/repositories/SQLiteServiceEntryRepo";
-import { SQLiteFuelRepo } from "../../data/repositories/SQLiteFuelRepo";
-import { SQLiteVehicleCostRepo } from "../../data/repositories/SQLiteVehicleCostRepo";
-import type { Vehicle } from "../../domain/entities/Vehicle";
-import {
-  formatOdometer,
-  formatVehicleName,
-} from "../../utils/format";
-import { formatDate } from "../../utils/date";
-import ScreenHeader from "../components/ScreenHeader";
-import { vehicleTypeIcon } from "@/utils/vehicleType";
-import EncryptedImage from "../components/EncryptedImage";
-import VehicleNavGrid from "./components/VehicleNavGrid";
+import React, { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import { FontAwesome5 as Icon } from '@expo/vector-icons';
+import type { RootStackParamList } from '../../app/navigation/routes';
+import { colors } from '../../theme/colors';
+import { typography } from '../../theme/typography';
+import { spacing, radius } from '../../theme/spacing';
+import { getDatabase } from '../../data/db/database';
+import { SQLiteVehicleRepo } from '../../data/repositories/SQLiteVehicleRepo';
+import { SQLiteServiceEntryRepo } from '../../data/repositories/SQLiteServiceEntryRepo';
+import { SQLiteFuelRepo } from '../../data/repositories/SQLiteFuelRepo';
+import { SQLiteVehicleCostRepo } from '../../data/repositories/SQLiteVehicleCostRepo';
+import type { Vehicle } from '../../domain/entities/Vehicle';
+import { formatOdometer, formatVehicleName } from '../../utils/format';
+import { formatDate } from '../../utils/date';
+import ScreenHeader from '../components/ScreenHeader';
+import { vehicleTypeIcon } from '@/utils/vehicleType';
+import EncryptedImage from '../components/EncryptedImage';
+import VehicleNavGrid from './components/VehicleNavGrid';
 
-type Props = NativeStackScreenProps<RootStackParamList, "VehicleDetail">;
+type Props = NativeStackScreenProps<RootStackParamList, 'VehicleDetail'>;
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 export default function VehicleDetailScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
-  const route = useRoute<Props["route"]>();
+  const route = useRoute<Props['route']>();
   const { vehicleId } = route.params;
 
   const [vehicle, setvehicle] = useState<Vehicle | null>(null);
@@ -55,7 +38,7 @@ export default function VehicleDetailScreen() {
     lastServiceDate: null as string | null,
     totalFuelCost: 0,
     totalOtherCost: 0,
-    totalFuelLiters: 0,
+    totalFuelLiters: 0
   });
 
   useFocusEffect(
@@ -67,7 +50,7 @@ export default function VehicleDetailScreen() {
           new SQLiteServiceEntryRepo(db).getCountForVehicle(vehicleId),
           new SQLiteServiceEntryRepo(db).getLastForVehicle(vehicleId),
           new SQLiteFuelRepo(db).getStats({ vehicleId }),
-          new SQLiteVehicleCostRepo(db).getTotalCost(vehicleId),
+          new SQLiteVehicleCostRepo(db).getTotalCost(vehicleId)
         ]);
         setvehicle(m);
         setStats({
@@ -75,10 +58,10 @@ export default function VehicleDetailScreen() {
           lastServiceDate: lastEntry ? formatDate(lastEntry.dateTs) : null,
           totalFuelCost: fuelStats.totalCost,
           totalOtherCost: otherCost,
-          totalFuelLiters: fuelStats.totalLiters,
+          totalFuelLiters: fuelStats.totalLiters
         });
       })();
-    }, [vehicleId]),
+    }, [vehicleId])
   );
 
   if (!vehicle) return null;
@@ -89,12 +72,7 @@ export default function VehicleDetailScreen() {
         title={formatVehicleName(vehicle.make, vehicle.model, vehicle.nickname)}
         showBack
         rightElement={
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("AddVehicle", { editId: vehicle.id })
-            }
-            hitSlop={8}
-          >
+          <TouchableOpacity onPress={() => navigation.navigate('AddVehicle', { editId: vehicle.id })} hitSlop={8}>
             <Icon name="pen" size={15} color={colors.text1} />
           </TouchableOpacity>
         }
@@ -102,7 +80,7 @@ export default function VehicleDetailScreen() {
       <View style={styles.body}>
         <TouchableOpacity
           style={StyleSheet.absoluteFill}
-          onPress={() => navigation.navigate("VehicleManagement", { vehicleId })}
+          onPress={() => navigation.navigate('VehicleManagement', { vehicleId })}
           activeOpacity={1}
         />
         <View style={styles.hero} pointerEvents="none">
@@ -110,25 +88,15 @@ export default function VehicleDetailScreen() {
             <EncryptedImage path={vehicle.photoPath} style={styles.heroImage} />
           ) : (
             <View style={styles.heroPlaceholder}>
-              <Icon
-                name={vehicleTypeIcon(vehicle.vehicleType)}
-                size={48}
-                color={colors.text2}
-              />
+              <Icon name={vehicleTypeIcon(vehicle.vehicleType)} size={48} color={colors.text2} />
             </View>
           )}
-          <Text style={styles.heroName}>
-            {formatVehicleName(vehicle.make, vehicle.model, vehicle.nickname)}
-          </Text>
-          {vehicle.year ? (
-            <Text style={styles.heroYear}>{vehicle.year}</Text>
-          ) : null}
-          <Text style={styles.heroOdo}>
-            {formatOdometer(vehicle.currentOdometer)}
-          </Text>
+          <Text style={styles.heroName}>{formatVehicleName(vehicle.make, vehicle.model, vehicle.nickname)}</Text>
+          {vehicle.year ? <Text style={styles.heroYear}>{vehicle.year}</Text> : null}
+          <Text style={styles.heroOdo}>{formatOdometer(vehicle.currentOdometer)}</Text>
           {stats.lastServiceDate && (
             <Text style={styles.heroSub}>
-              {t("vehicles.lastService")}: {stats.lastServiceDate}
+              {t('vehicles.lastService')}: {stats.lastServiceDate}
             </Text>
           )}
         </View>
@@ -147,12 +115,12 @@ export default function VehicleDetailScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg0 },
   body: { flex: 1, paddingHorizontal: spacing.md },
-  hero: { alignItems: "center", paddingVertical: spacing.xl, gap: spacing.sm },
+  hero: { alignItems: 'center', paddingVertical: spacing.xl, gap: spacing.sm },
   heroImage: {
     width: 150,
     height: 150,
     borderRadius: 75,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.sm
   },
   heroPlaceholder: {
     width: 120,
@@ -161,40 +129,40 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg2,
     borderWidth: 1,
     borderColor: colors.border1,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm
   },
   heroName: {
     ...typography.h2,
-    color: colors.text0,
+    color: colors.text0
   },
   heroYear: { ...typography.bodyMedium, color: colors.text2 },
   heroOdo: {
     ...typography.h1,
-    color: colors.accent,
+    color: colors.accent
   },
   heroSub: { ...typography.bodySmall, color: colors.text2 },
   navGrid: { gap: spacing.sm },
   navCard: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.bg1,
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border1,
     padding: spacing.md,
-    gap: spacing.md,
+    gap: spacing.md
   },
   navIcon: {
     width: 42,
     height: 42,
     borderRadius: 21,
     backgroundColor: colors.accentMuted,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0
   },
   navLabel: { ...typography.bodyStrong, color: colors.text0 },
-  navSub: { ...typography.labelSmall, color: colors.text2, marginTop: 2 },
+  navSub: { ...typography.labelSmall, color: colors.text2, marginTop: 2 }
 });

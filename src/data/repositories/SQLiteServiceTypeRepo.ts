@@ -1,10 +1,7 @@
-import type * as SQLite from "expo-sqlite";
-import type { IServiceTypeRepo } from "../../domain/repositories/IServiceTypeRepo";
-import type {
-  ServiceType,
-  CreateServiceTypeInput,
-} from "../../domain/entities/ServiceType";
-import { generateUUID } from "../../utils/uuid";
+import type * as SQLite from 'expo-sqlite';
+import type { IServiceTypeRepo } from '../../domain/repositories/IServiceTypeRepo';
+import type { ServiceType, CreateServiceTypeInput } from '../../domain/entities/ServiceType';
+import { generateUUID } from '../../utils/uuid';
 
 interface ServiceTypeRow {
   id: string;
@@ -24,7 +21,7 @@ function rowToEntity(row: ServiceTypeRow): ServiceType {
     icon: row.icon,
     isSystem: row.is_system === 1,
     sortOrder: row.sort_order,
-    createdAt: row.created_at,
+    createdAt: row.created_at
   };
 }
 
@@ -35,7 +32,7 @@ export class SQLiteServiceTypeRepo implements IServiceTypeRepo {
     const rows = await this.db.getAllAsync<ServiceTypeRow>(
       `SELECT *
       FROM service_types
-      ORDER BY sort_order ASC, name ASC;`,
+      ORDER BY sort_order ASC, name ASC;`
     );
 
     return rows.map(rowToEntity);
@@ -47,7 +44,7 @@ export class SQLiteServiceTypeRepo implements IServiceTypeRepo {
       FROM service_types
       WHERE id = ?
       LIMIT 1;`,
-      [id],
+      [id]
     );
 
     return row ? rowToEntity(row) : null;
@@ -69,14 +66,7 @@ export class SQLiteServiceTypeRepo implements IServiceTypeRepo {
         created_at
       )
       VALUES (?, ?, ?, ?, 0, ?, ?);`,
-      [
-        id,
-        input.name,
-        input.translationKey ?? null,
-        input.icon,
-        input.sortOrder,
-        now,
-      ],
+      [id, input.name, input.translationKey ?? null, input.icon, input.sortOrder, now]
     );
 
     return {
@@ -86,7 +76,7 @@ export class SQLiteServiceTypeRepo implements IServiceTypeRepo {
       icon: input.icon,
       isSystem: false,
       sortOrder: input.sortOrder,
-      createdAt: now,
+      createdAt: now
     };
   }
 
@@ -96,7 +86,7 @@ export class SQLiteServiceTypeRepo implements IServiceTypeRepo {
       SET name = ?, icon = ?
       WHERE id = ?
       AND is_system = 0;`,
-      [name, icon, id],
+      [name, icon, id]
     );
   }
 
@@ -105,7 +95,7 @@ export class SQLiteServiceTypeRepo implements IServiceTypeRepo {
       `DELETE FROM service_types
       WHERE id = ?
       AND is_system = 0;`,
-      [id],
+      [id]
     );
   }
 }

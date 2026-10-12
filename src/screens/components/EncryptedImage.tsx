@@ -1,20 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { View, ActivityIndicator, StyleSheet } from "react-native";
-import { Image, type ImageStyle } from "expo-image";
-import { decryptImage } from "@/security/imageEncryption";
-import { colors } from "../../theme/colors";
+import React, { useEffect, useState } from 'react';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { Image, type ImageStyle } from 'expo-image';
+import { decryptImage } from '@/security/imageEncryption';
+import { colors } from '../../theme/colors';
 
 interface Props {
   path: string | null;
   style?: ImageStyle;
-  contentFit?: "cover" | "contain";
+  contentFit?: 'cover' | 'contain';
 }
 
-export default function EncryptedImage({
-  path,
-  style,
-  contentFit = "cover",
-}: Props) {
+export default function EncryptedImage({ path, style, contentFit = 'cover' }: Props) {
   const [uri, setUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -28,7 +24,7 @@ export default function EncryptedImage({
     }
     (async () => {
       try {
-        const result = path.endsWith(".enc") ? await decryptImage(path) : path;
+        const result = path.endsWith('.enc') ? await decryptImage(path) : path;
         if (isActive) setUri(result);
       } catch {
       } finally {
@@ -54,8 +50,8 @@ export default function EncryptedImage({
 
 const styles = StyleSheet.create({
   center: {
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.bg2,
-  },
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.bg2
+  }
 });

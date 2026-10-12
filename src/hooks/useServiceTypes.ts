@@ -23,27 +23,36 @@ export function useServiceTypes() {
     refresh();
   }, [refresh]);
 
-  const addServiceType = useCallback(async (input: CreateServiceTypeInput) => {
-    const db = await getDatabase();
-    const repo = new SQLiteServiceTypeRepo(db);
-    const st = await repo.insert(input);
-    await refresh();
-    return st;
-  }, [refresh]);
+  const addServiceType = useCallback(
+    async (input: CreateServiceTypeInput) => {
+      const db = await getDatabase();
+      const repo = new SQLiteServiceTypeRepo(db);
+      const st = await repo.insert(input);
+      await refresh();
+      return st;
+    },
+    [refresh]
+  );
 
-  const updateServiceType = useCallback(async (id: string, name: string, icon: string) => {
-    const db = await getDatabase();
-    const repo = new SQLiteServiceTypeRepo(db);
-    await repo.update(id, name, icon);
-    await refresh();
-  }, [refresh]);
+  const updateServiceType = useCallback(
+    async (id: string, name: string, icon: string) => {
+      const db = await getDatabase();
+      const repo = new SQLiteServiceTypeRepo(db);
+      await repo.update(id, name, icon);
+      await refresh();
+    },
+    [refresh]
+  );
 
-  const deleteServiceType = useCallback(async (id: string) => {
-    const db = await getDatabase();
-    const repo = new SQLiteServiceTypeRepo(db);
-    await repo.delete(id);
-    await refresh();
-  }, [refresh]);
+  const deleteServiceType = useCallback(
+    async (id: string) => {
+      const db = await getDatabase();
+      const repo = new SQLiteServiceTypeRepo(db);
+      await repo.delete(id);
+      await refresh();
+    },
+    [refresh]
+  );
 
   return {
     serviceTypes,
@@ -51,6 +60,6 @@ export function useServiceTypes() {
     refresh,
     addServiceType,
     updateServiceType,
-    deleteServiceType,
+    deleteServiceType
   };
 }

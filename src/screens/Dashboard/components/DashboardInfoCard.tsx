@@ -1,9 +1,9 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { FontAwesome5 as Icon } from "@expo/vector-icons";
-import { colors } from "../../../theme/colors";
-import { spacing, radius } from "../../../theme/spacing";
-import { typography, typeScale } from "../../../theme/typography";
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { FontAwesome5 as Icon } from '@expo/vector-icons';
+import { colors } from '../../../theme/colors';
+import { spacing, radius } from '../../../theme/spacing';
+import { typography, typeScale } from '../../../theme/typography';
 
 interface Props {
   label: string;
@@ -11,56 +11,26 @@ interface Props {
   subtitle?: string;
   icon: string;
   value?: string;
-  variant?: "normal" | "warning";
+  variant?: 'normal' | 'warning';
   onPress: () => void;
 }
 
-export default function DashboardInfoCard({
-  label,
-  title,
-  subtitle,
-  icon,
-  value,
-  variant = "normal",
-  onPress,
-}: Props) {
-  const isWarning = variant === "warning";
+export default function DashboardInfoCard({ label, title, subtitle, icon, value, variant = 'normal', onPress }: Props) {
+  const isWarning = variant === 'warning';
 
   return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={onPress}
-      activeOpacity={0.8}
-    >
-      <View
-        style={[
-          styles.accentBar,
-          { backgroundColor: isWarning ? colors.warning : colors.accent },
-        ]}
-      />
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
+      <View style={[styles.accentBar, { backgroundColor: isWarning ? colors.warning : colors.accent }]} />
       <View style={styles.top}>
-        <View
-          style={[
-            styles.iconWrap,
-            isWarning && { backgroundColor: colors.warningMuted },
-          ]}
-        >
+        <View style={[styles.iconWrap, isWarning && { backgroundColor: colors.warningMuted }]}>
           <Icon name={icon} size={16} color={isWarning ? colors.warning : colors.accent} />
         </View>
 
-        {value && (
-          <Text style={[styles.value, isWarning && { color: colors.warningText }]}>
-            {value}
-          </Text>
-        )}
+        {value && <Text style={[styles.value, isWarning && { color: colors.warningText }]}>{value}</Text>}
       </View>
       <Text style={styles.label}>{label}</Text>
       <Text style={styles.title}>{title}</Text>
-      {subtitle && (
-        <Text style={[styles.status, isWarning && { color: colors.warningText }]}>
-          {subtitle}
-        </Text>
-      )}
+      {subtitle && <Text style={[styles.status, isWarning && { color: colors.warningText }]}>{subtitle}</Text>}
     </TouchableOpacity>
   );
 }
@@ -76,13 +46,13 @@ const styles = StyleSheet.create({
     paddingLeft: spacing.md,
     paddingRight: spacing.sm,
     paddingVertical: spacing.md,
-    overflow: "hidden",
+    overflow: 'hidden'
   },
 
   top: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
   },
 
   iconWrap: {
@@ -90,40 +60,40 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 19,
     backgroundColor: colors.accentMuted,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center'
   },
 
   value: {
     fontSize: typeScale.body,
-    fontWeight: "800",
-    color: colors.accent,
+    fontWeight: '800',
+    color: colors.accent
   },
 
   label: {
     marginTop: spacing.sm,
     ...typography.overline,
-    letterSpacing: 0.6,
+    letterSpacing: 0.6
   },
 
   title: {
     marginTop: 4,
     fontSize: typeScale.body,
-    fontWeight: "700",
-    color: colors.text0,
+    fontWeight: '700',
+    color: colors.text0
   },
 
   status: {
     marginTop: 5,
     fontSize: typeScale.captionLarge,
-    color: colors.text2,
+    color: colors.text2
   },
   accentBar: {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
     top: 0,
     bottom: 0,
     width: 3,
-    backgroundColor: colors.accent,
-  },
+    backgroundColor: colors.accent
+  }
 });

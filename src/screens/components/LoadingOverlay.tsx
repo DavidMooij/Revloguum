@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.6)',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 999,
+    zIndex: 999
   },
   box: {
     backgroundColor: '#1C1C20',
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     padding: 28,
     alignItems: 'center',
     gap: 14,
-    minWidth: 120,
+    minWidth: 120
   },
-  label: { textAlign: 'center' },
+  label: { textAlign: 'center' }
 });

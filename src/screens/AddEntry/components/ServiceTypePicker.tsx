@@ -16,12 +16,8 @@ interface Props {
 export default function ServiceTypePicker({ serviceTypes, selectedId, onSelect }: Props) {
   const getLabel = useServiceTypeLabel();
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.container}
-    >
-      {serviceTypes.map(st => {
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.container}>
+      {serviceTypes.map((st) => {
         const active = st.id === selectedId;
         return (
           <TouchableOpacity
@@ -45,7 +41,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     paddingVertical: spacing.xs,
-    gap: spacing.sm,
+    gap: spacing.sm
   },
   chip: {
     flexDirection: 'row',
@@ -56,11 +52,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     backgroundColor: colors.bg3,
     borderWidth: 1,
-    borderColor: colors.border1,
+    borderColor: colors.border1
   },
   chipActive: {
     backgroundColor: colors.accent,
-    borderColor: colors.accentDark,
+    borderColor: colors.accentDark
   },
   iconWrap: {
     width: 22,
@@ -68,18 +64,18 @@ const styles = StyleSheet.create({
     borderRadius: 11,
     backgroundColor: colors.bg4,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'center'
   },
   iconWrapActive: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.2)'
   },
   label: {
     fontSize: typeScale.bodySmall,
     fontWeight: '500',
-    color: colors.text1,
+    color: colors.text1
   },
   labelActive: {
     color: colors.white,
-    fontWeight: '600',
-  },
+    fontWeight: '600'
+  }
 });

@@ -1,5 +1,5 @@
-import type { ServiceEntry } from "@/domain/entities/ServiceEntry";
-import type { ServiceInterval, Vehicle } from "@/domain/entities/Vehicle";
+import type { ServiceEntry } from '@/domain/entities/ServiceEntry';
+import type { ServiceInterval, Vehicle } from '@/domain/entities/Vehicle';
 
 const DAY_MS = 86400000;
 
@@ -20,7 +20,7 @@ export function isServiceOverdue(status: ServiceDueStatus): boolean {
 
 export function computeServiceDueStatus(input: {
   interval: ServiceInterval;
-  vehicle: Pick<Vehicle, "createdAt" | "currentOdometer">;
+  vehicle: Pick<Vehicle, 'createdAt' | 'currentOdometer'>;
   lastEntry: ServiceEntry | null;
   nowTs?: number;
 }): ServiceDueStatus {
@@ -68,22 +68,16 @@ export function computeServiceDueStatus(input: {
     nextKm,
     daysOverdue,
     kmOverdue,
-    dueDateTs,
+    dueDateTs
   };
 }
 
-export function isUpcomingByKm(
-  status: ServiceDueStatus,
-  offsetKm: number,
-): boolean {
+export function isUpcomingByKm(status: ServiceDueStatus, offsetKm: number): boolean {
   if (status.nextKm == null) return false;
   return !isServiceOverdue(status) && status.nextKm > 0 && status.nextKm <= offsetKm;
 }
 
-export function isOverdueByKm(
-  status: ServiceDueStatus,
-  offsetKm: number,
-): boolean {
+export function isOverdueByKm(status: ServiceDueStatus, offsetKm: number): boolean {
   if (status.kmOverdue == null) return false;
   return status.kmOverdue >= offsetKm;
 }

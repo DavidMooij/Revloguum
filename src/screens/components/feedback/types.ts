@@ -1,4 +1,4 @@
-export type FeedbackVariant = "success" | "error" | "warning" | "info";
+export type FeedbackVariant = 'success' | 'error' | 'warning' | 'info';
 
 export interface ToastOptions {
   /** i18n key, e.g. "toast.serviceUpdated" */
@@ -14,13 +14,13 @@ export interface ToastOptions {
   duration?: number;
 }
 
-export interface ToastItem extends Required<Pick<ToastOptions, "variant" | "duration">> {
+export interface ToastItem extends Required<Pick<ToastOptions, 'variant' | 'duration'>> {
   id: string;
   title: string;
   icon: string;
 }
 
-type CelebrationVariant = "milestone" | "streak" | "success";
+type CelebrationVariant = 'milestone' | 'streak' | 'success';
 
 export interface CelebrationOptions {
   titleKey?: string;

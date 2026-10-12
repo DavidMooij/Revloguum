@@ -26,8 +26,8 @@ export default function TextInputField({ label, error, containerStyle, suffix, .
           styles.label,
           {
             color: readableColor('text1', readabilityMode),
-            fontSize: readableSize(typeScale.bodySmall, readabilityMode, 1),
-          },
+            fontSize: readableSize(typeScale.bodySmall, readabilityMode, 1)
+          }
         ]}
       >
         {label}
@@ -45,13 +45,13 @@ export default function TextInputField({ label, error, containerStyle, suffix, .
               : !!error
                 ? readableColor('danger', readabilityMode)
                 : readableColor('border1', readabilityMode),
-            minHeight: readabilityMode ? 54 : 48,
-          },
+            minHeight: readabilityMode ? 54 : 48
+          }
         ]}
       >
         <TextInput
           placeholderTextColor={readableColor('text2', readabilityMode)}
-          textAlignVertical={isMultiline ? "top" : "center"}
+          textAlignVertical={isMultiline ? 'top' : 'center'}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           selectionColor={readableColor('accent', readabilityMode)}
@@ -61,8 +61,8 @@ export default function TextInputField({ label, error, containerStyle, suffix, .
             {
               color: readableColor('text0', readabilityMode),
               fontSize: readableSize(typeScale.body, readabilityMode, 1),
-              lineHeight: readableLineHeight(21, readabilityMode, 3),
-            },
+              lineHeight: readableLineHeight(21, readabilityMode, 3)
+            }
           ]}
           {...rest}
         />
@@ -72,8 +72,8 @@ export default function TextInputField({ label, error, containerStyle, suffix, .
               styles.suffix,
               {
                 color: readableColor('text1', readabilityMode),
-                fontSize: readableSize(typeScale.bodyMedium, readabilityMode, 1),
-              },
+                fontSize: readableSize(typeScale.bodyMedium, readabilityMode, 1)
+              }
             ]}
           >
             {suffix}
@@ -86,8 +86,8 @@ export default function TextInputField({ label, error, containerStyle, suffix, .
             styles.error,
             {
               color: readableColor('dangerText', readabilityMode),
-              fontSize: readableSize(typeScale.captionLarge, readabilityMode, 1),
-            },
+              fontSize: readableSize(typeScale.captionLarge, readabilityMode, 1)
+            }
           ]}
         >
           {error}
@@ -108,13 +108,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border1,
     paddingHorizontal: spacing.md,
-    height: 48,
+    height: 48
   },
   inputRowMultiline: {
     height: undefined,
     minHeight: 48,
     alignItems: 'flex-start',
-    paddingVertical: spacing.sm + 2,
+    paddingVertical: spacing.sm + 2
   },
   focused: { borderColor: colors.accent },
   errored: { borderColor: colors.danger },
@@ -122,19 +122,19 @@ const styles = StyleSheet.create({
     flex: 1,
     color: colors.text0,
     fontSize: typeScale.body,
-    fontWeight: '400',
+    fontWeight: '400'
   },
   inputMultiline: {
-    paddingTop: 0,
+    paddingTop: 0
   },
   suffix: {
     color: colors.text2,
     fontSize: typeScale.bodyMedium,
-    marginLeft: spacing.xs,
+    marginLeft: spacing.xs
   },
   error: {
     color: colors.dangerText,
     fontSize: typeScale.captionLarge,
-    marginTop: 2,
-  },
+    marginTop: 2
+  }
 });

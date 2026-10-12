@@ -1,18 +1,14 @@
-import React from "react";
-import { useTranslation } from "react-i18next";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { FontAwesome5 as Icon } from "@expo/vector-icons";
-import type { ServiceEntryWithDetails } from "../../../domain/entities/ServiceEntry";
-import { colors } from "../../../theme/colors";
-import { spacing, radius } from "../../../theme/spacing";
-import { typography, typeScale } from "../../../theme/typography";
-import { formatDate } from "../../../utils/date";
-import {
-  formatOdometer,
-  formatCost,
-  truncateNotes,
-} from "../../../utils/format";
-import { useServiceTypeLabel } from "../../../hooks/useServiceTypeLabel";
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { FontAwesome5 as Icon } from '@expo/vector-icons';
+import type { ServiceEntryWithDetails } from '../../../domain/entities/ServiceEntry';
+import { colors } from '../../../theme/colors';
+import { spacing, radius } from '../../../theme/spacing';
+import { typography, typeScale } from '../../../theme/typography';
+import { formatDate } from '../../../utils/date';
+import { formatOdometer, formatCost, truncateNotes } from '../../../utils/format';
+import { useServiceTypeLabel } from '../../../hooks/useServiceTypeLabel';
 
 interface Props {
   entry: ServiceEntryWithDetails;
@@ -24,12 +20,7 @@ interface Props {
 export default function EntryListItem({ entry, onPress, onLongPress, showNotes = true }: Props) {
   const getLabel = useServiceTypeLabel();
   return (
-    <TouchableOpacity
-      style={styles.item}
-      onPress={onPress}
-      onLongPress={onLongPress}
-      activeOpacity={0.65}
-    >
+    <TouchableOpacity style={styles.item} onPress={onPress} onLongPress={onLongPress} activeOpacity={0.65}>
       <View style={styles.iconWrap}>
         <Icon name={entry.serviceTypeIcon} size={14} color={colors.accent} />
       </View>
@@ -39,9 +30,7 @@ export default function EntryListItem({ entry, onPress, onLongPress, showNotes =
           <Text style={styles.typeName} numberOfLines={1}>
             {getLabel({ name: entry.serviceTypeName, translationKey: entry.translationKey })}
           </Text>
-          {entry.cost != null && (
-            <Text style={styles.cost}>{formatCost(entry.cost)}</Text>
-          )}
+          {entry.cost != null && <Text style={styles.cost}>{formatCost(entry.cost)}</Text>}
         </View>
         <View style={styles.meta}>
           <Text style={styles.metaText}>{formatDate(entry.dateTs)}</Text>
@@ -60,46 +49,45 @@ export default function EntryListItem({ entry, onPress, onLongPress, showNotes =
 
 const styles = StyleSheet.create({
   item: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: spacing.md,
     backgroundColor: colors.bg1,
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border1,
     gap: spacing.md,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.sm
   },
   iconWrap: {
     width: 32,
     height: 32,
     borderRadius: radius.sm,
     backgroundColor: colors.accentMuted,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0
   },
   content: { flex: 1, gap: 3 },
   topRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
   },
   typeName: {
     ...typography.bodyMedium,
-    fontWeight: "500",
+    fontWeight: '500',
     color: colors.text0,
-    flex: 1,
+    flex: 1
   },
   cost: {
     fontSize: typeScale.bodySmall,
     color: colors.successText,
     marginLeft: spacing.sm,
-    fontVariant: ["tabular-nums"],
+    fontVariant: ['tabular-nums']
   },
-  meta: { flexDirection: "row", alignItems: "center", gap: 4 },
+  meta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   metaText: { fontSize: typeScale.captionLarge, color: colors.text2 },
   metaDot: { fontSize: typeScale.captionLarge, color: colors.text3 },
-  notes: { fontSize: typeScale.captionLarge, color: colors.text2, fontStyle: "italic" },
+  notes: { fontSize: typeScale.captionLarge, color: colors.text2, fontStyle: 'italic' }
 });
-

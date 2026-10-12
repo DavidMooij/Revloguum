@@ -1,22 +1,17 @@
-import { Platform } from "react-native";
-import * as Notifications from "expo-notifications";
-import { getDatabase } from "@/data/db/database";
-import { SQLiteNotificationSettingsRepo } from "@/data/repositories/SQLiteNotificationSettingsRepo";
-import { SQLiteVehicleRepo } from "@/data/repositories/SQLiteVehicleRepo";
-import { SQLiteVehicleCostRepo } from "@/data/repositories/SQLiteVehicleCostRepo";
-import { SQLiteServiceEntryRepo } from "@/data/repositories/SQLiteServiceEntryRepo";
-import { SQLiteServiceTypeRepo } from "@/data/repositories/SQLiteServiceTypeRepo";
-import i18n from "@/i18n";
-import {
-  computeServiceDueStatus,
-  isOverdueByKm,
-  isServiceOverdue,
-  isUpcomingByKm,
-} from "@/domain/services/serviceDue";
-import { computePaymentDueOccurrences } from "@/domain/services/paymentDue";
+import { Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
+import { getDatabase } from '@/data/db/database';
+import { SQLiteNotificationSettingsRepo } from '@/data/repositories/SQLiteNotificationSettingsRepo';
+import { SQLiteVehicleRepo } from '@/data/repositories/SQLiteVehicleRepo';
+import { SQLiteVehicleCostRepo } from '@/data/repositories/SQLiteVehicleCostRepo';
+import { SQLiteServiceEntryRepo } from '@/data/repositories/SQLiteServiceEntryRepo';
+import { SQLiteServiceTypeRepo } from '@/data/repositories/SQLiteServiceTypeRepo';
+import i18n from '@/i18n';
+import { computeServiceDueStatus, isOverdueByKm, isServiceOverdue, isUpcomingByKm } from '@/domain/services/serviceDue';
+import { computePaymentDueOccurrences } from '@/domain/services/paymentDue';
 
-const CHANNEL_ID = "revlog-reminders";
-const NS = "revlog-local-reminder";
+const CHANNEL_ID = 'revlog-reminders';
+const NS = 'revlog-local-reminder';
 const MAX_HORIZON_DAYS = 120;
 const FIRE_HOUR_LOCAL = 9;
 
@@ -59,17 +54,10 @@ function nextLocalFireTs(now: number): number {
 function isSameLocalDay(aTs: number, bTs: number): boolean {
   const a = new Date(aTs);
   const b = new Date(bTs);
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
-function pushUniqueByKey(
-  list: PlannedNotification[],
-  candidate: PlannedNotification,
-): void {
+function pushUniqueByKey(list: PlannedNotification[], candidate: PlannedNotification): void {
   if (list.some((i) => i.key === candidate.key)) return;
   list.push(candidate);
 }
@@ -85,11 +73,7 @@ async function buildPlannedNotifications(): Promise<PlannedNotification[]> {
   const serviceRepo = new SQLiteServiceEntryRepo(db);
   const serviceTypeRepo = new SQLiteServiceTypeRepo(db);
 
-  const [settings, vehicles, serviceTypes] = await Promise.all([
-    settingsRepo.getAll(),
-    vehicleRepo.getAll(),
-    serviceTypeRepo.getAll(),
-  ]);
+  const [settings, vehicles, serviceTypes] = await Promise.all([settingsRepo.getAll(), vehicleRepo.getAll(), serviceTypeRepo.getAll()]);
 
   const serviceTypeMap = new Map(serviceTypes.map((s) => [s.id, s]));
   const planned: PlannedNotification[] = [];
@@ -99,24 +83,18 @@ async function buildPlannedNotifications(): Promise<PlannedNotification[]> {
     const repeatDays = clampPositiveInt(settings.payments.repeatEveryDays, 1);
 
     for (const vehicle of vehicles) {
-      const [historyEntries, paymentIntervals] = await Promise.all([
-        costRepo.getHistory(vehicle.id),
-        costRepo.getIntervals(vehicle.id),
-      ]);
+      const [historyEntries, paymentIntervals] = await Promise.all([costRepo.getHistory(vehicle.id), costRepo.getIntervals(vehicle.id)]);
 
       const due = computePaymentDueOccurrences({
         intervals: paymentIntervals,
         historyEntries,
         nowTs: now,
-        horizonEndTs,
+        horizonEndTs
       });
 
       for (const occurrence of due.upcoming) {
         const dueTs = occurrence.dueTs;
-        const firstReminderTs = atLocalHour(
-          addDays(dueTs, -leadDays),
-          FIRE_HOUR_LOCAL,
-        );
+        const firstReminderTs = atLocalHour(addDays(dueTs, -leadDays), FIRE_HOUR_LOCAL);
 
         for (
           let ts = firstReminderTs;
@@ -131,10 +109,10 @@ async function buildPlannedNotifications(): Promise<PlannedNotification[]> {
           pushUniqueByKey(planned, {
             key,
             triggerTs,
-            title: i18n.t("notifications.paymentTitle"),
-            body: i18n.t("notifications.paymentBody", {
-              vehicle: vehicle.nickname ?? `${vehicle.make} ${vehicle.model}`,
-            }),
+            title: i18n.t('notifications.paymentTitle'),
+            body: i18n.t('notifications.paymentBody', {
+              vehicle: vehicle.nickname ?? `${vehicle.make} ${vehicle.model}`
+            })
           });
         }
       }
@@ -146,44 +124,27 @@ async function buildPlannedNotifications(): Promise<PlannedNotification[]> {
       const st = serviceTypeMap.get(interval.serviceTypeId);
       if (!st) continue;
 
-      const serviceName = st.translationKey
-        ? i18n.t(`serviceTypes.${st.translationKey}`)
-        : st.name;
+      const serviceName = st.translationKey ? i18n.t(`serviceTypes.${st.translationKey}`) : st.name;
 
-      const last = await serviceRepo.getLastByTypeForVehicle(
-        vehicle.id,
-        interval.serviceTypeId,
-      );
+      const last = await serviceRepo.getLastByTypeForVehicle(vehicle.id, interval.serviceTypeId);
       const status = computeServiceDueStatus({
         interval,
         vehicle,
         lastEntry: last,
-        nowTs: now,
+        nowTs: now
       });
 
       if (settings.upcomingServices.enabled) {
-        const leadDays = Math.max(
-          0,
-          Math.floor(settings.upcomingServices.offsetDays),
-        );
-        const leadKm = Math.max(
-          0,
-          Math.floor(settings.upcomingServices.offsetKm),
-        );
-        const repeatDays = clampPositiveInt(
-          settings.upcomingServices.repeatEveryDays,
-          1,
-        );
+        const leadDays = Math.max(0, Math.floor(settings.upcomingServices.offsetDays));
+        const leadKm = Math.max(0, Math.floor(settings.upcomingServices.offsetKm));
+        const repeatDays = clampPositiveInt(settings.upcomingServices.repeatEveryDays, 1);
 
         if (status.dueDateTs && !isServiceOverdue(status)) {
           const dueTs = status.dueDateTs;
           if (dueTs <= now) {
             // Due-date reminders are only before due date.
           } else {
-            const firstReminderTs = atLocalHour(
-              addDays(dueTs, -leadDays),
-              FIRE_HOUR_LOCAL,
-            );
+            const firstReminderTs = atLocalHour(addDays(dueTs, -leadDays), FIRE_HOUR_LOCAL);
 
             for (
               let ts = firstReminderTs;
@@ -198,65 +159,44 @@ async function buildPlannedNotifications(): Promise<PlannedNotification[]> {
               pushUniqueByKey(planned, {
                 key,
                 triggerTs,
-                title: i18n.t("notifications.upcomingTitle"),
-                body: i18n.t("notifications.upcomingDaysBody", {
+                title: i18n.t('notifications.upcomingTitle'),
+                body: i18n.t('notifications.upcomingDaysBody', {
                   service: serviceName,
-                  vehicle:
-                    vehicle.nickname ?? `${vehicle.make} ${vehicle.model}`,
-                }),
+                  vehicle: vehicle.nickname ?? `${vehicle.make} ${vehicle.model}`
+                })
               });
             }
           }
         }
 
         if (isUpcomingByKm(status, leadKm) && status.nextKm != null) {
-          for (
-            let ts = nextLocalFireTs(now);
-            ts <= horizonEndTs;
-            ts = addDays(ts, repeatDays)
-          ) {
+          for (let ts = nextLocalFireTs(now); ts <= horizonEndTs; ts = addDays(ts, repeatDays)) {
             const key = `upcoming-km:${vehicle.id}:${interval.serviceTypeId}:${status.nextKm}:${ts}`;
 
             pushUniqueByKey(planned, {
               key,
               triggerTs: ts,
-              title: i18n.t("notifications.upcomingTitle"),
-              body: i18n.t("notifications.upcomingKmBody", {
+              title: i18n.t('notifications.upcomingTitle'),
+              body: i18n.t('notifications.upcomingKmBody', {
                 service: serviceName,
                 vehicle: vehicle.nickname ?? `${vehicle.make} ${vehicle.model}`,
-                kmLeft: status.nextKm,
-              }),
+                kmLeft: status.nextKm
+              })
             });
           }
         }
       }
 
       if (settings.overdueServices.enabled) {
-        const graceDays = Math.max(
-          0,
-          Math.floor(settings.overdueServices.offsetDays),
-        );
-        const graceKm = Math.max(
-          0,
-          Math.floor(settings.overdueServices.offsetKm),
-        );
-        const repeatDays = clampPositiveInt(
-          settings.overdueServices.repeatEveryDays,
-          1,
-        );
+        const graceDays = Math.max(0, Math.floor(settings.overdueServices.offsetDays));
+        const graceKm = Math.max(0, Math.floor(settings.overdueServices.offsetKm));
+        const repeatDays = clampPositiveInt(settings.overdueServices.repeatEveryDays, 1);
 
         if (status.dueDateTs) {
           const dueTs = status.dueDateTs;
-          const firstOverdueTs = atLocalHour(
-            addDays(dueTs, graceDays),
-            FIRE_HOUR_LOCAL,
-          );
+          const firstOverdueTs = atLocalHour(addDays(dueTs, graceDays), FIRE_HOUR_LOCAL);
 
-          for (
-            let ts = firstOverdueTs;
-            ts <= horizonEndTs;
-            ts = addDays(ts, repeatDays)
-          ) {
+          for (let ts = firstOverdueTs; ts <= horizonEndTs; ts = addDays(ts, repeatDays)) {
             if (ts < now) continue;
 
             const triggerTs = normalizeSoon(ts, now);
@@ -265,31 +205,27 @@ async function buildPlannedNotifications(): Promise<PlannedNotification[]> {
             pushUniqueByKey(planned, {
               key,
               triggerTs,
-              title: i18n.t("notifications.overdueTitle"),
-              body: i18n.t("notifications.overdueBody", {
+              title: i18n.t('notifications.overdueTitle'),
+              body: i18n.t('notifications.overdueBody', {
                 service: serviceName,
-                vehicle: vehicle.nickname ?? `${vehicle.make} ${vehicle.model}`,
-              }),
+                vehicle: vehicle.nickname ?? `${vehicle.make} ${vehicle.model}`
+              })
             });
           }
         }
 
         if (isOverdueByKm(status, graceKm) && status.kmOverdue != null) {
-          for (
-            let ts = nextLocalFireTs(now);
-            ts <= horizonEndTs;
-            ts = addDays(ts, repeatDays)
-          ) {
+          for (let ts = nextLocalFireTs(now); ts <= horizonEndTs; ts = addDays(ts, repeatDays)) {
             const key = `overdue-km:${vehicle.id}:${interval.serviceTypeId}:${status.kmOverdue}:${ts}`;
 
             pushUniqueByKey(planned, {
               key,
               triggerTs: ts,
-              title: i18n.t("notifications.overdueTitle"),
-              body: i18n.t("notifications.overdueBody", {
+              title: i18n.t('notifications.overdueTitle'),
+              body: i18n.t('notifications.overdueBody', {
                 service: serviceName,
-                vehicle: vehicle.nickname ?? `${vehicle.make} ${vehicle.model}`,
-              }),
+                vehicle: vehicle.nickname ?? `${vehicle.make} ${vehicle.model}`
+              })
             });
           }
         }
@@ -304,11 +240,7 @@ async function cancelManagedNotifications(): Promise<void> {
   const all = await Notifications.getAllScheduledNotificationsAsync();
   const managed = all.filter((item) => item.content.data?.ns === NS);
 
-  await Promise.all(
-    managed.map((item) =>
-      Notifications.cancelScheduledNotificationAsync(item.identifier),
-    ),
-  );
+  await Promise.all(managed.map((item) => Notifications.cancelScheduledNotificationAsync(item.identifier)));
 }
 
 async function ensurePermissionIfNeeded(): Promise<boolean> {
@@ -328,17 +260,17 @@ async function initLocalNotifications(): Promise<void> {
       shouldSetBadge: false,
       shouldShowAlert: true,
       shouldShowBanner: true,
-      shouldShowList: true,
-    }),
+      shouldShowList: true
+    })
   });
 
-  if (Platform.OS === "android") {
+  if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
-      name: "Revlog reminders",
+      name: 'Revlog reminders',
       importance: Notifications.AndroidImportance.DEFAULT,
       vibrationPattern: [0, 200, 120, 200],
       enableVibrate: true,
-      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC
     });
   }
 
@@ -351,10 +283,7 @@ export async function syncNotifications(): Promise<void> {
 
     const db = await getDatabase();
     const settings = await new SQLiteNotificationSettingsRepo(db).getAll();
-    const hasAnyEnabled =
-      settings.payments.enabled ||
-      settings.upcomingServices.enabled ||
-      settings.overdueServices.enabled;
+    const hasAnyEnabled = settings.payments.enabled || settings.upcomingServices.enabled || settings.overdueServices.enabled;
 
     if (!hasAnyEnabled) {
       await cancelManagedNotifications();
@@ -373,7 +302,7 @@ export async function syncNotifications(): Promise<void> {
     const seenKeys = new Set<string>();
 
     for (const item of managed) {
-      const existingKey = String(item.content.data?.syncKey ?? "");
+      const existingKey = String(item.content.data?.syncKey ?? '');
       const existingTs = Number(item.content.data?.triggerTs ?? -1);
       const next = desiredByKey.get(existingKey);
 
@@ -387,8 +316,7 @@ export async function syncNotifications(): Promise<void> {
         continue;
       }
 
-      const contentMatches =
-        item.content.title === next.title && item.content.body === next.body;
+      const contentMatches = item.content.title === next.title && item.content.body === next.body;
       const triggerMatches = existingTs === next.triggerTs;
 
       if (!contentMatches || !triggerMatches) {
@@ -409,14 +337,14 @@ export async function syncNotifications(): Promise<void> {
           data: {
             ns: NS,
             syncKey: item.key,
-            triggerTs: item.triggerTs,
-          },
+            triggerTs: item.triggerTs
+          }
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DATE,
           date: new Date(item.triggerTs),
-          channelId: Platform.OS === "android" ? CHANNEL_ID : undefined,
-        },
+          channelId: Platform.OS === 'android' ? CHANNEL_ID : undefined
+        }
       });
     }
   } catch {

@@ -1,4 +1,4 @@
-export type DocumentOwnerType = "vehicle" | "service" | "cost";
+export type DocumentOwnerType = 'vehicle' | 'service' | 'cost';
 
 export interface DocumentPage {
   id: string;

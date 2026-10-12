@@ -1,13 +1,13 @@
-import type * as SQLite from "expo-sqlite";
-import type { IServiceEntryRepo } from "../../domain/repositories/IServiceEntryRepo";
+import type * as SQLite from 'expo-sqlite';
+import type { IServiceEntryRepo } from '../../domain/repositories/IServiceEntryRepo';
 import type {
   ServiceEntry,
   ServiceEntryWithDetails,
   CreateServiceEntryInput,
   UpdateServiceEntryInput,
-  ServiceEntryFilter,
-} from "../../domain/entities/ServiceEntry";
-import { generateUUID } from "../../utils/uuid";
+  ServiceEntryFilter
+} from '../../domain/entities/ServiceEntry';
+import { generateUUID } from '../../utils/uuid';
 
 interface EntryRow {
   id: string;
@@ -39,22 +39,20 @@ function rowToEntry(row: EntryRow): ServiceEntry {
     odometerKm: row.odometer_km,
     cost: row.cost,
     notes: row.notes,
-    imagePaths: JSON.parse(row.image_paths ?? "[]"),
+    imagePaths: JSON.parse(row.image_paths ?? '[]'),
     groupId: row.group_id ?? null,
     createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    updatedAt: row.updated_at
   };
 }
 
-function rowToEntryWithDetails(
-  row: EntryWithDetailsRow,
-): ServiceEntryWithDetails {
+function rowToEntryWithDetails(row: EntryWithDetailsRow): ServiceEntryWithDetails {
   return {
     ...rowToEntry(row),
     serviceTypeName: row.service_type_name,
     serviceTypeIcon: row.service_type_icon,
     translationKey: row.service_type_translation_key ?? undefined,
-    vehicleDisplayName: row.vehicle_display_name,
+    vehicleDisplayName: row.vehicle_display_name
   };
 }
 
@@ -75,52 +73,46 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
   constructor(private db: SQLite.SQLiteDatabase) {}
 
   async getById(id: string): Promise<ServiceEntryWithDetails | null> {
-    const row = await this.db.getFirstAsync<EntryWithDetailsRow>(
-      `${WITH_DETAILS_SELECT} WHERE e.id = ? LIMIT 1;`,
-      [id],
-    );
+    const row = await this.db.getFirstAsync<EntryWithDetailsRow>(`${WITH_DETAILS_SELECT} WHERE e.id = ? LIMIT 1;`, [id]);
     return row ? rowToEntryWithDetails(row) : null;
   }
 
-  async fetchFiltered(
-    filter: ServiceEntryFilter,
-  ): Promise<ServiceEntryWithDetails[]> {
+  async fetchFiltered(filter: ServiceEntryFilter): Promise<ServiceEntryWithDetails[]> {
     const conditions: string[] = [];
     const params: SQLite.SQLiteBindValue[] = [];
 
     if (filter.vehicleId) {
-      conditions.push("e.vehicle_id = ?");
+      conditions.push('e.vehicle_id = ?');
       params.push(filter.vehicleId);
     }
     if (filter.serviceTypeIds && filter.serviceTypeIds.length > 0) {
-      const placeholders = filter.serviceTypeIds.map(() => "?").join(",");
+      const placeholders = filter.serviceTypeIds.map(() => '?').join(',');
       conditions.push(`e.service_type_id IN (${placeholders})`);
       params.push(...filter.serviceTypeIds);
     }
     if (filter.dateFrom !== undefined) {
-      conditions.push("e.date_ts >= ?");
+      conditions.push('e.date_ts >= ?');
       params.push(filter.dateFrom);
     }
     if (filter.dateTo !== undefined) {
-      conditions.push("e.date_ts <= ?");
+      conditions.push('e.date_ts <= ?');
       params.push(filter.dateTo);
     }
     if (filter.odometerMin !== undefined) {
-      conditions.push("e.odometer_km >= ?");
+      conditions.push('e.odometer_km >= ?');
       params.push(filter.odometerMin);
     }
     if (filter.odometerMax !== undefined) {
-      conditions.push("e.odometer_km <= ?");
+      conditions.push('e.odometer_km <= ?');
       params.push(filter.odometerMax);
     }
     if (filter.searchText?.trim()) {
-      conditions.push("(st.name LIKE ? OR e.notes LIKE ? OR CAST(COALESCE(e.cost, 0) AS TEXT) LIKE ?)");
+      conditions.push('(st.name LIKE ? OR e.notes LIKE ? OR CAST(COALESCE(e.cost, 0) AS TEXT) LIKE ?)');
       const q = `%${filter.searchText.trim()}%`;
       params.push(q, q, q);
     }
 
-    const where =
-      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const limit = filter.limit ?? 100;
     const offset = filter.offset ?? 0;
 
@@ -129,33 +121,28 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
        ${where}
        ORDER BY e.date_ts DESC, e.odometer_km DESC
        LIMIT ? OFFSET ?;`,
-      [...params, limit, offset],
+      [...params, limit, offset]
     );
     return rows.map(rowToEntryWithDetails);
   }
 
-  async getLastForVehicle(
-    vehicleId: string,
-  ): Promise<ServiceEntry | null> {
+  async getLastForVehicle(vehicleId: string): Promise<ServiceEntry | null> {
     const row = await this.db.getFirstAsync<EntryRow>(
       `SELECT * FROM service_entries
        WHERE vehicle_id = ?
        ORDER BY date_ts DESC, odometer_km DESC
        LIMIT 1;`,
-      [vehicleId],
+      [vehicleId]
     );
     return row ? rowToEntry(row) : null;
   }
 
-  async getLastByTypeForVehicle(
-    vehicleId: string,
-    serviceTypeId: string,
-  ): Promise<ServiceEntry | null> {
+  async getLastByTypeForVehicle(vehicleId: string, serviceTypeId: string): Promise<ServiceEntry | null> {
     const row = await this.db.getFirstAsync<EntryRow>(
       `SELECT * FROM service_entries
        WHERE vehicle_id = ? AND service_type_id = ?
        ORDER BY date_ts DESC LIMIT 1;`,
-      [vehicleId, serviceTypeId],
+      [vehicleId, serviceTypeId]
     );
     return row ? rowToEntry(row) : null;
   }
@@ -175,13 +162,11 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
         input.odometerKm,
         input.cost ?? null,
         input.notes?.trim() || null,
-        input.imagePaths
-          ? JSON.stringify(input.imagePaths)
-          : JSON.stringify([]),
+        input.imagePaths ? JSON.stringify(input.imagePaths) : JSON.stringify([]),
         input.groupId ?? null,
         now,
-        now,
-      ],
+        now
+      ]
     );
     return {
       id,
@@ -194,7 +179,7 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
       cost: input.cost ?? null,
       notes: input.notes ?? null,
       imagePaths: input.imagePaths ?? [],
-      groupId: input.groupId ?? null,
+      groupId: input.groupId ?? null
     };
   }
 
@@ -203,45 +188,42 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
     const values: SQLite.SQLiteBindValue[] = [];
 
     if (input.serviceTypeId !== undefined) {
-      sets.push("service_type_id = ?");
+      sets.push('service_type_id = ?');
       values.push(input.serviceTypeId);
     }
     if (input.dateTs !== undefined) {
-      sets.push("date_ts = ?");
+      sets.push('date_ts = ?');
       values.push(input.dateTs);
     }
     if (input.odometerKm !== undefined) {
-      sets.push("odometer_km = ?");
+      sets.push('odometer_km = ?');
       values.push(input.odometerKm);
     }
     if (input.cost !== undefined) {
-      sets.push("cost = ?");
+      sets.push('cost = ?');
       values.push(input.cost ?? null);
     }
     if (input.notes !== undefined) {
-      sets.push("notes = ?");
+      sets.push('notes = ?');
       values.push(input.notes?.trim() || null);
     }
     if (input.imagePaths !== undefined) {
-      sets.push("image_paths = ?");
+      sets.push('image_paths = ?');
       values.push(JSON.stringify(input.imagePaths ?? []));
     }
     if (input.groupId !== undefined) {
-      sets.push("group_id = ?");
+      sets.push('group_id = ?');
       values.push(input.groupId ?? null);
     }
 
     if (sets.length === 0) return;
-    sets.push("updated_at = ?");
+    sets.push('updated_at = ?');
     values.push(Date.now(), id);
-    await this.db.runAsync(
-      `UPDATE service_entries SET ${sets.join(", ")} WHERE id = ?;`,
-      values,
-    );
+    await this.db.runAsync(`UPDATE service_entries SET ${sets.join(', ')} WHERE id = ?;`, values);
   }
 
   async delete(id: string): Promise<void> {
-    await this.db.runAsync("DELETE FROM service_entries WHERE id = ?;", [id]);
+    await this.db.runAsync('DELETE FROM service_entries WHERE id = ?;', [id]);
   }
 
   async getGroup(groupId: string): Promise<ServiceEntryWithDetails[]> {
@@ -249,37 +231,32 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
       `${WITH_DETAILS_SELECT}
        WHERE e.group_id = ?
        ORDER BY st.sort_order ASC, e.created_at ASC;`,
-      [groupId],
+      [groupId]
     );
     return rows.map(rowToEntryWithDetails);
   }
 
   async deleteGroup(groupId: string): Promise<void> {
-    await this.db.runAsync("DELETE FROM service_entries WHERE group_id = ?;", [
-      groupId,
-    ]);
+    await this.db.runAsync('DELETE FROM service_entries WHERE group_id = ?;', [groupId]);
   }
 
   async getTotalCostForVehicle(vehicleId: string): Promise<number> {
     const row = await this.db.getFirstAsync<{ total: number }>(
       `SELECT COALESCE(SUM(cost), 0) AS total
        FROM service_entries WHERE vehicle_id = ? AND cost IS NOT NULL;`,
-      [vehicleId],
+      [vehicleId]
     );
     return row?.total ?? 0;
   }
 
   async getCountForVehicle(vehicleId: string): Promise<number> {
-    const row = await this.db.getFirstAsync<{ cnt: number }>(
-      "SELECT COUNT(*) AS cnt FROM service_entries WHERE vehicle_id = ?;",
-      [vehicleId],
-    );
+    const row = await this.db.getFirstAsync<{ cnt: number }>('SELECT COUNT(*) AS cnt FROM service_entries WHERE vehicle_id = ?;', [
+      vehicleId
+    ]);
     return row?.cnt ?? 0;
   }
 
-  async getCostByServiceType(
-    vehicleId: string,
-  ): Promise<{ name: string; translationKey?: string; total: number }[]> {
+  async getCostByServiceType(vehicleId: string): Promise<{ name: string; translationKey?: string; total: number }[]> {
     const rows = await this.db.getAllAsync<{ name: string; translation_key: string | null; total: number }>(
       `SELECT st.name, st.translation_key, COALESCE(SUM(e.cost), 0) AS total
        FROM service_entries e
@@ -287,29 +264,27 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
        WHERE e.vehicle_id = ? AND e.cost IS NOT NULL
        GROUP BY st.id
        ORDER BY total DESC;`,
-      [vehicleId],
+      [vehicleId]
     );
     return rows.map((r) => ({ name: r.name, translationKey: r.translation_key ?? undefined, total: r.total }));
   }
 
-  async getAllWithDates(
-    vehicleId: string,
-  ): Promise<{ dateTs: number; cost: number | null }[]> {
+  async getAllWithDates(vehicleId: string): Promise<{ dateTs: number; cost: number | null }[]> {
     const rows = await this.db.getAllAsync<{ date_ts: number; cost: number | null }>(
       `SELECT date_ts, cost FROM service_entries WHERE vehicle_id = ? ORDER BY date_ts ASC;`,
-      [vehicleId],
+      [vehicleId]
     );
     return rows.map((r) => ({ dateTs: r.date_ts, cost: r.cost }));
   }
 
   async getImagePathsForVehicle(vehicleId: string): Promise<string[]> {
     const rows = await this.db.getAllAsync<{ image_paths: string | null }>(
-      "SELECT image_paths FROM service_entries WHERE vehicle_id = ?;",
-      [vehicleId],
+      'SELECT image_paths FROM service_entries WHERE vehicle_id = ?;',
+      [vehicleId]
     );
     const paths = rows.flatMap((row) => {
       try {
-        return JSON.parse(row.image_paths ?? "[]") as string[];
+        return JSON.parse(row.image_paths ?? '[]') as string[];
       } catch {
         return [];
       }
@@ -317,15 +292,12 @@ export class SQLiteServiceEntryRepo implements IServiceEntryRepo {
     return [...new Set(paths)];
   }
 
-  async getAllByTypeForVehicle(
-    vehicleId: string,
-    serviceTypeId: string,
-  ): Promise<ServiceEntry[]> {
+  async getAllByTypeForVehicle(vehicleId: string, serviceTypeId: string): Promise<ServiceEntry[]> {
     const rows = await this.db.getAllAsync<EntryRow>(
       `SELECT * FROM service_entries
        WHERE vehicle_id = ? AND service_type_id = ?
        ORDER BY odometer_km ASC, date_ts ASC;`,
-      [vehicleId, serviceTypeId],
+      [vehicleId, serviceTypeId]
     );
     return rows.map(rowToEntry);
   }

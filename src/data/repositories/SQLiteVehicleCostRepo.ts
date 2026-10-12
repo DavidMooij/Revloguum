@@ -1,15 +1,9 @@
-import type * as SQLite from "expo-sqlite";
-import type {
-  VehicleCost,
-  CreateVehicleCostInput,
-  CostCategory,
-  IntervalType,
-  CostKind,
-} from "../../domain/entities/VehicleCost";
-import { generateUUID } from "../../utils/uuid";
+import type * as SQLite from 'expo-sqlite';
+import type { VehicleCost, CreateVehicleCostInput, CostCategory, IntervalType, CostKind } from '../../domain/entities/VehicleCost';
+import { generateUUID } from '../../utils/uuid';
 
-const HISTORY_KIND: CostKind = "history";
-const INTERVAL_KIND: CostKind = "interval";
+const HISTORY_KIND: CostKind = 'history';
+const INTERVAL_KIND: CostKind = 'interval';
 
 export interface UpsertPaymentIntervalInput {
   id?: string;
@@ -29,12 +23,7 @@ export class SQLiteVehicleCostRepo {
     const now = Date.now();
     const kind = input.kind ?? HISTORY_KIND;
     const intervalType = kind === INTERVAL_KIND ? (input.intervalType ?? null) : null;
-    const intervalDays =
-      kind === INTERVAL_KIND
-        ? input.intervalDays != null
-          ? Math.max(1, Math.floor(input.intervalDays))
-          : null
-        : null;
+    const intervalDays = kind === INTERVAL_KIND ? (input.intervalDays != null ? Math.max(1, Math.floor(input.intervalDays)) : null) : null;
 
     await this.db.runAsync(
       `INSERT INTO vehicle_costs
@@ -52,8 +41,8 @@ export class SQLiteVehicleCostRepo {
         input.paymentIntervalId ?? null,
         input.intervalDueTs ?? null,
         input.notes ?? null,
-        now,
-      ],
+        now
+      ]
     );
 
     return {
@@ -68,7 +57,7 @@ export class SQLiteVehicleCostRepo {
       paymentIntervalId: input.paymentIntervalId ?? null,
       intervalDueTs: input.intervalDueTs ?? null,
       notes: input.notes ?? null,
-      createdAt: now,
+      createdAt: now
     };
   }
 
@@ -81,7 +70,7 @@ export class SQLiteVehicleCostRepo {
       `SELECT * FROM vehicle_costs
        WHERE vehicle_id = ? AND COALESCE(kind, 'history') = 'history'
        ORDER BY date_ts DESC, created_at DESC;`,
-      [vehicleId],
+      [vehicleId]
     );
     return rows.map(this.rowToEntity);
   }
@@ -91,20 +80,17 @@ export class SQLiteVehicleCostRepo {
       `SELECT * FROM vehicle_costs
        WHERE vehicle_id = ? AND COALESCE(kind, 'history') = 'interval'
        ORDER BY date_ts ASC, created_at ASC;`,
-      [vehicleId],
+      [vehicleId]
     );
     return rows.map(this.rowToEntity);
   }
 
-  async replaceIntervals(
-    vehicleId: string,
-    intervals: UpsertPaymentIntervalInput[],
-  ): Promise<void> {
+  async replaceIntervals(vehicleId: string, intervals: UpsertPaymentIntervalInput[]): Promise<void> {
     await this.db.withTransactionAsync(async () => {
       await this.db.runAsync(
         `DELETE FROM vehicle_costs
          WHERE vehicle_id = ? AND COALESCE(kind, 'history') = 'interval';`,
-        [vehicleId],
+        [vehicleId]
       );
 
       const now = Date.now();
@@ -123,65 +109,59 @@ export class SQLiteVehicleCostRepo {
             interval.intervalType,
             Math.max(1, Math.floor(interval.intervalDays)),
             interval.notes ?? null,
-            now,
-          ],
+            now
+          ]
         );
       }
     });
   }
 
-  async update(
-    id: string,
-    input: Partial<CreateVehicleCostInput>,
-  ): Promise<void> {
+  async update(id: string, input: Partial<CreateVehicleCostInput>): Promise<void> {
     const sets: string[] = [];
     const values: SQLite.SQLiteBindValue[] = [];
     if (input.category !== undefined) {
-      sets.push("category = ?");
+      sets.push('category = ?');
       values.push(input.category);
     }
     if (input.amount !== undefined) {
-      sets.push("amount = ?");
+      sets.push('amount = ?');
       values.push(input.amount);
     }
     if (input.kind !== undefined) {
-      sets.push("kind = ?");
+      sets.push('kind = ?');
       values.push(input.kind);
     }
     if (input.dateTs !== undefined) {
-      sets.push("date_ts = ?");
+      sets.push('date_ts = ?');
       values.push(input.dateTs);
     }
     if (input.intervalType !== undefined) {
-      sets.push("interval_type = ?");
+      sets.push('interval_type = ?');
       values.push(input.intervalType ?? null);
     }
     if (input.intervalDays !== undefined) {
-      sets.push("interval_days = ?");
+      sets.push('interval_days = ?');
       values.push(input.intervalDays != null ? Math.max(1, Math.floor(input.intervalDays)) : null);
     }
     if (input.paymentIntervalId !== undefined) {
-      sets.push("payment_interval_id = ?");
+      sets.push('payment_interval_id = ?');
       values.push(input.paymentIntervalId ?? null);
     }
     if (input.intervalDueTs !== undefined) {
-      sets.push("interval_due_ts = ?");
+      sets.push('interval_due_ts = ?');
       values.push(input.intervalDueTs ?? null);
     }
     if (input.notes !== undefined) {
-      sets.push("notes = ?");
+      sets.push('notes = ?');
       values.push(input.notes ?? null);
     }
     if (!sets.length) return;
     values.push(id);
-    await this.db.runAsync(
-      `UPDATE vehicle_costs SET ${sets.join(", ")} WHERE id = ?;`,
-      values,
-    );
+    await this.db.runAsync(`UPDATE vehicle_costs SET ${sets.join(', ')} WHERE id = ?;`, values);
   }
 
   async delete(id: string): Promise<void> {
-    await this.db.runAsync("DELETE FROM vehicle_costs WHERE id = ?;", [id]);
+    await this.db.runAsync('DELETE FROM vehicle_costs WHERE id = ?;', [id]);
   }
 
   async getTotalCost(vehicleId: string): Promise<number> {
@@ -189,24 +169,22 @@ export class SQLiteVehicleCostRepo {
       `SELECT COALESCE(SUM(amount), 0) AS total
        FROM vehicle_costs
        WHERE vehicle_id = ? AND COALESCE(kind, 'history') = 'history';`,
-      [vehicleId],
+      [vehicleId]
     );
     return row?.total ?? 0;
   }
 
-  async getCostsByCategory(
-    vehicleId: string,
-  ): Promise<{ category: CostCategory; total: number }[]> {
+  async getCostsByCategory(vehicleId: string): Promise<{ category: CostCategory; total: number }[]> {
     const rows = await this.db.getAllAsync<{ category: string; total: number }>(
       `SELECT category, COALESCE(SUM(amount), 0) AS total
        FROM vehicle_costs
        WHERE vehicle_id = ? AND COALESCE(kind, 'history') = 'history'
        GROUP BY category;`,
-      [vehicleId],
+      [vehicleId]
     );
     return rows.map((r) => ({
       category: r.category as CostCategory,
-      total: r.total,
+      total: r.total
     }));
   }
 
@@ -216,7 +194,7 @@ export class SQLiteVehicleCostRepo {
        FROM vehicle_costs
        WHERE vehicle_id = ? AND COALESCE(kind, 'history') = 'history'
        ORDER BY date_ts ASC;`,
-      [vehicleId],
+      [vehicleId]
     );
     return rows.map((r) => ({ dateTs: r.date_ts, amount: r.amount }));
   }
@@ -224,19 +202,10 @@ export class SQLiteVehicleCostRepo {
   private rowToEntity(row: any): VehicleCost {
     const kind: CostKind = row.kind === INTERVAL_KIND ? INTERVAL_KIND : HISTORY_KIND;
     const intervalType: IntervalType =
-      row.interval_type === "monthly" ||
-      row.interval_type === "yearly" ||
-      row.interval_type === "custom"
-        ? row.interval_type
-        : null;
+      row.interval_type === 'monthly' || row.interval_type === 'yearly' || row.interval_type === 'custom' ? row.interval_type : null;
 
     const intervalDaysRaw = row.interval_days;
-    const derivedDays =
-      intervalType === "monthly"
-        ? 30
-        : intervalType === "yearly"
-          ? 365
-          : null;
+    const derivedDays = intervalType === 'monthly' ? 30 : intervalType === 'yearly' ? 365 : null;
 
     return {
       id: row.id,
@@ -246,14 +215,11 @@ export class SQLiteVehicleCostRepo {
       amount: row.amount,
       dateTs: row.date_ts,
       intervalType,
-      intervalDays:
-        intervalDaysRaw != null
-          ? Math.max(1, Math.floor(intervalDaysRaw))
-          : derivedDays,
+      intervalDays: intervalDaysRaw != null ? Math.max(1, Math.floor(intervalDaysRaw)) : derivedDays,
       paymentIntervalId: row.payment_interval_id ?? null,
       intervalDueTs: row.interval_due_ts ?? null,
       notes: row.notes,
-      createdAt: row.created_at,
+      createdAt: row.created_at
     };
   }
 }

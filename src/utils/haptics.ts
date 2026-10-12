@@ -1,4 +1,4 @@
-import * as Haptics from "expo-haptics";
+import * as Haptics from 'expo-haptics';
 
 let enabled = true;
 
@@ -19,5 +19,5 @@ export const haptic = {
   selection: () => run(() => Haptics.selectionAsync()),
   success: () => run(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)),
   error: () => run(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)),
-  warning: () => run(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)),
+  warning: () => run(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning))
 };

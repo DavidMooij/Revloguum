@@ -4,10 +4,7 @@ export interface ServiceTypeLike {
 }
 
 export class ServiceTypeLabelService {
-  static getLabel(
-    serviceType: ServiceTypeLike,
-    t: (key: string) => string,
-  ): string {
+  static getLabel(serviceType: ServiceTypeLike, t: (key: string) => string): string {
     if (serviceType.translationKey) {
       return t(serviceType.translationKey);
     }

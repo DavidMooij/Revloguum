@@ -1,13 +1,13 @@
-import React from "react";
-import { useTranslation } from "react-i18next";
-import { View, Text, StyleSheet } from "react-native";
-import { FontAwesome5 as Icon } from "@expo/vector-icons";
-import { colors } from "../../../../theme/colors";
-import { spacing, radius } from "../../../../theme/spacing";
-import { typography, typeScale } from "../../../../theme/typography";
-import { formatOdometer } from "../../../../utils/format";
-import { formatDate } from "../../../../utils/date";
-import type { TyreDataPoint } from "../../../../hooks/useVehicleStats";
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { View, Text, StyleSheet } from 'react-native';
+import { FontAwesome5 as Icon } from '@expo/vector-icons';
+import { colors } from '../../../../theme/colors';
+import { spacing, radius } from '../../../../theme/spacing';
+import { typography, typeScale } from '../../../../theme/typography';
+import { formatOdometer } from '../../../../utils/format';
+import { formatDate } from '../../../../utils/date';
+import type { TyreDataPoint } from '../../../../hooks/useVehicleStats';
 
 interface Props {
   data: TyreDataPoint[];
@@ -16,13 +16,8 @@ interface Props {
 export default function TyreAnalysisSection({ data }: Props) {
   const { t } = useTranslation();
 
-  const intervals = data
-    .map((d) => d.kmSincePrev)
-    .filter((v): v is number => v != null && v > 0);
-  const avgLife =
-    intervals.length > 0
-      ? intervals.reduce((s, v) => s + v, 0) / intervals.length
-      : null;
+  const intervals = data.map((d) => d.kmSincePrev).filter((v): v is number => v != null && v > 0);
+  const avgLife = intervals.length > 0 ? intervals.reduce((s, v) => s + v, 0) / intervals.length : null;
 
   const ordered = [...data].reverse();
 
@@ -32,20 +27,18 @@ export default function TyreAnalysisSection({ data }: Props) {
         <View style={styles.headerIcon}>
           <Icon name="circle-notch" size={13} color={colors.accent} />
         </View>
-        <Text style={styles.sectionLabel}>{t("stats.tyreSection")}</Text>
+        <Text style={styles.sectionLabel}>{t('stats.tyreSection')}</Text>
       </View>
 
       <View style={styles.summaryRow}>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryValue}>{data.length}</Text>
-          <Text style={styles.summaryLabel}>{t("stats.tyreChangeCount")}</Text>
+          <Text style={styles.summaryLabel}>{t('stats.tyreChangeCount')}</Text>
         </View>
         <View style={styles.summaryDiv} />
         <View style={styles.summaryItem}>
-          <Text style={styles.summaryValue}>
-            {avgLife != null ? formatOdometer(Math.round(avgLife)) : "-"}
-          </Text>
-          <Text style={styles.summaryLabel}>{t("stats.avgTyreLife")}</Text>
+          <Text style={styles.summaryValue}>{avgLife != null ? formatOdometer(Math.round(avgLife)) : '-'}</Text>
+          <Text style={styles.summaryLabel}>{t('stats.avgTyreLife')}</Text>
         </View>
       </View>
 
@@ -56,16 +49,14 @@ export default function TyreAnalysisSection({ data }: Props) {
             {d.kmSincePrev != null ? (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>
-                  {t("stats.tyreSincePrev", {
-                    km: d.kmSincePrev.toLocaleString(),
+                  {t('stats.tyreSincePrev', {
+                    km: d.kmSincePrev.toLocaleString()
                   })}
                 </Text>
               </View>
             ) : (
               <View style={styles.badgeMuted}>
-                <Text style={styles.badgeMutedText}>
-                  {t("stats.tyreFirstRecord")}
-                </Text>
+                <Text style={styles.badgeMutedText}>{t('stats.tyreFirstRecord')}</Text>
               </View>
             )}
           </View>
@@ -84,40 +75,40 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border1,
     padding: spacing.md,
-    gap: spacing.md,
+    gap: spacing.md
   },
-  headerRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   headerIcon: {
     width: 26,
     height: 26,
     borderRadius: 13,
     backgroundColor: colors.accentMuted,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   sectionLabel: {
-    ...typography.overline,
+    ...typography.overline
   },
   summaryRow: {
-    flexDirection: "row",
+    flexDirection: 'row',
     backgroundColor: colors.bg2,
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border1,
-    padding: spacing.md,
+    padding: spacing.md
   },
-  summaryItem: { flex: 1, alignItems: "center", gap: 2 },
+  summaryItem: { flex: 1, alignItems: 'center', gap: 2 },
   summaryDiv: { width: 1, backgroundColor: colors.border0 },
   summaryValue: {
     ...typography.bodyStrong,
-    fontWeight: "700",
-    color: colors.text0,
+    fontWeight: '700',
+    color: colors.text0
   },
   summaryLabel: {
     fontSize: typeScale.overline,
     color: colors.text2,
-    textTransform: "uppercase",
-    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4
   },
   entry: {
     backgroundColor: colors.bg2,
@@ -125,28 +116,28 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border1,
     padding: spacing.md,
-    gap: 4,
+    gap: 4
   },
   entryTop: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
   },
-  entryOdo: { ...typography.bodyStrong, fontWeight: "700", color: colors.text0 },
+  entryOdo: { ...typography.bodyStrong, fontWeight: '700', color: colors.text0 },
   badge: {
     backgroundColor: colors.accentMuted,
     borderRadius: radius.full,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
+    paddingVertical: 2
   },
-  badgeText: { fontSize: typeScale.caption, fontWeight: "600", color: colors.accentText },
+  badgeText: { fontSize: typeScale.caption, fontWeight: '600', color: colors.accentText },
   badgeMuted: {
     backgroundColor: colors.bg3,
     borderRadius: radius.full,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
+    paddingVertical: 2
   },
   badgeMutedText: { fontSize: typeScale.caption, color: colors.text2 },
   entryDate: { fontSize: typeScale.captionLarge, color: colors.text2 },
-  entryNotes: { fontSize: typeScale.captionLarge, color: colors.text1, fontStyle: "italic" },
+  entryNotes: { fontSize: typeScale.captionLarge, color: colors.text1, fontStyle: 'italic' }
 });

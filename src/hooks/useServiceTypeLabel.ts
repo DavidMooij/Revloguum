@@ -3,6 +3,5 @@ import { ServiceTypeLabelService, type ServiceTypeLike } from '@/domain/services
 
 export function useServiceTypeLabel() {
   const { t } = useTranslation();
-  return (serviceType: ServiceTypeLike) =>
-    ServiceTypeLabelService.getLabel(serviceType, t);
+  return (serviceType: ServiceTypeLike) => ServiceTypeLabelService.getLabel(serviceType, t);
 }

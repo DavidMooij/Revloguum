@@ -1,10 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { getDatabase } from '../data/db/database';
-import {
-  SQLiteVehicleCostRepo,
-  type UpsertPaymentIntervalInput,
-} from '../data/repositories/SQLiteVehicleCostRepo';
+import { SQLiteVehicleCostRepo, type UpsertPaymentIntervalInput } from '../data/repositories/SQLiteVehicleCostRepo';
 import type { VehicleCost, CreateVehicleCostInput } from '../domain/entities/VehicleCost';
 import { syncNotifications } from '@/notifications/syncNotifications';
 import { SQLiteDocumentRepo } from '../data/repositories/SQLiteDocumentRepo';
@@ -24,7 +21,7 @@ export function useVehicleCosts(vehicleId: string) {
       const [history, intervalRows, total] = await Promise.all([
         repo.getHistory(vehicleId),
         repo.getIntervals(vehicleId),
-        repo.getTotalCost(vehicleId),
+        repo.getTotalCost(vehicleId)
       ]);
       setCosts(history);
       setIntervals(intervalRows);
@@ -34,41 +31,53 @@ export function useVehicleCosts(vehicleId: string) {
     }
   }, [vehicleId]);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
 
-  const addCost = useCallback(async (input: CreateVehicleCostInput) => {
-    const db = await getDatabase();
-    await new SQLiteVehicleCostRepo(db).insert(input);
-    await load();
-    await syncNotifications();
-  }, [load]);
+  const addCost = useCallback(
+    async (input: CreateVehicleCostInput) => {
+      const db = await getDatabase();
+      await new SQLiteVehicleCostRepo(db).insert(input);
+      await load();
+      await syncNotifications();
+    },
+    [load]
+  );
 
-  const updateCost = useCallback(async (id: string, input: Partial<CreateVehicleCostInput>) => {
-    const db = await getDatabase();
-    await new SQLiteVehicleCostRepo(db).update(id, input);
-    await load();
-    await syncNotifications();
-  }, [load]);
+  const updateCost = useCallback(
+    async (id: string, input: Partial<CreateVehicleCostInput>) => {
+      const db = await getDatabase();
+      await new SQLiteVehicleCostRepo(db).update(id, input);
+      await load();
+      await syncNotifications();
+    },
+    [load]
+  );
 
-  const deleteCost = useCallback(async (id: string) => {
-    const db = await getDatabase();
-    const documents = await new SQLiteDocumentRepo(db).getForOwner('cost', id);
-    await new SQLiteVehicleCostRepo(db).delete(id);
-    await Promise.all(
-      documents.flatMap((document) => document.pages).map((page) =>
-        deleteEncryptedImage(page.path),
-      ),
-    );
-    await load();
-    await syncNotifications();
-  }, [load]);
+  const deleteCost = useCallback(
+    async (id: string) => {
+      const db = await getDatabase();
+      const documents = await new SQLiteDocumentRepo(db).getForOwner('cost', id);
+      await new SQLiteVehicleCostRepo(db).delete(id);
+      await Promise.all(documents.flatMap((document) => document.pages).map((page) => deleteEncryptedImage(page.path)));
+      await load();
+      await syncNotifications();
+    },
+    [load]
+  );
 
-  const replaceIntervals = useCallback(async (next: UpsertPaymentIntervalInput[]) => {
-    const db = await getDatabase();
-    await new SQLiteVehicleCostRepo(db).replaceIntervals(vehicleId, next);
-    await load();
-    await syncNotifications();
-  }, [vehicleId, load]);
+  const replaceIntervals = useCallback(
+    async (next: UpsertPaymentIntervalInput[]) => {
+      const db = await getDatabase();
+      await new SQLiteVehicleCostRepo(db).replaceIntervals(vehicleId, next);
+      await load();
+      await syncNotifications();
+    },
+    [vehicleId, load]
+  );
 
   return {
     costs,
@@ -79,6 +88,6 @@ export function useVehicleCosts(vehicleId: string) {
     addCost,
     updateCost,
     deleteCost,
-    replaceIntervals,
+    replaceIntervals
   };
 }

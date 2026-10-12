@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: spacing.huge,
+    padding: spacing.huge
   },
   iconWrap: {
     width: 72,
@@ -37,8 +37,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg2,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.lg
   },
   title: { color: colors.text1, textAlign: 'center' },
-  sub: { textAlign: 'center', marginTop: spacing.xs },
+  sub: { textAlign: 'center', marginTop: spacing.xs }
 });

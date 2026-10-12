@@ -1,14 +1,9 @@
-import * as FileSystem from "expo-file-system/legacy";
-import {
-  randomBytes,
-  createCipheriv,
-  Buffer,
-  createDecipheriv,
-} from "react-native-quick-crypto";
-import { getDatabaseKey } from "./keyManager";
+import * as FileSystem from 'expo-file-system/legacy';
+import { randomBytes, createCipheriv, Buffer, createDecipheriv } from 'react-native-quick-crypto';
+import { getDatabaseKey } from './keyManager';
 
 function bufferToHex(buffer: Buffer) {
-  return buffer.toString("hex");
+  return buffer.toString('hex');
 }
 
 function hexToBuffer(hex: string) {
@@ -28,46 +23,40 @@ export async function encryptImage(uri: string): Promise<string> {
 
   const iv = Buffer.from(randomBytes(12));
 
-  const cipher = createCipheriv("aes-256-gcm", key, iv);
+  const cipher = createCipheriv('aes-256-gcm', key, iv);
 
   const base64 = await FileSystem.readAsStringAsync(uri, {
-    encoding: FileSystem.EncodingType.Base64,
+    encoding: FileSystem.EncodingType.Base64
   });
 
-  const encrypted = Buffer.concat([
-    cipher.update(Buffer.from(base64, "base64")),
-    cipher.final(),
-  ]);
+  const encrypted = Buffer.concat([cipher.update(Buffer.from(base64, 'base64')), cipher.final()]);
 
   const tag = cipher.getAuthTag();
-  const sourcePath = uri.split("?")[0].toLowerCase();
-  const ext =
-    base64.startsWith("iVBORw0KGgo") || sourcePath.endsWith(".png")
-      ? "png"
-      : "jpg";
+  const sourcePath = uri.split('?')[0].toLowerCase();
+  const ext = base64.startsWith('iVBORw0KGgo') || sourcePath.endsWith('.png') ? 'png' : 'jpg';
 
   const payload = {
     iv: bufferToHex(iv),
     tag: bufferToHex(tag),
-    data: encrypted.toString("hex"),
-    ext,
+    data: encrypted.toString('hex'),
+    ext
   };
 
-  const dir = FileSystem.documentDirectory + "revloguum_images/";
+  const dir = FileSystem.documentDirectory + 'revloguum_images/';
 
   const info = await FileSystem.getInfoAsync(dir);
 
   if (!info.exists) {
     await FileSystem.makeDirectoryAsync(dir, {
-      intermediates: true,
+      intermediates: true
     });
   }
 
-  const suffix = Buffer.from(randomBytes(8)).toString("hex");
+  const suffix = Buffer.from(randomBytes(8)).toString('hex');
   const filename = `${dir}${Date.now()}_${suffix}.enc`;
 
   await FileSystem.writeAsStringAsync(filename, JSON.stringify(payload), {
-    encoding: FileSystem.EncodingType.UTF8,
+    encoding: FileSystem.EncodingType.UTF8
   });
 
   return filename;
@@ -79,32 +68,25 @@ export async function decryptImage(encryptedPath: string): Promise<string> {
   const key = hexToBuffer(keyHex);
 
   const raw = await FileSystem.readAsStringAsync(encryptedPath, {
-    encoding: FileSystem.EncodingType.UTF8,
+    encoding: FileSystem.EncodingType.UTF8
   });
 
   const payload = JSON.parse(raw);
 
-  const decipher = createDecipheriv(
-    "aes-256-gcm",
-    key,
-    hexToBuffer(payload.iv),
-  );
+  const decipher = createDecipheriv('aes-256-gcm', key, hexToBuffer(payload.iv));
 
   decipher.setAuthTag(hexToBuffer(payload.tag));
 
-  const decrypted = Buffer.concat([
-    decipher.update(Buffer.from(payload.data, "hex")),
-    decipher.final(),
-  ]);
+  const decrypted = Buffer.concat([decipher.update(Buffer.from(payload.data, 'hex')), decipher.final()]);
 
-  const filename = encryptedPath.split("/").pop();
+  const filename = encryptedPath.split('/').pop();
 
-  const ext = payload.ext === "png" ? "png" : "jpg";
+  const ext = payload.ext === 'png' ? 'png' : 'jpg';
 
-  const temp = FileSystem.cacheDirectory + "revloguum_preview_" + filename + "." + ext;
+  const temp = FileSystem.cacheDirectory + 'revloguum_preview_' + filename + '.' + ext;
 
-  await FileSystem.writeAsStringAsync(temp, decrypted.toString("base64"), {
-    encoding: FileSystem.EncodingType.Base64,
+  await FileSystem.writeAsStringAsync(temp, decrypted.toString('base64'), {
+    encoding: FileSystem.EncodingType.Base64
   });
 
   return temp;

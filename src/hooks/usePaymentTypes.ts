@@ -1,10 +1,7 @@
-import { useState, useCallback, useEffect } from "react";
-import { getDatabase } from "../data/db/database";
-import { SQLitePaymentTypeRepo } from "../data/repositories/SQLitePaymentTypeRepo";
-import type {
-  PaymentType,
-  CreatePaymentTypeInput,
-} from "../domain/entities/PaymentType";
+import { useState, useCallback, useEffect } from 'react';
+import { getDatabase } from '../data/db/database';
+import { SQLitePaymentTypeRepo } from '../data/repositories/SQLitePaymentTypeRepo';
+import type { PaymentType, CreatePaymentTypeInput } from '../domain/entities/PaymentType';
 
 export function usePaymentTypes() {
   const [paymentTypes, setPaymentTypes] = useState<PaymentType[]>([]);
@@ -34,7 +31,7 @@ export function usePaymentTypes() {
       await refresh();
       return pt;
     },
-    [refresh],
+    [refresh]
   );
 
   const updatePaymentType = useCallback(
@@ -44,7 +41,7 @@ export function usePaymentTypes() {
       await repo.update(id, name, icon);
       await refresh();
     },
-    [refresh],
+    [refresh]
   );
 
   const deletePaymentType = useCallback(
@@ -54,7 +51,7 @@ export function usePaymentTypes() {
       await repo.delete(id);
       await refresh();
     },
-    [refresh],
+    [refresh]
   );
 
   return {
@@ -63,6 +60,6 @@ export function usePaymentTypes() {
     refresh,
     addPaymentType,
     updatePaymentType,
-    deletePaymentType,
+    deletePaymentType
   };
 }

@@ -1,5 +1,5 @@
-import type * as SQLite from "expo-sqlite";
-import { SYSTEM_SERVICE_TYPES } from "../../../domain/entities/ServiceType";
+import type * as SQLite from 'expo-sqlite';
+import { SYSTEM_SERVICE_TYPES } from '../../../domain/entities/ServiceType';
 
 export async function seedSystemServiceTypes(db: SQLite.SQLiteDatabase): Promise<void> {
   const now = Date.now();
@@ -16,7 +16,7 @@ export async function seedSystemServiceTypes(db: SQLite.SQLiteDatabase): Promise
         created_at
       )
       VALUES (?, ?, ?, ?, 1, ?, ?);`,
-      [st.id, st.name, st.translationKey ?? null, st.icon, st.sortOrder, now],
+      [st.id, st.name, st.translationKey ?? null, st.icon, st.sortOrder, now]
     );
   }
 }
