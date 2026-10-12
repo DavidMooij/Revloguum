@@ -38,7 +38,7 @@ export default function DatePickerField({ value, onChange, label, showLabel = tr
   const commitEdit = (field: Field, text: string) => {
     const n = parseInt(text, 10);
     if (!isNaN(n)) {
-      setTempDate(prev => {
+      setTempDate((prev) => {
         const d = new Date(prev);
         if (field === 'day' && n >= 1 && n <= 31) d.setDate(n);
         if (field === 'month' && n >= 1 && n <= 12) d.setMonth(n - 1);
@@ -55,11 +55,11 @@ export default function DatePickerField({ value, onChange, label, showLabel = tr
   };
 
   const adjust = (field: Field, delta: number) => {
-    setTempDate(prev => {
+    setTempDate((prev) => {
       const d = new Date(prev);
-      if (field === 'day')   d.setDate(d.getDate() + delta);
+      if (field === 'day') d.setDate(d.getDate() + delta);
       if (field === 'month') d.setMonth(d.getMonth() + delta);
-      if (field === 'year')  d.setFullYear(d.getFullYear() + delta);
+      if (field === 'year') d.setFullYear(d.getFullYear() + delta);
       return d;
     });
   };
@@ -73,14 +73,12 @@ export default function DatePickerField({ value, onChange, label, showLabel = tr
   const FIELDS: { key: Field; label: string }[] = [
     { key: 'day', label: t('addEntry.dateDay') },
     { key: 'month', label: t('addEntry.dateMonth') },
-    { key: 'year', label: t('addEntry.dateYear') },
+    { key: 'year', label: t('addEntry.dateYear') }
   ];
 
   return (
     <View>
-      {showLabel ? (
-        <Text style={[typography.label, styles.label]}>{label ?? t('common.date')}</Text>
-      ) : null}
+      {showLabel ? <Text style={[typography.label, styles.label]}>{label ?? t('common.date')}</Text> : null}
       <TouchableOpacity style={styles.field} onPress={openPicker}>
         <Text style={styles.value}>{formatDate(value)}</Text>
         <Text style={styles.chevron}>›</Text>
@@ -151,7 +149,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border1,
     paddingHorizontal: spacing.md,
-    height: 48,
+    height: 48
   },
   value: { color: colors.text0, fontSize: typeScale.body },
   chevron: { color: colors.text2, fontSize: typeScale.titleMedium },
@@ -160,14 +158,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.xl,
+    padding: spacing.xl
   },
   sheet: {
     backgroundColor: colors.bg2,
     borderRadius: 20,
     padding: spacing.xxl,
     width: '100%',
-    gap: spacing.xl,
+    gap: spacing.xl
   },
   title: { textAlign: 'center' },
   hint: { fontSize: typeScale.caption, color: colors.text3, textAlign: 'center', marginTop: -spacing.md },
@@ -188,7 +186,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.accent,
     paddingVertical: spacing.xs,
-    width: '100%',
+    width: '100%'
   },
-  actions: { flexDirection: 'row', gap: spacing.md },
+  actions: { flexDirection: 'row', gap: spacing.md }
 });

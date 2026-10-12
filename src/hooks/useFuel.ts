@@ -1,16 +1,10 @@
-import { useState, useCallback } from "react";
-import { recalculateVehicleOdometer } from "../utils/updateVehicleOdometer";
-import { useFocusEffect } from "@react-navigation/native";
-import { getDatabase } from "../data/db/database";
-import { SQLiteFuelRepo } from "../data/repositories/SQLiteFuelRepo";
-import type {
-  FuelEntry,
-  CreateFuelEntryInput,
-  UpdateFuelEntryInput,
-  FuelFilter,
-  FuelStats,
-} from "../domain/entities/FuelEntry";
-import { syncNotifications } from "@/notifications/syncNotifications";
+import { useState, useCallback } from 'react';
+import { recalculateVehicleOdometer } from '../utils/updateVehicleOdometer';
+import { useFocusEffect } from '@react-navigation/native';
+import { getDatabase } from '../data/db/database';
+import { SQLiteFuelRepo } from '../data/repositories/SQLiteFuelRepo';
+import type { FuelEntry, CreateFuelEntryInput, UpdateFuelEntryInput, FuelFilter, FuelStats } from '../domain/entities/FuelEntry';
+import { syncNotifications } from '@/notifications/syncNotifications';
 
 export function useFuel(filter: FuelFilter) {
   const [entries, setEntries] = useState<FuelEntry[]>([]);
@@ -19,7 +13,7 @@ export function useFuel(filter: FuelFilter) {
     totalCost: 0,
     avgCostPerLiter: 0,
     avgConsumption: 0,
-    totalEntries: 0,
+    totalEntries: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -28,30 +22,18 @@ export function useFuel(filter: FuelFilter) {
     try {
       const db = await getDatabase();
       const repo = new SQLiteFuelRepo(db);
-      const [rows, s] = await Promise.all([
-        repo.fetchFiltered(filter),
-        repo.getStats(filter),
-      ]);
+      const [rows, s] = await Promise.all([repo.fetchFiltered(filter), repo.getStats(filter)]);
       setEntries(rows);
       setStats(s);
     } finally {
       setLoading(false);
     }
-  }, [
-    filter.vehicleId,
-    filter.dateFrom,
-    filter.dateTo,
-    filter.searchText,
-    filter.notesOnly,
-    filter.limit,
-    filter.offset,
-  ]);
-
+  }, [filter.vehicleId, filter.dateFrom, filter.dateTo, filter.searchText, filter.notesOnly, filter.limit, filter.offset]);
 
   useFocusEffect(
     useCallback(() => {
       load();
-    }, [load]),
+    }, [load])
   );
 
   const addEntry = useCallback(
@@ -65,7 +47,7 @@ export function useFuel(filter: FuelFilter) {
       await load();
       void syncNotifications().catch(() => {});
     },
-    [load],
+    [load]
   );
 
   const deleteEntry = useCallback(
@@ -80,7 +62,7 @@ export function useFuel(filter: FuelFilter) {
       await load();
       void syncNotifications().catch(() => {});
     },
-    [load],
+    [load]
   );
 
   const updateEntry = useCallback(
@@ -99,7 +81,7 @@ export function useFuel(filter: FuelFilter) {
       await load();
       void syncNotifications().catch(() => {});
     },
-    [load],
+    [load]
   );
 
   return {
@@ -109,6 +91,6 @@ export function useFuel(filter: FuelFilter) {
     refresh: load,
     addEntry,
     updateEntry,
-    deleteEntry,
+    deleteEntry
   };
 }

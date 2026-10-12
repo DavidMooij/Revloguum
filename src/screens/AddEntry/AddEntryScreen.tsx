@@ -1,71 +1,53 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useTranslation } from "react-i18next";
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableOpacity,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import type {
-  NativeStackNavigationProp,
-  NativeStackScreenProps,
-} from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../../app/navigation/routes";
-import { colors } from "../../theme/colors";
-import { typography, typeScale } from "../../theme/typography";
-import { spacing, radius } from "../../theme/spacing";
-import { useServiceTypes } from "../../hooks/useServiceTypes";
-import { useServiceEntryActions } from "../../hooks/useServiceHistory";
-import { useVehicles } from "../../hooks/useVehicles";
-import { getDatabase } from "../../data/db/database";
-import { SQLiteServiceEntryRepo } from "../../data/repositories/SQLiteServiceEntryRepo";
-import { generateUUID } from "../../utils/uuid";
-import ServiceBlockEditor, {
-  type ServiceBlock,
-} from "./components/ServiceBlockEditor";
-import DatePickerField from "./components/DatePickerField";
-import TextInputField from "../components/TextInputField";
-import PrimaryButton from "../components/PrimaryButton";
-import ScreenHeader from "../components/ScreenHeader";
-import AlertModal from "../components/AlertModal";
-import { haptic } from "@/utils/haptics";
-import * as ImagePicker from "expo-image-picker";
-import { Image } from "expo-image";
-import { FontAwesome5 as Icon } from "@expo/vector-icons";
-import { decryptImage, encryptImage } from "@/security/imageEncryption";
-import { useFeedback } from "../components/feedback/Feedbackprovider";
-import { SQLiteDocumentRepo } from "../../data/repositories/SQLiteDocumentRepo";
+import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { View, Text, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../../app/navigation/routes';
+import { colors } from '../../theme/colors';
+import { typography, typeScale } from '../../theme/typography';
+import { spacing, radius } from '../../theme/spacing';
+import { useServiceTypes } from '../../hooks/useServiceTypes';
+import { useServiceEntryActions } from '../../hooks/useServiceHistory';
+import { useVehicles } from '../../hooks/useVehicles';
+import { getDatabase } from '../../data/db/database';
+import { SQLiteServiceEntryRepo } from '../../data/repositories/SQLiteServiceEntryRepo';
+import { generateUUID } from '../../utils/uuid';
+import ServiceBlockEditor, { type ServiceBlock } from './components/ServiceBlockEditor';
+import DatePickerField from './components/DatePickerField';
+import TextInputField from '../components/TextInputField';
+import PrimaryButton from '../components/PrimaryButton';
+import ScreenHeader from '../components/ScreenHeader';
+import AlertModal from '../components/AlertModal';
+import { haptic } from '@/utils/haptics';
+import * as ImagePicker from 'expo-image-picker';
+import { Image } from 'expo-image';
+import { FontAwesome5 as Icon } from '@expo/vector-icons';
+import { decryptImage, encryptImage } from '@/security/imageEncryption';
+import { useFeedback } from '../components/feedback/Feedbackprovider';
+import { SQLiteDocumentRepo } from '../../data/repositories/SQLiteDocumentRepo';
 
-type Props = NativeStackScreenProps<RootStackParamList, "AddEntry">;
+type Props = NativeStackScreenProps<RootStackParamList, 'AddEntry'>;
 
 export default function AddEntryScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const route = useRoute<Props["route"]>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const route = useRoute<Props['route']>();
   const { vehicleId, editEntryId } = route.params ?? {};
 
   const { serviceTypes } = useServiceTypes();
   const { addGroup, deleteGroup, deleteEntry } = useServiceEntryActions();
   const { vehicles, activeVehicleId } = useVehicles();
 
-  const resolvedMotoId = vehicleId ?? activeVehicleId ?? vehicles[0]?.id ?? "";
+  const resolvedMotoId = vehicleId ?? activeVehicleId ?? vehicles[0]?.id ?? '';
 
-  const [blocks, setBlocks] = useState<ServiceBlock[]>([
-    { key: generateUUID(), serviceTypeId: null, cost: "", notes: "" },
-  ]);
+  const [blocks, setBlocks] = useState<ServiceBlock[]>([{ key: generateUUID(), serviceTypeId: null, cost: '', notes: '' }]);
   const [dateTs, setDateTs] = useState(Date.now());
-  const [odometer, setOdometer] = useState("");
+  const [odometer, setOdometer] = useState('');
   const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState<{ blocks?: string; odometer?: string }>(
-    {},
-  );
+  const [errors, setErrors] = useState<{ blocks?: string; odometer?: string }>({});
   const [images, setImages] = useState<string[]>([]);
   const [errorAlert, setErrorAlert] = useState<string | null>(null);
   const [cameraAlert, setCameraAlert] = useState(false);
@@ -75,21 +57,11 @@ export default function AddEntryScreen() {
   const [editVehicleId, setEditVehicleId] = useState<string | null>(null);
   const { showToast, showCelebration } = useFeedback();
 
-  const updateBlock = useCallback(
-    (key: string, patch: Partial<ServiceBlock>) => {
-      setBlocks((prev) =>
-        prev.map((b) => (b.key === key ? { ...b, ...patch } : b)),
-      );
-    },
-    [],
-  );
-  const addBlock = () =>
-    setBlocks((prev) => [
-      ...prev,
-      { key: generateUUID(), serviceTypeId: null, cost: "", notes: "" },
-    ]);
-  const removeBlock = (key: string) =>
-    setBlocks((prev) => prev.filter((b) => b.key !== key));
+  const updateBlock = useCallback((key: string, patch: Partial<ServiceBlock>) => {
+    setBlocks((prev) => prev.map((b) => (b.key === key ? { ...b, ...patch } : b)));
+  }, []);
+  const addBlock = () => setBlocks((prev) => [...prev, { key: generateUUID(), serviceTypeId: null, cost: '', notes: '' }]);
+  const removeBlock = (key: string) => setBlocks((prev) => prev.filter((b) => b.key !== key));
 
   useEffect(() => {
     if (isEditing || !resolvedMotoId) return;
@@ -102,9 +74,7 @@ export default function AddEntryScreen() {
   }, [resolvedMotoId, isEditing]);
 
   const getEncryptedImages = useCallback(async (uris: string[]) => {
-    return Promise.all(
-      uris.map((uri) => (uri.endsWith(".enc") ? uri : encryptImage(uri))),
-    );
+    return Promise.all(uris.map((uri) => (uri.endsWith('.enc') ? uri : encryptImage(uri))));
   }, []);
 
   useEffect(() => {
@@ -125,18 +95,18 @@ export default function AddEntryScreen() {
           groupItems.map((g) => ({
             key: g.id,
             serviceTypeId: g.serviceTypeId,
-            cost: g.cost != null ? String(g.cost) : "",
-            notes: g.notes ?? "",
-          })),
+            cost: g.cost != null ? String(g.cost) : '',
+            notes: g.notes ?? ''
+          }))
         );
       } else {
         setBlocks([
           {
             key: entry.id,
             serviceTypeId: entry.serviceTypeId,
-            cost: entry.cost != null ? String(entry.cost) : "",
-            notes: entry.notes ?? "",
-          },
+            cost: entry.cost != null ? String(entry.cost) : '',
+            notes: entry.notes ?? ''
+          }
         ]);
       }
     })();
@@ -150,7 +120,7 @@ export default function AddEntryScreen() {
 
       for (const path of images) {
         try {
-          if (path.endsWith(".enc")) {
+          if (path.endsWith('.enc')) {
             result[path] = await decryptImage(path);
           } else {
             result[path] = path;
@@ -172,9 +142,9 @@ export default function AddEntryScreen() {
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
+      mediaTypes: ['images'],
       allowsMultipleSelection: true,
-      quality: 0.8,
+      quality: 0.8
     });
     if (!result.canceled) {
       setImages((prev) => [...prev, ...result.assets.map((a) => a.uri)]);
@@ -195,11 +165,9 @@ export default function AddEntryScreen() {
 
   const validate = useCallback(() => {
     const errs: { blocks?: string; odometer?: string } = {};
-    if (!blocks.some((b) => b.serviceTypeId))
-      errs.blocks = t("addEntry.errorTypeRequired");
+    if (!blocks.some((b) => b.serviceTypeId)) errs.blocks = t('addEntry.errorTypeRequired');
     const odo = parseInt(odometer, 10);
-    if (!odometer || isNaN(odo) || odo < 0)
-      errs.odometer = t("addEntry.errorOdometerRequired");
+    if (!odometer || isNaN(odo) || odo < 0) errs.odometer = t('addEntry.errorOdometerRequired');
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }, [blocks, odometer, t]);
@@ -219,7 +187,7 @@ export default function AddEntryScreen() {
         .map((b) => ({
           serviceTypeId: b.serviceTypeId!,
           cost: b.cost.trim() ? parseFloat(b.cost) : null,
-          notes: b.notes.trim() || null,
+          notes: b.notes.trim() || null
         }));
 
       const documentHoldingId = `editing-${generateUUID()}`;
@@ -231,10 +199,7 @@ export default function AddEntryScreen() {
           const documentRepo = new SQLiteDocumentRepo(db);
           const documents = await documentRepo.getForServiceEntry(editEntryId);
           preservedDocumentIds = documents.map((document) => document.id);
-          await documentRepo.reassignDocuments(
-            preservedDocumentIds,
-            documentHoldingId,
-          );
+          await documentRepo.reassignDocuments(preservedDocumentIds, documentHoldingId);
         }
         if (editGroupId) await deleteGroup(editGroupId, encryptedImages);
         else if (editEntryId) await deleteEntry(editEntryId, encryptedImages);
@@ -243,42 +208,35 @@ export default function AddEntryScreen() {
       let isFirstServiceEver = false;
       if (!isEditing) {
         const db = await getDatabase();
-        const countRow = await db.getFirstAsync<{ c: number }>(
-          "SELECT COUNT(*) as c FROM service_entries;",
-        );
+        const countRow = await db.getFirstAsync<{ c: number }>('SELECT COUNT(*) as c FROM service_entries;');
         isFirstServiceEver = (countRow?.c ?? 0) === 0;
       }
 
       const createdGroup = await addGroup(
         {
-          vehicleId: isEditing
-            ? (editVehicleId ?? resolvedMotoId)
-            : resolvedMotoId,
+          vehicleId: isEditing ? (editVehicleId ?? resolvedMotoId) : resolvedMotoId,
           dateTs,
           odometerKm: parsedOdo,
-          imagePaths: encryptedImages,
+          imagePaths: encryptedImages
         },
-        items,
+        items
       );
       if (preservedDocumentIds.length > 0 && createdGroup.entryIds[0]) {
         const db = await getDatabase();
-        await new SQLiteDocumentRepo(db).reassignDocuments(
-          preservedDocumentIds,
-          createdGroup.entryIds[0],
-        );
+        await new SQLiteDocumentRepo(db).reassignDocuments(preservedDocumentIds, createdGroup.entryIds[0]);
       }
       haptic.success();
 
       if (isFirstServiceEver) {
         showCelebration({
-          titleKey: "celebration.firstService.title",
-          subtitleKey: "celebration.firstService.subtitle",
-          variant: "milestone",
+          titleKey: 'celebration.firstService.title',
+          subtitleKey: 'celebration.firstService.subtitle',
+          variant: 'milestone'
         });
       } else {
         showToast({
-          titleKey: isEditing ? "toast.serviceUpdated" : "toast.serviceAdded",
-          variant: "success",
+          titleKey: isEditing ? 'toast.serviceUpdated' : 'toast.serviceAdded',
+          variant: 'success'
         });
       }
       navigation.goBack();
@@ -305,28 +263,16 @@ export default function AddEntryScreen() {
     deleteEntry,
     navigation,
     showToast,
-    showCelebration,
+    showCelebration
   ]);
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <View style={[styles.screen, { paddingTop: insets.top }]}>
-        <ScreenHeader
-          title={isEditing ? t("addEntry.editTitle") : t("addEntry.title")}
-          showBack
-        />
+        <ScreenHeader title={isEditing ? t('addEntry.editTitle') : t('addEntry.title')} showBack />
 
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <Text style={[typography.caption, styles.sectionLabel]}>
-            {t("entryDetail.service")}
-          </Text>
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <Text style={[typography.caption, styles.sectionLabel]}>{t('entryDetail.service')}</Text>
 
           <View style={styles.blocks}>
             {blocks.map((block, i) => (
@@ -342,24 +288,18 @@ export default function AddEntryScreen() {
             ))}
           </View>
 
-          <TouchableOpacity
-            style={styles.addBlock}
-            onPress={addBlock}
-            activeOpacity={0.7}
-          >
+          <TouchableOpacity style={styles.addBlock} onPress={addBlock} activeOpacity={0.7}>
             <Icon name="plus" size={13} color={colors.accent} />
-            <Text style={styles.addBlockText}>{t("addEntry.addService")}</Text>
+            <Text style={styles.addBlockText}>{t('addEntry.addService')}</Text>
           </TouchableOpacity>
-          {errors.blocks ? (
-            <Text style={styles.error}>{errors.blocks}</Text>
-          ) : null}
+          {errors.blocks ? <Text style={styles.error}>{errors.blocks}</Text> : null}
 
           <TextInputField
-            label={t("addEntry.odometer")}
+            label={t('addEntry.odometer')}
             value={odometer}
             onChangeText={setOdometer}
             keyboardType="numeric"
-            placeholder={t("addEntry.placeholderOdometer")}
+            placeholder={t('addEntry.placeholderOdometer')}
             suffix="km"
             error={errors.odometer}
           />
@@ -367,13 +307,13 @@ export default function AddEntryScreen() {
           <DatePickerField value={dateTs} onChange={setDateTs} />
 
           <View style={styles.imageSection}>
-            <Text style={styles.imageLabel}>{t("addEntry.photos")}</Text>
+            <Text style={styles.imageLabel}>{t('addEntry.photos')}</Text>
             <View style={styles.imageRow}>
               {images.map((uri, i) => (
                 <View key={i} style={styles.imageWrapper}>
                   <Image
                     source={{
-                      uri: displayUris[uri] ?? uri,
+                      uri: displayUris[uri] ?? uri
                     }}
                     style={styles.image}
                     contentFit="cover"
@@ -396,26 +336,18 @@ export default function AddEntryScreen() {
               ))}
               <TouchableOpacity onPress={pickImage} style={styles.addTile}>
                 <Icon name="images" size={18} color={colors.text2} />
-                <Text style={styles.addText}>{t("addEntry.gallery")}</Text>
+                <Text style={styles.addText}>{t('addEntry.gallery')}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={takePhoto} style={styles.addTile}>
                 <Icon name="camera" size={18} color={colors.text2} />
-                <Text style={styles.addText}>{t("addEntry.camera")}</Text>
+                <Text style={styles.addText}>{t('addEntry.camera')}</Text>
               </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
 
-        <View
-          style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}
-        >
-          <PrimaryButton
-            label={
-              isEditing ? t("addEntry.saveChanges") : t("addEntry.saveEntry")
-            }
-            onPress={handleSave}
-            loading={saving}
-          />
+        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
+          <PrimaryButton label={isEditing ? t('addEntry.saveChanges') : t('addEntry.saveEntry')} onPress={handleSave} loading={saving} />
         </View>
       </View>
 
@@ -424,11 +356,9 @@ export default function AddEntryScreen() {
         onClose={() => setCameraAlert(false)}
         icon="camera"
         iconColor={colors.warningText}
-        title={t("addEntry.cameraPermission")}
-        message={t("addEntry.cameraPermissionMessage")}
-        actions={[
-          { label: t("common.ok"), variant: "secondary", onPress: () => {} },
-        ]}
+        title={t('addEntry.cameraPermission')}
+        message={t('addEntry.cameraPermissionMessage')}
+        actions={[{ label: t('common.ok'), variant: 'secondary', onPress: () => {} }]}
       />
 
       <AlertModal
@@ -436,11 +366,9 @@ export default function AddEntryScreen() {
         onClose={() => setErrorAlert(null)}
         icon="exclamation-triangle"
         iconColor={colors.dangerText}
-        title={t("common.error")}
-        message={errorAlert ?? ""}
-        actions={[
-          { label: t("common.ok"), variant: "secondary", onPress: () => {} },
-        ]}
+        title={t('common.error')}
+        message={errorAlert ?? ''}
+        actions={[{ label: t('common.ok'), variant: 'secondary', onPress: () => {} }]}
       />
     </KeyboardAvoidingView>
   );
@@ -450,68 +378,68 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg0 },
   scroll: { padding: spacing.lg, gap: spacing.xl, paddingBottom: 40 },
   sectionLabel: { marginBottom: spacing.sm },
-  row: { flexDirection: "row", gap: spacing.md },
+  row: { flexDirection: 'row', gap: spacing.md },
   blocks: { gap: spacing.md },
   addBlock: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: spacing.sm,
     paddingVertical: spacing.md,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border1,
-    borderStyle: "dashed",
-    backgroundColor: colors.bg1,
+    borderStyle: 'dashed',
+    backgroundColor: colors.bg1
   },
   addBlockText: {
     fontSize: typeScale.bodySmall,
-    fontWeight: "600",
-    color: colors.accent,
+    fontWeight: '600',
+    color: colors.accent
   },
   error: {
     color: colors.dangerText,
     fontSize: typeScale.captionLarge,
-    marginTop: spacing.xs,
+    marginTop: spacing.xs
   },
   notesField: { minHeight: 100 },
   footer: {
     padding: spacing.lg,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border0,
-    backgroundColor: colors.bg0,
+    backgroundColor: colors.bg0
   },
   imageSection: { marginTop: spacing.md },
   imageLabel: {
     ...typography.caption,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.sm
   },
-  imageRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  imageRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   imageWrapper: {
     width: 86,
     height: 86,
     borderRadius: 12,
-    overflow: "hidden",
+    overflow: 'hidden',
     backgroundColor: colors.bg2,
-    position: "relative",
+    position: 'relative'
   },
-  image: { width: "100%", height: "100%" },
+  image: { width: '100%', height: '100%' },
   removeBtn: {
-    position: "absolute",
+    position: 'absolute',
     top: 6,
     right: 6,
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   removeText: {
-    color: "white",
+    color: 'white',
     fontSize: typeScale.bodyMedium,
     lineHeight: 14,
-    fontWeight: "700",
+    fontWeight: '700'
   },
   addTile: {
     width: 86,
@@ -520,13 +448,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg1,
     borderWidth: 1,
     borderColor: colors.border0,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6
   },
   addText: {
     fontSize: typeScale.caption,
     color: colors.text2,
-    fontWeight: "500",
-  },
+    fontWeight: '500'
+  }
 });

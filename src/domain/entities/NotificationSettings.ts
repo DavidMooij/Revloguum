@@ -1,7 +1,4 @@
-export type NotificationSettingKind =
-  | "payments"
-  | "upcoming_services"
-  | "overdue_services";
+export type NotificationSettingKind = 'payments' | 'upcoming_services' | 'overdue_services';
 
 export interface NotificationSetting {
   kind: NotificationSettingKind;
@@ -23,28 +20,28 @@ export function defaultNotificationSettings(): NotificationSettingsBundle {
 
   return {
     payments: {
-      kind: "payments",
+      kind: 'payments',
       enabled: false,
       offsetDays: 7,
       offsetKm: 0,
       repeatEveryDays: 1,
-      updatedAt: now,
+      updatedAt: now
     },
     upcomingServices: {
-      kind: "upcoming_services",
+      kind: 'upcoming_services',
       enabled: false,
       offsetDays: 7,
       offsetKm: 500,
       repeatEveryDays: 1,
-      updatedAt: now,
+      updatedAt: now
     },
     overdueServices: {
-      kind: "overdue_services",
+      kind: 'overdue_services',
       enabled: false,
       offsetDays: 3,
       offsetKm: 100,
       repeatEveryDays: 1,
-      updatedAt: now,
-    },
+      updatedAt: now
+    }
   };
 }

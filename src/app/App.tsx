@@ -1,27 +1,20 @@
-import "react-native-gesture-handler";
-import "../i18n";
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  StyleSheet,
-  AppState,
-  type AppStateStatus,
-} from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
+import 'react-native-gesture-handler';
+import '../i18n';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ActivityIndicator, StyleSheet, AppState, type AppStateStatus } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 
-import { getDatabase } from "../data/db/database";
-import { useAppStore } from "../store/appStore";
-import { colors } from "../theme/colors";
-import { readableColor } from "../theme/readability";
-import { typography } from "../theme/typography";
-import RootNavigator from "./navigation/RootNavigator";
-import { FeedbackProvider } from "@/screens/components/feedback/Feedbackprovider";
-import { syncNotifications } from "@/notifications/syncNotifications";
+import { getDatabase } from '../data/db/database';
+import { useAppStore } from '../store/appStore';
+import { colors } from '../theme/colors';
+import { readableColor } from '../theme/readability';
+import { typography } from '../theme/typography';
+import RootNavigator from './navigation/RootNavigator';
+import { FeedbackProvider } from '@/screens/components/feedback/Feedbackprovider';
+import { syncNotifications } from '@/notifications/syncNotifications';
 
 export default function App() {
   const isDbReady = useAppStore((s) => s.isDbReady);
@@ -46,43 +39,28 @@ export default function App() {
 
     syncNotifications();
 
-    const sub = AppState.addEventListener(
-      "change",
-      (status: AppStateStatus) => {
-        if (status === "active") {
-          syncNotifications();
-        }
-      },
-    );
+    const sub = AppState.addEventListener('change', (status: AppStateStatus) => {
+      if (status === 'active') {
+        syncNotifications();
+      }
+    });
 
     return () => sub.remove();
   }, [isDbReady]);
 
   if (initError) {
     return (
-      <View
-        style={[
-          styles.center,
-          { backgroundColor: readableColor("bg0", readabilityMode) },
-        ]}
-      >
+      <View style={[styles.center, { backgroundColor: readableColor('bg0', readabilityMode) }]}>
         <StatusBar style="light" />
-        <Text
-          style={[
-            typography.h3,
-            { color: readableColor("danger", readabilityMode) },
-          ]}
-        >
-          Database error
-        </Text>
+        <Text style={[typography.h3, { color: readableColor('danger', readabilityMode) }]}>Database error</Text>
         <Text
           style={[
             typography.bodySmall,
             {
               marginTop: 8,
-              textAlign: "center",
-              color: readableColor("text1", readabilityMode),
-            },
+              textAlign: 'center',
+              color: readableColor('text1', readabilityMode)
+            }
           ]}
         >
           {initError}
@@ -93,17 +71,9 @@ export default function App() {
 
   if (!isDbReady || !arePrefsReady) {
     return (
-      <View
-        style={[
-          styles.center,
-          { backgroundColor: readableColor("bg0", readabilityMode) },
-        ]}
-      >
+      <View style={[styles.center, { backgroundColor: readableColor('bg0', readabilityMode) }]}>
         <StatusBar style="light" />
-        <ActivityIndicator
-          size="large"
-          color={readableColor("accent", readabilityMode)}
-        />
+        <ActivityIndicator size="large" color={readableColor('accent', readabilityMode)} />
       </View>
     );
   }
@@ -117,19 +87,19 @@ export default function App() {
             theme={{
               dark: true,
               colors: {
-                primary: readableColor("accent", readabilityMode),
-                background: readableColor("bg0", readabilityMode),
-                card: readableColor("bg1", readabilityMode),
-                text: readableColor("text0", readabilityMode),
-                border: readableColor("border1", readabilityMode),
-                notification: readableColor("accent", readabilityMode),
+                primary: readableColor('accent', readabilityMode),
+                background: readableColor('bg0', readabilityMode),
+                card: readableColor('bg1', readabilityMode),
+                text: readableColor('text0', readabilityMode),
+                border: readableColor('border1', readabilityMode),
+                notification: readableColor('accent', readabilityMode)
               },
               fonts: {
-                regular: { fontFamily: "System", fontWeight: "400" },
-                medium: { fontFamily: "System", fontWeight: "500" },
-                bold: { fontFamily: "System", fontWeight: "600" },
-                heavy: { fontFamily: "System", fontWeight: "700" },
-              },
+                regular: { fontFamily: 'System', fontWeight: '400' },
+                medium: { fontFamily: 'System', fontWeight: '500' },
+                bold: { fontFamily: 'System', fontWeight: '600' },
+                heavy: { fontFamily: 'System', fontWeight: '700' }
+              }
             }}
           >
             <RootNavigator />
@@ -144,8 +114,8 @@ const styles = StyleSheet.create({
   center: {
     flex: 1,
     backgroundColor: colors.bg0,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-  },
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24
+  }
 });

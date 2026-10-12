@@ -4,7 +4,7 @@ import { colors } from './colors';
 const fontFamily = Platform.select({
   ios: 'System',
   android: 'Roboto',
-  default: 'System',
+  default: 'System'
 });
 
 export const typeScale = {
@@ -25,7 +25,7 @@ export const typeScale = {
   hero: 26,
   display: 28,
   numericLarge: 32,
-  showcase: 44,
+  showcase: 44
 } as const;
 
 export const typography = StyleSheet.create({
@@ -34,41 +34,41 @@ export const typography = StyleSheet.create({
     fontSize: typeScale.display,
     fontWeight: '700',
     letterSpacing: -0.5,
-    color: colors.text0,
+    color: colors.text0
   },
   h2: {
     fontFamily,
     fontSize: typeScale.titleLarge,
     fontWeight: '700',
     letterSpacing: -0.3,
-    color: colors.text0,
+    color: colors.text0
   },
   h3: {
     fontFamily,
     fontSize: typeScale.titleSmall,
     fontWeight: '600',
     letterSpacing: -0.2,
-    color: colors.text0,
+    color: colors.text0
   },
   h4: {
     fontFamily,
     fontSize: typeScale.body,
     fontWeight: '600',
-    color: colors.text0,
+    color: colors.text0
   },
   body: {
     fontFamily,
     fontSize: typeScale.body,
     fontWeight: '400',
     lineHeight: 22,
-    color: colors.text0,
+    color: colors.text0
   },
   bodySmall: {
     fontFamily,
     fontSize: typeScale.bodySmall,
     fontWeight: '400',
     lineHeight: 18,
-    color: colors.text1,
+    color: colors.text1
   },
   caption: {
     fontFamily,
@@ -76,7 +76,7 @@ export const typography = StyleSheet.create({
     fontWeight: '500',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
-    color: colors.text1,
+    color: colors.text1
   },
   overline: {
     fontFamily,
@@ -84,104 +84,104 @@ export const typography = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
-    color: colors.text1,
+    color: colors.text1
   },
   mono: {
     fontFamily: Platform.select({ ios: 'Courier New', android: 'monospace' }),
     fontSize: typeScale.bodyMedium,
-    color: colors.text0,
+    color: colors.text0
   },
   label: {
     fontFamily,
     fontSize: typeScale.bodySmall,
     fontWeight: '500',
-    color: colors.text1,
+    color: colors.text1
   },
   labelSmall: {
     fontFamily,
     fontSize: typeScale.captionLarge,
     fontWeight: '500',
-    color: colors.text1,
+    color: colors.text1
   },
   bodyMedium: {
     fontFamily,
     fontSize: typeScale.bodyMedium,
     fontWeight: '400',
-    color: colors.text0,
+    color: colors.text0
   },
   bodyMediumStrong: {
     fontFamily,
     fontSize: typeScale.bodyMedium,
     fontWeight: '600',
-    color: colors.text0,
+    color: colors.text0
   },
   bodyStrong: {
     fontFamily,
     fontSize: typeScale.body,
     fontWeight: '600',
-    color: colors.text0,
+    color: colors.text0
   },
   button: {
     fontFamily,
     fontSize: typeScale.body,
     fontWeight: '600',
     letterSpacing: -0.1,
-    color: colors.text0,
+    color: colors.text0
   },
   buttonLarge: {
     fontFamily,
     fontSize: typeScale.bodyLarge,
     fontWeight: '600',
     letterSpacing: -0.1,
-    color: colors.text0,
+    color: colors.text0
   },
   heroTitle: {
     fontFamily,
     fontSize: typeScale.hero,
     fontWeight: '700',
     letterSpacing: -0.6,
-    color: colors.text0,
+    color: colors.text0
   },
   titleXL: {
     fontFamily,
     fontSize: typeScale.titleXL,
     fontWeight: '700',
     letterSpacing: -0.5,
-    color: colors.text0,
+    color: colors.text0
   },
   titleMedium: {
     fontFamily,
     fontSize: typeScale.titleMedium,
     fontWeight: '700',
     letterSpacing: -0.3,
-    color: colors.text0,
+    color: colors.text0
   },
   titleCard: {
     fontFamily,
     fontSize: typeScale.titleCard,
     fontWeight: '800',
     letterSpacing: -0.4,
-    color: colors.text0,
+    color: colors.text0
   },
   numeric: {
     fontFamily,
     fontSize: typeScale.titleSmall,
     fontWeight: '800',
     letterSpacing: -0.3,
-    color: colors.text0,
+    color: colors.text0
   },
   numericLarge: {
     fontFamily,
     fontSize: typeScale.numericLarge,
     fontWeight: '700',
     letterSpacing: -1,
-    color: colors.text0,
+    color: colors.text0
   },
   showcase: {
     fontFamily,
     fontSize: typeScale.showcase,
     fontWeight: '800',
     letterSpacing: -1.5,
-    color: colors.text0,
-  },
+    color: colors.text0
+  }
 });

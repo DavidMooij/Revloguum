@@ -1,24 +1,20 @@
-import React from "react";
-import { View, StyleSheet, Dimensions } from "react-native";
-import { useRoute } from "@react-navigation/native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../../app/navigation/routes";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from "react-native-reanimated";
-import type { SharedValue } from "react-native-reanimated";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import { ZoomableImage } from "./components/ZoomableImage";
-import { colors } from "../../theme/colors";
+import React from 'react';
+import { View, StyleSheet, Dimensions } from 'react-native';
+import { useRoute } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../../app/navigation/routes';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import type { SharedValue } from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { ZoomableImage } from './components/ZoomableImage';
+import { colors } from '../../theme/colors';
 
-type Props = NativeStackScreenProps<RootStackParamList, "ImageViewer">;
+type Props = NativeStackScreenProps<RootStackParamList, 'ImageViewer'>;
 
-const { width } = Dimensions.get("window");
+const { width } = Dimensions.get('window');
 
 export default function ImageViewerScreen() {
-  const route = useRoute<Props["route"]>();
+  const route = useRoute<Props['route']>();
   const { images, initialIndex } = route.params;
 
   const index = useSharedValue(initialIndex);
@@ -31,21 +27,18 @@ export default function ImageViewerScreen() {
     .onEnd((e) => {
       const direction = e.translationX > 50 ? -1 : e.translationX < -50 ? 1 : 0;
 
-      index.value = Math.max(
-        0,
-        Math.min(images.length - 1, index.value + direction),
-      );
+      index.value = Math.max(0, Math.min(images.length - 1, index.value + direction));
 
       translateX.value = withSpring(-index.value * width, {
         damping: 30,
         stiffness: 260,
         mass: 0.9,
-        overshootClamping: true,
+        overshootClamping: true
       });
     });
 
   const animStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
+    transform: [{ translateX: translateX.value }]
   }));
 
   return (
@@ -80,7 +73,7 @@ function Dot({ i, index }: { i: number; index: SharedValue<number> }) {
       height: active ? 8 : 6,
       opacity: active ? 1 : 0.4,
       backgroundColor: active ? colors.white : colors.text3,
-      transform: [{ scale: active ? 1.2 : 1 }],
+      transform: [{ scale: active ? 1.2 : 1 }]
     };
   });
 
@@ -90,28 +83,28 @@ function Dot({ i, index }: { i: number; index: SharedValue<number> }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: "black",
+    backgroundColor: 'black'
   },
 
   container: {
-    flexDirection: "row",
-    flex: 1,
+    flexDirection: 'row',
+    flex: 1
   },
 
   imageWrap: {
     width,
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
 
   dotsContainer: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 30,
-    flexDirection: "row",
-    alignSelf: "center",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
 
     paddingHorizontal: 10,
@@ -120,10 +113,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg1,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: colors.border1,
+    borderColor: colors.border1
   },
 
   dot: {
-    borderRadius: 999,
-  },
+    borderRadius: 999
+  }
 });

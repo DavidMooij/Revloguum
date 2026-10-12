@@ -17,11 +17,15 @@ export default function FAB({ onPress, icon = 'plus' }: Props) {
   const scale = useSharedValue(1);
 
   const animStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+    transform: [{ scale: scale.value }]
   }));
 
-  const handlePressIn = () => { scale.value = withSpring(0.92, { damping: 15 }); };
-  const handlePressOut = () => { scale.value = withSpring(1, { damping: 15 }); };
+  const handlePressIn = () => {
+    scale.value = withSpring(0.92, { damping: 15 });
+  };
+  const handlePressOut = () => {
+    scale.value = withSpring(1, { damping: 15 });
+  };
 
   return (
     <AnimatedTouchable
@@ -47,7 +51,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
-    elevation: 8,
+    elevation: 8
   },
   inner: {
     width: 56,
@@ -55,6 +59,6 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     backgroundColor: colors.accent,
     alignItems: 'center',
-    justifyContent: 'center',
-  },
+    justifyContent: 'center'
+  }
 });

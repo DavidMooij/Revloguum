@@ -25,13 +25,18 @@ const DATE_PRESETS: { key: DateRangePreset; label: string }[] = [
   { key: 'last30', label: '30d' },
   { key: 'last90', label: '90d' },
   { key: 'last365', label: '1y' },
-  { key: 'all', label: 'All' },
+  { key: 'all', label: 'All' }
 ];
 
 export default function FilterBar({
-  serviceTypes, selectedTypeIds, onToggleType,
-  datePreset, onDatePreset,
-  searchText, onSearchText, onClear,
+  serviceTypes,
+  selectedTypeIds,
+  onToggleType,
+  datePreset,
+  onDatePreset,
+  searchText,
+  onSearchText,
+  onClear
 }: Props) {
   const { t } = useTranslation();
   const getLabel = useServiceTypeLabel();
@@ -60,7 +65,7 @@ export default function FilterBar({
           style={[styles.filterBtn, expanded && styles.filterBtnActive]}
           onPress={() => {
             haptic.light();
-            setExpanded(v => !v);
+            setExpanded((v) => !v);
           }}
         >
           <Icon name="sliders-h" size={14} color={expanded ? colors.accent : colors.text1} />
@@ -72,11 +77,14 @@ export default function FilterBar({
         <View style={styles.expanded}>
           <Text style={styles.filterLabel}>{t('history.dateRange')}</Text>
           <View style={styles.chipRow}>
-            {DATE_PRESETS.map(p => (
+            {DATE_PRESETS.map((p) => (
               <TouchableOpacity
                 key={p.key}
                 style={[styles.chip, datePreset === p.key && styles.chipActive]}
-                onPress={() => { haptic.selection(); onDatePreset(p.key); }}
+                onPress={() => {
+                  haptic.selection();
+                  onDatePreset(p.key);
+                }}
               >
                 <Text style={[styles.chipText, datePreset === p.key && styles.chipTextActive]}>{p.label}</Text>
               </TouchableOpacity>
@@ -86,13 +94,16 @@ export default function FilterBar({
           <Text style={styles.filterLabel}>{t('history.serviceType')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={styles.chipRow}>
-              {serviceTypes.map(st => {
+              {serviceTypes.map((st) => {
                 const active = selectedTypeIds.includes(st.id);
                 return (
                   <TouchableOpacity
                     key={st.id}
                     style={[styles.chip, active && styles.chipActive]}
-                    onPress={() => { haptic.selection(); onToggleType(st.id); }}
+                    onPress={() => {
+                      haptic.selection();
+                      onToggleType(st.id);
+                    }}
                   >
                     <Text style={[styles.chipText, active && styles.chipTextActive]}>{getLabel(st)}</Text>
                   </TouchableOpacity>
@@ -102,7 +113,13 @@ export default function FilterBar({
           </ScrollView>
 
           {hasFilter && (
-            <TouchableOpacity onPress={() => { haptic.light(); onClear(); }} style={styles.clearBtn}>
+            <TouchableOpacity
+              onPress={() => {
+                haptic.light();
+                onClear();
+              }}
+              style={styles.clearBtn}
+            >
               <Text style={styles.clearText}>{t('history.clearFilters')}</Text>
             </TouchableOpacity>
           )}
@@ -120,7 +137,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
     paddingBottom: spacing.sm,
-    gap: spacing.sm,
+    gap: spacing.sm
   },
   searchRow: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },
   searchWrap: {
@@ -133,7 +150,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border1,
     paddingHorizontal: spacing.md,
     height: 40,
-    gap: spacing.sm,
+    gap: spacing.sm
   },
   searchIcon: { flexShrink: 0 },
   searchInput: {
@@ -143,7 +160,7 @@ const styles = StyleSheet.create({
     height: '100%',
     paddingVertical: 0,
     textAlignVertical: 'center',
-    includeFontPadding: false,
+    includeFontPadding: false
   },
   filterBtn: {
     width: 40,
@@ -153,7 +170,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'center'
   },
   filterBtnActive: { borderColor: colors.accent, backgroundColor: colors.accentMuted },
   dot: {
@@ -163,11 +180,11 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.accent
   },
   expanded: { gap: spacing.md },
   filterLabel: {
-    ...typography.overline,
+    ...typography.overline
   },
   chipRow: { flexDirection: 'row', gap: spacing.xs, flexWrap: 'wrap' },
   chip: {
@@ -176,11 +193,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     backgroundColor: colors.bg3,
     borderWidth: 1,
-    borderColor: colors.border1,
+    borderColor: colors.border1
   },
   chipActive: { backgroundColor: colors.accentMuted, borderColor: colors.accent },
   chipText: { fontSize: typeScale.captionLarge, fontWeight: '500', color: colors.text1 },
   chipTextActive: { color: colors.accentText, fontWeight: '600' },
   clearBtn: { alignSelf: 'center', paddingVertical: spacing.sm },
-  clearText: { color: colors.accent, fontSize: typeScale.bodySmall, fontWeight: '600' },
+  clearText: { color: colors.accent, fontSize: typeScale.bodySmall, fontWeight: '600' }
 });

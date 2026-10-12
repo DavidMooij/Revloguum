@@ -1,4 +1,4 @@
-import type * as SQLite from "expo-sqlite";
+import type * as SQLite from 'expo-sqlite';
 
 export async function migrateV8(db: SQLite.SQLiteDatabase): Promise<void> {
   await db.execAsync(`
@@ -21,20 +21,20 @@ export async function migrateV8(db: SQLite.SQLiteDatabase): Promise<void> {
     `INSERT OR IGNORE INTO notification_settings
       (kind, enabled, offset_days, offset_km, repeat_every_days, updated_at)
      VALUES (?, ?, ?, ?, ?, ?);`,
-    ["payments", 0, 7, 0, 1, now],
+    ['payments', 0, 7, 0, 1, now]
   );
 
   await db.runAsync(
     `INSERT OR IGNORE INTO notification_settings
       (kind, enabled, offset_days, offset_km, repeat_every_days, updated_at)
      VALUES (?, ?, ?, ?, ?, ?);`,
-    ["upcoming_services", 0, 7, 500, 1, now],
+    ['upcoming_services', 0, 7, 500, 1, now]
   );
 
   await db.runAsync(
     `INSERT OR IGNORE INTO notification_settings
       (kind, enabled, offset_days, offset_km, repeat_every_days, updated_at)
      VALUES (?, ?, ?, ?, ?, ?);`,
-    ["overdue_services", 0, 3, 100, 1, now],
+    ['overdue_services', 0, 3, 100, 1, now]
   );
 }

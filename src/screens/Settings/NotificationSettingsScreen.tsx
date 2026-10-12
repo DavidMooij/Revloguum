@@ -1,40 +1,32 @@
-import React, { useMemo, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Switch,
-  TextInput,
-  ScrollView,
-  ActivityIndicator,
-} from "react-native";
-import { useTranslation } from "react-i18next";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import ScreenHeader from "@/screens/components/ScreenHeader";
-import SettingsRow from "@/screens/components/SettingsRow";
-import { SettingsToggle } from "@/screens/components/SettingsToggle";
-import PrimaryButton from "@/screens/components/PrimaryButton";
-import { useNotificationSettings } from "@/hooks/useNotificationSettings";
-import { colors } from "@/theme/colors";
-import { radius, spacing } from "@/theme/spacing";
-import { typography } from "@/theme/typography";
-import { readableColor } from "@/theme/readability";
-import { useAppStore } from "@/store/appStore";
-import { useFeedback } from "@/screens/components/feedback/Feedbackprovider";
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, Switch, TextInput, ScrollView, ActivityIndicator } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ScreenHeader from '@/screens/components/ScreenHeader';
+import SettingsRow from '@/screens/components/SettingsRow';
+import { SettingsToggle } from '@/screens/components/SettingsToggle';
+import PrimaryButton from '@/screens/components/PrimaryButton';
+import { useNotificationSettings } from '@/hooks/useNotificationSettings';
+import { colors } from '@/theme/colors';
+import { radius, spacing } from '@/theme/spacing';
+import { typography } from '@/theme/typography';
+import { readableColor } from '@/theme/readability';
+import { useAppStore } from '@/store/appStore';
+import { useFeedback } from '@/screens/components/feedback/Feedbackprovider';
 
-type RepeatPreset = "daily" | "threeDays" | "weekly" | "custom";
+type RepeatPreset = 'daily' | 'threeDays' | 'weekly' | 'custom';
 
 function presetFromDays(days: number): RepeatPreset {
-  if (days === 1) return "daily";
-  if (days === 3) return "threeDays";
-  if (days === 7) return "weekly";
-  return "custom";
+  if (days === 1) return 'daily';
+  if (days === 3) return 'threeDays';
+  if (days === 7) return 'weekly';
+  return 'custom';
 }
 
 function daysFromPreset(preset: RepeatPreset, customRaw: string): number {
-  if (preset === "daily") return 1;
-  if (preset === "threeDays") return 3;
-  if (preset === "weekly") return 7;
+  if (preset === 'daily') return 1;
+  if (preset === 'threeDays') return 3;
+  if (preset === 'weekly') return 7;
 
   const parsed = Number.parseInt(customRaw, 10);
   if (!Number.isFinite(parsed) || parsed < 1) return 1;
@@ -66,19 +58,14 @@ function SettingCard({
   offsetKmValue,
   onOffsetKmChange,
   repeatEveryDays,
-  onRepeatEveryDaysChange,
+  onRepeatEveryDaysChange
 }: SettingCardProps) {
   const { t } = useTranslation();
   const readabilityMode = useAppStore((s) => s.readabilityMode);
 
-  const initialPreset = useMemo(
-    () => presetFromDays(repeatEveryDays),
-    [repeatEveryDays],
-  );
+  const initialPreset = useMemo(() => presetFromDays(repeatEveryDays), [repeatEveryDays]);
   const [preset, setPreset] = useState<RepeatPreset>(initialPreset);
-  const [customRepeatRaw, setCustomRepeatRaw] = useState(
-    String(repeatEveryDays),
-  );
+  const [customRepeatRaw, setCustomRepeatRaw] = useState(String(repeatEveryDays));
   const [offsetDaysRaw, setOffsetDaysRaw] = useState(String(offsetDaysValue));
   const [offsetKmRaw, setOffsetKmRaw] = useState(String(offsetKmValue ?? 0));
 
@@ -92,8 +79,8 @@ function SettingCard({
             value={enabled}
             onValueChange={onEnabledChange}
             trackColor={{
-              false: readableColor("bg4", readabilityMode),
-              true: readableColor("accent", readabilityMode),
+              false: readableColor('bg4', readabilityMode),
+              true: readableColor('accent', readabilityMode)
             }}
             thumbColor={colors.white}
           />
@@ -105,12 +92,10 @@ function SettingCard({
         <TextInput
           value={offsetDaysRaw}
           onChangeText={(text) => {
-            const cleaned = text.replace(/[^0-9]/g, "");
+            const cleaned = text.replace(/[^0-9]/g, '');
             setOffsetDaysRaw(cleaned);
             const parsed = Number.parseInt(cleaned, 10);
-            onOffsetDaysChange(
-              Number.isFinite(parsed) ? Math.max(0, parsed) : 0,
-            );
+            onOffsetDaysChange(Number.isFinite(parsed) ? Math.max(0, parsed) : 0);
           }}
           keyboardType="number-pad"
           style={styles.input}
@@ -120,18 +105,14 @@ function SettingCard({
 
         {offsetKmLabel && onOffsetKmChange ? (
           <>
-            <Text style={[styles.label, { marginTop: spacing.md }]}>
-              {offsetKmLabel}
-            </Text>
+            <Text style={[styles.label, { marginTop: spacing.md }]}>{offsetKmLabel}</Text>
             <TextInput
               value={offsetKmRaw}
               onChangeText={(text) => {
-                const cleaned = text.replace(/[^0-9]/g, "");
+                const cleaned = text.replace(/[^0-9]/g, '');
                 setOffsetKmRaw(cleaned);
                 const parsed = Number.parseInt(cleaned, 10);
-                onOffsetKmChange(
-                  Number.isFinite(parsed) ? Math.max(0, parsed) : 0,
-                );
+                onOffsetKmChange(Number.isFinite(parsed) ? Math.max(0, parsed) : 0);
               }}
               keyboardType="number-pad"
               style={styles.input}
@@ -141,17 +122,15 @@ function SettingCard({
           </>
         ) : null}
 
-        <Text style={[styles.label, { marginTop: spacing.md }]}>
-          {t("notifications.repeat")}
-        </Text>
+        <Text style={[styles.label, { marginTop: spacing.md }]}>{t('notifications.repeat')}</Text>
 
         <SettingsToggle
           fullWidth
           options={[
-            { label: t("notifications.repeatDaily"), value: "daily" },
-            { label: t("notifications.repeatThreeDays"), value: "threeDays" },
-            { label: t("notifications.repeatWeekly"), value: "weekly" },
-            { label: t("notifications.repeatCustom"), value: "custom" },
+            { label: t('notifications.repeatDaily'), value: 'daily' },
+            { label: t('notifications.repeatThreeDays'), value: 'threeDays' },
+            { label: t('notifications.repeatWeekly'), value: 'weekly' },
+            { label: t('notifications.repeatCustom'), value: 'custom' }
           ]}
           value={preset}
           onChange={(next) => {
@@ -161,16 +140,14 @@ function SettingCard({
           }}
         />
 
-        {preset === "custom" ? (
+        {preset === 'custom' ? (
           <TextInput
             value={customRepeatRaw}
             onChangeText={(text) => {
-              const cleaned = text.replace(/[^0-9]/g, "");
+              const cleaned = text.replace(/[^0-9]/g, '');
               setCustomRepeatRaw(cleaned);
               const parsed = Number.parseInt(cleaned, 10);
-              onRepeatEveryDaysChange(
-                Number.isFinite(parsed) ? Math.max(1, parsed) : 1,
-              );
+              onRepeatEveryDaysChange(Number.isFinite(parsed) ? Math.max(1, parsed) : 1);
             }}
             keyboardType="number-pad"
             style={[styles.input, { marginTop: spacing.sm }]}
@@ -187,20 +164,19 @@ export default function NotificationSettingsScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { showToast } = useFeedback();
-  const { settings, loading, saving, hasChanges, updateLocal, saveAll } =
-    useNotificationSettings();
+  const { settings, loading, saving, hasChanges, updateLocal, saveAll } = useNotificationSettings();
 
   const handleSave = async () => {
     const saved = await saveAll();
     if (saved) {
-      showToast({ titleKey: "toast.settingsSaved", variant: "success" });
+      showToast({ titleKey: 'toast.settingsSaved', variant: 'success' });
     }
   };
 
   if (loading) {
     return (
       <View style={[styles.screen, { paddingTop: insets.top }]}>
-        <ScreenHeader title={t("notifications.title")} showBack />
+        <ScreenHeader title={t('notifications.title')} showBack />
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.accent} />
         </View>
@@ -210,85 +186,51 @@ export default function NotificationSettingsScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <ScreenHeader
-        title={t("notifications.title")}
-        subtitle={t("notifications.subtitle")}
-        showBack
-      />
+      <ScreenHeader title={t('notifications.title')} subtitle={t('notifications.subtitle')} showBack />
 
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <SettingCard
-          title={t("notifications.payments")}
+          title={t('notifications.payments')}
           enabled={settings.payments.enabled}
-          onEnabledChange={(enabled) => updateLocal("payments", { enabled })}
-          offsetDaysLabel={t("notifications.daysBefore")}
+          onEnabledChange={(enabled) => updateLocal('payments', { enabled })}
+          offsetDaysLabel={t('notifications.daysBefore')}
           offsetDaysValue={settings.payments.offsetDays}
-          onOffsetDaysChange={(offsetDays) =>
-            updateLocal("payments", { offsetDays })
-          }
+          onOffsetDaysChange={(offsetDays) => updateLocal('payments', { offsetDays })}
           repeatEveryDays={settings.payments.repeatEveryDays}
-          onRepeatEveryDaysChange={(repeatEveryDays) =>
-            updateLocal("payments", { repeatEveryDays })
-          }
+          onRepeatEveryDaysChange={(repeatEveryDays) => updateLocal('payments', { repeatEveryDays })}
         />
 
         <SettingCard
-          title={t("notifications.upcomingServices")}
+          title={t('notifications.upcomingServices')}
           enabled={settings.upcomingServices.enabled}
-          onEnabledChange={(enabled) =>
-            updateLocal("upcoming_services", { enabled })
-          }
-          offsetDaysLabel={t("notifications.daysBefore")}
+          onEnabledChange={(enabled) => updateLocal('upcoming_services', { enabled })}
+          offsetDaysLabel={t('notifications.daysBefore')}
           offsetDaysValue={settings.upcomingServices.offsetDays}
-          onOffsetDaysChange={(offsetDays) =>
-            updateLocal("upcoming_services", { offsetDays })
-          }
-          offsetKmLabel={t("notifications.kmBefore")}
+          onOffsetDaysChange={(offsetDays) => updateLocal('upcoming_services', { offsetDays })}
+          offsetKmLabel={t('notifications.kmBefore')}
           offsetKmValue={settings.upcomingServices.offsetKm}
-          onOffsetKmChange={(offsetKm) =>
-            updateLocal("upcoming_services", { offsetKm })
-          }
+          onOffsetKmChange={(offsetKm) => updateLocal('upcoming_services', { offsetKm })}
           repeatEveryDays={settings.upcomingServices.repeatEveryDays}
-          onRepeatEveryDaysChange={(repeatEveryDays) =>
-            updateLocal("upcoming_services", { repeatEveryDays })
-          }
+          onRepeatEveryDaysChange={(repeatEveryDays) => updateLocal('upcoming_services', { repeatEveryDays })}
         />
 
         <SettingCard
-          title={t("notifications.overdueServices")}
+          title={t('notifications.overdueServices')}
           enabled={settings.overdueServices.enabled}
-          onEnabledChange={(enabled) =>
-            updateLocal("overdue_services", { enabled })
-          }
-          offsetDaysLabel={t("notifications.daysAfterDue")}
+          onEnabledChange={(enabled) => updateLocal('overdue_services', { enabled })}
+          offsetDaysLabel={t('notifications.daysAfterDue')}
           offsetDaysValue={settings.overdueServices.offsetDays}
-          onOffsetDaysChange={(offsetDays) =>
-            updateLocal("overdue_services", { offsetDays })
-          }
-          offsetKmLabel={t("notifications.kmAfterDue")}
+          onOffsetDaysChange={(offsetDays) => updateLocal('overdue_services', { offsetDays })}
+          offsetKmLabel={t('notifications.kmAfterDue')}
           offsetKmValue={settings.overdueServices.offsetKm}
-          onOffsetKmChange={(offsetKm) =>
-            updateLocal("overdue_services", { offsetKm })
-          }
+          onOffsetKmChange={(offsetKm) => updateLocal('overdue_services', { offsetKm })}
           repeatEveryDays={settings.overdueServices.repeatEveryDays}
-          onRepeatEveryDaysChange={(repeatEveryDays) =>
-            updateLocal("overdue_services", { repeatEveryDays })
-          }
+          onRepeatEveryDaysChange={(repeatEveryDays) => updateLocal('overdue_services', { repeatEveryDays })}
         />
       </ScrollView>
 
-      <View
-        style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}
-      >
-        <PrimaryButton
-          label={t("common.saveChanges")}
-          onPress={handleSave}
-          loading={saving}
-          disabled={!hasChanges}
-        />
+      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
+        <PrimaryButton label={t('common.saveChanges')} onPress={handleSave} loading={saving} disabled={!hasChanges} />
       </View>
     </View>
   );
@@ -297,35 +239,35 @@ export default function NotificationSettingsScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.bg0,
+    backgroundColor: colors.bg0
   },
   center: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   scroll: {
     padding: spacing.lg,
     gap: spacing.md,
-    paddingBottom: 120,
+    paddingBottom: 120
   },
   card: {
     backgroundColor: colors.bg1,
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border1,
-    overflow: "hidden",
+    overflow: 'hidden'
   },
   inner: {
     paddingHorizontal: spacing.md,
-    paddingBottom: spacing.md,
+    paddingBottom: spacing.md
   },
   label: {
     ...typography.caption,
     color: colors.text2,
     marginBottom: spacing.xs,
     letterSpacing: 0.6,
-    textTransform: "uppercase",
+    textTransform: 'uppercase'
   },
   input: {
     borderWidth: 1,
@@ -334,10 +276,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg3,
     color: colors.text0,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.sm
   },
   footer: {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
@@ -345,6 +287,6 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border0,
     backgroundColor: colors.bg0,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-  },
+    paddingTop: spacing.md
+  }
 });

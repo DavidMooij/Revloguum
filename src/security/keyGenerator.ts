@@ -1,5 +1,5 @@
-import { randomBytes } from "react-native-quick-crypto";
+import { randomBytes } from 'react-native-quick-crypto';
 
 export function generateDatabaseKey(): string {
-  return randomBytes(32).toString("hex");
+  return randomBytes(32).toString('hex');
 }

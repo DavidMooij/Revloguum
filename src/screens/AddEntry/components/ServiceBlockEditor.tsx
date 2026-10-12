@@ -1,13 +1,13 @@
-import React from "react";
-import { useTranslation } from "react-i18next";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { FontAwesome5 as Icon } from "@expo/vector-icons";
-import type { ServiceType } from "../../../domain/entities/ServiceType";
-import { colors } from "../../../theme/colors";
-import { spacing, radius } from "../../../theme/spacing";
-import { typography, typeScale } from "../../../theme/typography";
-import TextInputField from "../../components/TextInputField";
-import ServiceTypePicker from "./ServiceTypePicker";
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { FontAwesome5 as Icon } from '@expo/vector-icons';
+import type { ServiceType } from '../../../domain/entities/ServiceType';
+import { colors } from '../../../theme/colors';
+import { spacing, radius } from '../../../theme/spacing';
+import { typography, typeScale } from '../../../theme/typography';
+import TextInputField from '../../components/TextInputField';
+import ServiceTypePicker from './ServiceTypePicker';
 
 export interface ServiceBlock {
   key: string;
@@ -26,33 +26,21 @@ interface Props {
   onRemove: () => void;
 }
 
-export default function ServiceBlockEditor({
-  index,
-  block,
-  serviceTypes,
-  canRemove,
-  error,
-  onChange,
-  onRemove,
-}: Props) {
+export default function ServiceBlockEditor({ index, block, serviceTypes, canRemove, error, onChange, onRemove }: Props) {
   const { t } = useTranslation();
 
   const selected = serviceTypes.find((s) => s.id === block.serviceTypeId);
-  const exampleKey =
-    selected?.translationKey?.split(".").pop() ??
-    selected?.id.replace("sys_", "");
+  const exampleKey = selected?.translationKey?.split('.').pop() ?? selected?.id.replace('sys_', '');
   const notePlaceholder = selected
     ? t(`addEntry.noteExamples.${exampleKey}`, {
-        defaultValue: t("addEntry.placeholderNotes"),
+        defaultValue: t('addEntry.placeholderNotes')
       })
-    : t("addEntry.placeholderNotes");
+    : t('addEntry.placeholderNotes');
 
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.title}>
-          {t("addEntry.serviceBlock", { index: index + 1 })}
-        </Text>
+        <Text style={styles.title}>{t('addEntry.serviceBlock', { index: index + 1 })}</Text>
         {canRemove && (
           <TouchableOpacity onPress={onRemove} hitSlop={8} style={styles.removeBtn}>
             <Icon name="times" size={14} color={colors.text2} />
@@ -60,15 +48,11 @@ export default function ServiceBlockEditor({
         )}
       </View>
 
-      <ServiceTypePicker
-        serviceTypes={serviceTypes}
-        selectedId={block.serviceTypeId}
-        onSelect={(id) => onChange({ serviceTypeId: id })}
-      />
+      <ServiceTypePicker serviceTypes={serviceTypes} selectedId={block.serviceTypeId} onSelect={(id) => onChange({ serviceTypeId: id })} />
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <TextInputField
-        label={t("addEntry.notes")}
+        label={t('addEntry.notes')}
         value={block.notes}
         onChangeText={(v) => onChange({ notes: v })}
         placeholder={notePlaceholder}
@@ -76,11 +60,11 @@ export default function ServiceBlockEditor({
       />
 
       <TextInputField
-        label={t("addEntry.cost")}
+        label={t('addEntry.cost')}
         value={block.cost}
         onChangeText={(v) => onChange({ cost: v })}
         keyboardType="decimal-pad"
-        placeholder={t("addEntry.placeholderCost")}
+        placeholder={t('addEntry.placeholderCost')}
         suffix="CHF"
       />
     </View>
@@ -94,25 +78,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border1,
     padding: spacing.md,
-    gap: spacing.md,
+    gap: spacing.md
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
   },
   title: {
-    ...typography.caption,
+    ...typography.caption
   },
   removeBtn: {
     width: 28,
     height: 28,
     borderRadius: 14,
     backgroundColor: colors.bg3,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center'
   },
-  row: { flexDirection: "row", gap: spacing.md, alignItems: "flex-start" },
+  row: { flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' },
   costField: { width: 120 },
-  error: { color: colors.dangerText, fontSize: typeScale.captionLarge },
+  error: { color: colors.dangerText, fontSize: typeScale.captionLarge }
 });

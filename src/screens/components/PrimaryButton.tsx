@@ -24,14 +24,12 @@ export default function PrimaryButton({ label, onPress, loading, disabled, varia
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   const bg = {
-    primary:   readableColor('accent', readabilityMode),
+    primary: readableColor('accent', readabilityMode),
     secondary: readableColor('bg3', readabilityMode),
-    danger:    readableColor('danger', readabilityMode),
+    danger: readableColor('danger', readabilityMode)
   }[variant];
 
-  const textColor = variant === 'secondary'
-    ? readableColor('text0', readabilityMode)
-    : colors.white;
+  const textColor = variant === 'secondary' ? readableColor('text0', readabilityMode) : colors.white;
 
   return (
     <AnimatedTouchable
@@ -39,34 +37,37 @@ export default function PrimaryButton({ label, onPress, loading, disabled, varia
         styles.btn,
         {
           backgroundColor: bg,
-          height: readableTouchSize(52, readabilityMode, 4),
+          height: readableTouchSize(52, readabilityMode, 4)
         },
         (disabled || loading) && styles.disabled,
         animStyle,
-        style,
+        style
       ]}
       onPress={onPress}
-      onPressIn={() => { scale.value = withSpring(0.97, { damping: 15 }); }}
-      onPressOut={() => { scale.value = withSpring(1, { damping: 15 }); }}
+      onPressIn={() => {
+        scale.value = withSpring(0.97, { damping: 15 });
+      }}
+      onPressOut={() => {
+        scale.value = withSpring(1, { damping: 15 });
+      }}
       activeOpacity={1}
       disabled={disabled || loading}
     >
-      {loading
-        ? <ActivityIndicator size="small" color={textColor} />
-        : (
-          <Text
-            style={[
-              styles.label,
-              {
-                color: textColor,
-                fontSize: readableSize(typeScale.bodyLarge, readabilityMode, 2),
-              },
-            ]}
-          >
-            {label}
-          </Text>
-        )
-      }
+      {loading ? (
+        <ActivityIndicator size="small" color={textColor} />
+      ) : (
+        <Text
+          style={[
+            styles.label,
+            {
+              color: textColor,
+              fontSize: readableSize(typeScale.bodyLarge, readabilityMode, 2)
+            }
+          ]}
+        >
+          {label}
+        </Text>
+      )}
     </AnimatedTouchable>
   );
 }
@@ -77,12 +78,12 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing.xxl,
+    paddingHorizontal: spacing.xxl
   },
   label: {
-    ...typography.buttonLarge,
+    ...typography.buttonLarge
   },
   disabled: {
-    opacity: 0.45,
-  },
+    opacity: 0.45
+  }
 });

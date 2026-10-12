@@ -1,9 +1,6 @@
-import type * as SQLite from "expo-sqlite";
+import type * as SQLite from 'expo-sqlite';
 
-export async function recalculateVehicleOdometer(
-  db: SQLite.SQLiteDatabase,
-  vehicleId: string,
-): Promise<void> {
+export async function recalculateVehicleOdometer(db: SQLite.SQLiteDatabase, vehicleId: string): Promise<void> {
   await db.runAsync(
     `UPDATE vehicles
      SET current_odometer = MAX(
@@ -21,6 +18,6 @@ export async function recalculateVehicleOdometer(
      ),
      updated_at = ?
      WHERE id = ?;`,
-    [vehicleId, vehicleId, Date.now(), vehicleId],
+    [vehicleId, vehicleId, Date.now(), vehicleId]
   );
 }

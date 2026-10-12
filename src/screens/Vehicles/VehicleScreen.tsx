@@ -1,35 +1,27 @@
-import React, { useState, useCallback, useRef } from "react";
-import { useTranslation } from "react-i18next";
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  Dimensions,
-  type NativeSyntheticEvent,
-  type NativeScrollEvent,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../../app/navigation/routes";
-import { colors } from "../../theme/colors";
-import { typography } from "../../theme/typography";
-import { spacing } from "../../theme/spacing";
-import { useVehicles } from "../../hooks/useVehicles";
-import { getDatabase } from "../../data/db/database";
-import { SQLiteServiceEntryRepo } from "../../data/repositories/SQLiteServiceEntryRepo";
-import { SQLiteFuelRepo } from "../../data/repositories/SQLiteFuelRepo";
-import { SQLiteVehicleCostRepo } from "../../data/repositories/SQLiteVehicleCostRepo";
-import VehicleGarageCard from "./components/VehicleGarageCard";
-import AddVehicleCard from "./components/AddVehicleCard";
-import type { Vehicle } from "../../domain/entities/Vehicle";
+import React, { useState, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { View, Text, StyleSheet, FlatList, Dimensions, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../../app/navigation/routes';
+import { colors } from '../../theme/colors';
+import { typography } from '../../theme/typography';
+import { spacing } from '../../theme/spacing';
+import { useVehicles } from '../../hooks/useVehicles';
+import { getDatabase } from '../../data/db/database';
+import { SQLiteServiceEntryRepo } from '../../data/repositories/SQLiteServiceEntryRepo';
+import { SQLiteFuelRepo } from '../../data/repositories/SQLiteFuelRepo';
+import { SQLiteVehicleCostRepo } from '../../data/repositories/SQLiteVehicleCostRepo';
+import VehicleGarageCard from './components/VehicleGarageCard';
+import AddVehicleCard from './components/AddVehicleCard';
+import type { Vehicle } from '../../domain/entities/Vehicle';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const ADD_CARD_ID = "__add_vehicle__";
+const ADD_CARD_ID = '__add_vehicle__';
 
 interface VehicleStats {
   count: number;
@@ -60,14 +52,14 @@ export default function VehicleScreen() {
         const [count, fuelStats, otherCost] = await Promise.all([
           serviceRepo.getCountForVehicle(m.id),
           fuelRepo.getStats({ vehicleId: m.id }),
-          costRepo.getTotalCost(m.id),
+          costRepo.getTotalCost(m.id)
         ]);
         results[m.id] = {
           count,
           fuelLiters: fuelStats.totalLiters,
-          otherCost,
+          otherCost
         };
-      }),
+      })
     );
     setStats(results);
   }, [vehicles]);
@@ -75,7 +67,7 @@ export default function VehicleScreen() {
   useFocusEffect(
     useCallback(() => {
       loadStats();
-    }, [loadStats]),
+    }, [loadStats])
   );
 
   const onScroll = useCallback(
@@ -83,17 +75,15 @@ export default function VehicleScreen() {
       const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
       if (index !== activeIndex) setActiveIndex(index);
     },
-    [activeIndex],
+    [activeIndex]
   );
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={typography.h2}>{t("vehicles.garageTitle")}</Text>
-          <Text style={typography.bodySmall}>
-            {t("vehicles.garageSubtitle", { count: vehicles.length })}
-          </Text>
+          <Text style={typography.h2}>{t('vehicles.garageTitle')}</Text>
+          <Text style={typography.bodySmall}>{t('vehicles.garageSubtitle', { count: vehicles.length })}</Text>
         </View>
       </View>
 
@@ -108,15 +98,11 @@ export default function VehicleScreen() {
         getItemLayout={(_, index) => ({
           length: SCREEN_WIDTH,
           offset: SCREEN_WIDTH * index,
-          index,
+          index
         })}
         renderItem={({ item }) =>
           item.id === ADD_CARD_ID ? (
-            <AddVehicleCard
-              width={SCREEN_WIDTH}
-              hasVehicles={vehicles.length > 0}
-              onPress={() => navigation.navigate("AddVehicle", {})}
-            />
+            <AddVehicleCard width={SCREEN_WIDTH} hasVehicles={vehicles.length > 0} onPress={() => navigation.navigate('AddVehicle', {})} />
           ) : (
             <VehicleGarageCard
               vehicle={item}
@@ -124,28 +110,17 @@ export default function VehicleScreen() {
               serviceCount={stats[item.id]?.count ?? 0}
               totalFuelLiters={stats[item.id]?.fuelLiters ?? 0}
               totalOtherCost={stats[item.id]?.otherCost ?? 0}
-              onEdit={() =>
-                navigation.navigate("AddVehicle", { editId: item.id })
-              }
-              onManage={() =>
-                navigation.navigate("VehicleManagement", { vehicleId: item.id })
-              }
-              onNavigate={(screen) =>
-                navigation.navigate(screen, { vehicleId: item.id })
-              }
+              onEdit={() => navigation.navigate('AddVehicle', { editId: item.id })}
+              onManage={() => navigation.navigate('VehicleManagement', { vehicleId: item.id })}
+              onNavigate={(screen) => navigation.navigate(screen, { vehicleId: item.id })}
             />
           )
         }
       />
       {pages.length > 1 && (
-        <View
-          style={[styles.dots, { paddingBottom: insets.bottom + spacing.md }]}
-        >
+        <View style={[styles.dots, { paddingBottom: insets.bottom + spacing.md }]}>
           {pages.map((p, i) => (
-            <View
-              key={p.id}
-              style={[styles.dot, i === activeIndex && styles.dotActive]}
-            />
+            <View key={p.id} style={[styles.dot, i === activeIndex && styles.dotActive]} />
           ))}
         </View>
       )}
@@ -159,23 +134,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
   },
   headerLeft: { flex: 1 },
   dots: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     gap: 6,
-    paddingTop: spacing.md,
+    paddingTop: spacing.md
   },
   dot: {
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: colors.bg3,
+    backgroundColor: colors.bg3
   },
-  dotActive: { width: 22, backgroundColor: colors.accent },
+  dotActive: { width: 22, backgroundColor: colors.accent }
 });

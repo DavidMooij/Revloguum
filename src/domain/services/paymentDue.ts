@@ -1,4 +1,4 @@
-import type { CostCategory, IntervalType, VehicleCost } from "@/domain/entities/VehicleCost";
+import type { CostCategory, IntervalType, VehicleCost } from '@/domain/entities/VehicleCost';
 
 const DAY_MS = 86400000;
 const MAX_OCCURRENCES = 10000;
@@ -27,15 +27,13 @@ export interface PaymentDueOccurrences {
 }
 
 function isPaymentInterval(entry: VehicleCost): boolean {
-  return entry.kind === "interval" && entry.intervalType !== null;
+  return entry.kind === 'interval' && entry.intervalType !== null;
 }
 
-function paymentIntervalDays(
-  interval: Pick<VehicleCost, "intervalType" | "intervalDays">,
-): number | null {
-  if (interval.intervalType === "monthly") return 30;
-  if (interval.intervalType === "yearly") return 365;
-  if (interval.intervalType === "custom") {
+function paymentIntervalDays(interval: Pick<VehicleCost, 'intervalType' | 'intervalDays'>): number | null {
+  if (interval.intervalType === 'monthly') return 30;
+  if (interval.intervalType === 'yearly') return 365;
+  if (interval.intervalType === 'custom') {
     if (interval.intervalDays == null) return null;
     return Math.max(1, Math.floor(interval.intervalDays));
   }
@@ -58,11 +56,11 @@ function buildPaidDueKeySet(historyEntries: VehicleCost[]): Set<string> {
 function nextDueTsFromStep(interval: VehicleCost, step: number): number {
   const startTs = interval.dateTs;
 
-  if (interval.intervalType === "monthly") {
+  if (interval.intervalType === 'monthly') {
     return startTs + step * 30 * DAY_MS;
   }
 
-  if (interval.intervalType === "custom") {
+  if (interval.intervalType === 'custom') {
     const days = paymentIntervalDays(interval) ?? 1;
     return startTs + step * days * DAY_MS;
   }
@@ -72,11 +70,7 @@ function nextDueTsFromStep(interval: VehicleCost, step: number): number {
   return date.getTime();
 }
 
-function buildOccurrence(
-  interval: VehicleCost,
-  dueTs: number,
-  nowTs: number,
-): PaymentDueOccurrence {
+function buildOccurrence(interval: VehicleCost, dueTs: number, nowTs: number): PaymentDueOccurrence {
   const intervalDays = paymentIntervalDays(interval) ?? 1;
   const overdueRaw = (nowTs - dueTs) / DAY_MS;
 
@@ -91,7 +85,7 @@ function buildOccurrence(
       dueTs,
       daysUntilDue: null,
       daysOverdue: Math.max(1, Math.ceil(overdueRaw)),
-      interval,
+      interval
     };
   }
 
@@ -105,7 +99,7 @@ function buildOccurrence(
     dueTs,
     daysUntilDue: Math.max(0, Math.ceil((dueTs - nowTs) / DAY_MS)),
     daysOverdue: null,
-    interval,
+    interval
   };
 }
 
@@ -129,7 +123,7 @@ export function computePaymentDueSummary(input: {
 
   return {
     overdue: occurrences.overdue,
-    upcoming,
+    upcoming
   };
 }
 
@@ -194,21 +188,16 @@ export function pickBestUnpaidDueForPayment(input: {
   const intervalDays = paymentIntervalDays(input.interval);
   if (intervalDays == null) return null;
 
-  const horizonEndTs = Math.max(
-    nowTs + 3650 * DAY_MS,
-    input.paymentDateTs + 3650 * DAY_MS,
-  );
+  const horizonEndTs = Math.max(nowTs + 3650 * DAY_MS, input.paymentDateTs + 3650 * DAY_MS);
 
   const due = computePaymentDueSummary({
     intervals: [input.interval],
     historyEntries: input.historyEntries,
     nowTs,
-    horizonEndTs,
+    horizonEndTs
   });
 
-  const candidates = [...due.overdue, ...due.upcoming].filter(
-    (item) => item.intervalId === input.interval.id,
-  );
+  const candidates = [...due.overdue, ...due.upcoming].filter((item) => item.intervalId === input.interval.id);
 
   if (!candidates.length) return null;
 
@@ -226,13 +215,9 @@ export function pickBestUnpaidDueForPayment(input: {
     return nearest.dueTs;
   }
 
-  const nearestOverdue = due.overdue.find(
-    (item) => item.intervalId === input.interval.id,
-  );
+  const nearestOverdue = due.overdue.find((item) => item.intervalId === input.interval.id);
   if (nearestOverdue) return nearestOverdue.dueTs;
 
-  const nearestUpcoming = due.upcoming.find(
-    (item) => item.intervalId === input.interval.id,
-  );
+  const nearestUpcoming = due.upcoming.find((item) => item.intervalId === input.interval.id);
   return nearestUpcoming?.dueTs ?? null;
 }

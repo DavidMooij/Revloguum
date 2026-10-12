@@ -1,36 +1,19 @@
-import React, { useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Modal,
-  Dimensions,
-} from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-} from "react-native-reanimated";
-import { FontAwesome5 } from "@expo/vector-icons";
-import { colors } from "../../theme/colors";
-import {
-  readableColor,
-  readableLineHeight,
-  readableSize,
-  readableTouchSize,
-} from "../../theme/readability";
-import { spacing, radius } from "../../theme/spacing";
-import { typography, typeScale } from "../../theme/typography";
-import { useAppStore } from "../../store/appStore";
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Dimensions } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { colors } from '../../theme/colors';
+import { readableColor, readableLineHeight, readableSize, readableTouchSize } from '../../theme/readability';
+import { spacing, radius } from '../../theme/spacing';
+import { typography, typeScale } from '../../theme/typography';
+import { useAppStore } from '../../store/appStore';
 
-const { width } = Dimensions.get("window");
+const { width } = Dimensions.get('window');
 
 export interface AlertAction {
   label: string;
   onPress: () => void;
-  variant?: "primary" | "secondary" | "danger";
+  variant?: 'primary' | 'secondary' | 'danger';
   disabled?: boolean;
 }
 
@@ -45,16 +28,7 @@ interface Props {
   children?: React.ReactNode;
 }
 
-export default function AlertModal({
-  visible,
-  title,
-  message,
-  icon,
-  iconColor,
-  actions,
-  onClose,
-  children,
-}: Props) {
+export default function AlertModal({ visible, title, message, icon, iconColor, actions, onClose, children }: Props) {
   const readabilityMode = useAppStore((s) => s.readabilityMode);
   const scale = useSharedValue(0.85);
   const opacity = useSharedValue(0);
@@ -70,63 +44,54 @@ export default function AlertModal({
   }, [visible]);
 
   const backdropStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
+    opacity: opacity.value
   }));
 
   const sheetStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
-    opacity: opacity.value,
+    opacity: opacity.value
   }));
 
-  const variantStyle = (variant: AlertAction["variant"] = "secondary") => ({
+  const variantStyle = (variant: AlertAction['variant'] = 'secondary') => ({
     bg: {
       primary: colors.accent,
-      secondary: readableColor("bg3", readabilityMode),
-      danger: colors.dangerMuted,
+      secondary: readableColor('bg3', readabilityMode),
+      danger: colors.dangerMuted
     }[variant],
     border: {
       primary: colors.accent,
-      secondary: readableColor("border1", readabilityMode),
-      danger: colors.danger,
+      secondary: readableColor('border1', readabilityMode),
+      danger: colors.danger
     }[variant],
     text: {
       primary: colors.white,
-      secondary: readableColor("text0", readabilityMode),
-      danger: readableColor("dangerText", readabilityMode),
-    }[variant],
+      secondary: readableColor('text0', readabilityMode),
+      danger: readableColor('dangerText', readabilityMode)
+    }[variant]
   });
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="none"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
       <Animated.View style={[styles.backdrop, backdropStyle]}>
-        <TouchableOpacity
-          style={StyleSheet.absoluteFill}
-          onPress={onClose}
-          activeOpacity={1}
-        />
+        <TouchableOpacity style={StyleSheet.absoluteFill} onPress={onClose} activeOpacity={1} />
         <Animated.View style={[styles.sheet, sheetStyle]}>
           {icon && (
             <View
               style={[
                 styles.iconWrap,
                 {
-                  borderColor: iconColor ?? readableColor("border2", readabilityMode),
-                  backgroundColor: readableColor("bg3", readabilityMode),
+                  borderColor: iconColor ?? readableColor('border2', readabilityMode),
+                  backgroundColor: readableColor('bg3', readabilityMode),
                   width: readableTouchSize(64, readabilityMode, 6),
                   height: readableTouchSize(64, readabilityMode, 6),
-                  borderRadius: readableTouchSize(32, readabilityMode, 3),
-                },
+                  borderRadius: readableTouchSize(32, readabilityMode, 3)
+                }
               ]}
             >
               <FontAwesome5
                 name={icon}
                 size={readableSize(24, readabilityMode, 2)}
-                color={iconColor ?? readableColor("text1", readabilityMode)}
+                color={iconColor ?? readableColor('text1', readabilityMode)}
               />
             </View>
           )}
@@ -135,9 +100,9 @@ export default function AlertModal({
             style={[
               styles.title,
               {
-                color: readableColor("text0", readabilityMode),
-                fontSize: readableSize(typeScale.titleMedium, readabilityMode, 2),
-              },
+                color: readableColor('text0', readabilityMode),
+                fontSize: readableSize(typeScale.titleMedium, readabilityMode, 2)
+              }
             ]}
           >
             {title}
@@ -147,10 +112,10 @@ export default function AlertModal({
               style={[
                 styles.message,
                 {
-                  color: readableColor("text1", readabilityMode),
+                  color: readableColor('text1', readabilityMode),
                   fontSize: readableSize(typeScale.bodyMedium, readabilityMode, 1),
-                  lineHeight: readableLineHeight(20, readabilityMode, 3),
-                },
+                  lineHeight: readableLineHeight(20, readabilityMode, 3)
+                }
               ]}
             >
               {message}
@@ -158,16 +123,9 @@ export default function AlertModal({
           ) : null}
           {children}
 
-          <View
-            style={[
-              styles.divider,
-              { backgroundColor: readableColor("border0", readabilityMode) },
-            ]}
-          />
+          <View style={[styles.divider, { backgroundColor: readableColor('border0', readabilityMode) }]} />
 
-          <View
-            style={[styles.actions, actions.length === 2 && styles.actionsRow]}
-          >
+          <View style={[styles.actions, actions.length === 2 && styles.actionsRow]}>
             {actions.map((action, i) => {
               const v = variantStyle(action.variant);
               return (
@@ -179,9 +137,9 @@ export default function AlertModal({
                     {
                       backgroundColor: v.bg,
                       borderColor: v.border,
-                      minHeight: readableTouchSize(52, readabilityMode, 4),
+                      minHeight: readableTouchSize(52, readabilityMode, 4)
                     },
-                    action.disabled && styles.btnDisabled,
+                    action.disabled && styles.btnDisabled
                   ]}
                   onPress={() => {
                     if (action.disabled) return;
@@ -190,9 +148,7 @@ export default function AlertModal({
                   }}
                   activeOpacity={action.disabled ? 1 : 0.75}
                 >
-                  <Text style={[styles.btnText, { color: v.text }]}>
-                    {action.label}
-                  </Text>
+                  <Text style={[styles.btnText, { color: v.text }]}>{action.label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -206,10 +162,10 @@ export default function AlertModal({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.65)",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: spacing.xl,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl
   },
   sheet: {
     width: width - spacing.xl * 2,
@@ -218,13 +174,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border1,
     padding: spacing.xxl,
-    alignItems: "center",
+    alignItems: 'center',
     gap: spacing.md,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.5,
     shadowRadius: 24,
-    elevation: 16,
+    elevation: 16
   },
   iconWrap: {
     width: 64,
@@ -232,55 +188,55 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     backgroundColor: colors.bg3,
     borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: spacing.xs,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xs
   },
   title: {
     ...typography.titleMedium,
     color: colors.text0,
-    textAlign: "center",
+    textAlign: 'center'
   },
   message: {
     fontSize: typeScale.bodyMedium,
     color: colors.text1,
-    textAlign: "center",
-    lineHeight: 20,
+    textAlign: 'center',
+    lineHeight: 20
   },
   divider: {
-    width: "100%",
+    width: '100%',
     height: StyleSheet.hairlineWidth,
     backgroundColor: colors.border0,
-    marginVertical: spacing.xs,
+    marginVertical: spacing.xs
   },
   actions: {
-    width: "100%",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm
   },
   actionsRow: {
-    flexDirection: "row",
-    gap: spacing.sm,
+    flexDirection: 'row',
+    gap: spacing.sm
   },
   btn: {
     flexGrow: 1,
-    flexBasis: "48%",
+    flexBasis: '48%',
     minHeight: 52,
     borderRadius: radius.md,
     borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.md
   },
   btnHalf: {
-    flex: 1,
+    flex: 1
   },
   btnDisabled: {
-    opacity: 0.35,
+    opacity: 0.35
   },
   btnText: {
-    ...typography.button,
-  },
+    ...typography.button
+  }
 });

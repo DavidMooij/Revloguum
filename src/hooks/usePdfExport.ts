@@ -1,19 +1,19 @@
-import { useCallback } from "react";
-import { useTranslation } from "react-i18next";
-import * as Print from "expo-print";
-import * as Sharing from "expo-sharing";
-import { getDatabase } from "../data/db/database";
-import { SQLiteVehicleRepo } from "../data/repositories/SQLiteVehicleRepo";
-import { SQLiteServiceEntryRepo } from "../data/repositories/SQLiteServiceEntryRepo";
-import { SQLiteFuelRepo } from "../data/repositories/SQLiteFuelRepo";
-import { SQLiteVehicleCostRepo } from "../data/repositories/SQLiteVehicleCostRepo";
-import { SQLitePaymentTypeRepo } from "../data/repositories/SQLitePaymentTypeRepo";
-import { SQLiteDocumentRepo } from "../data/repositories/SQLiteDocumentRepo";
-import { decryptImage } from "@/security/imageEncryption";
-import { formatCost, formatOdometer, formatVehicleName } from "../utils/format";
-import * as FileSystem from "expo-file-system/legacy";
-import { ServiceTypeLabelService } from "../domain/services/ServiceTypeLabelService";
-import { PaymentTypeLabelService } from "../domain/services/PaymentTypeLabelService";
+import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
+import { getDatabase } from '../data/db/database';
+import { SQLiteVehicleRepo } from '../data/repositories/SQLiteVehicleRepo';
+import { SQLiteServiceEntryRepo } from '../data/repositories/SQLiteServiceEntryRepo';
+import { SQLiteFuelRepo } from '../data/repositories/SQLiteFuelRepo';
+import { SQLiteVehicleCostRepo } from '../data/repositories/SQLiteVehicleCostRepo';
+import { SQLitePaymentTypeRepo } from '../data/repositories/SQLitePaymentTypeRepo';
+import { SQLiteDocumentRepo } from '../data/repositories/SQLiteDocumentRepo';
+import { decryptImage } from '@/security/imageEncryption';
+import { formatCost, formatOdometer, formatVehicleName } from '../utils/format';
+import * as FileSystem from 'expo-file-system/legacy';
+import { ServiceTypeLabelService } from '../domain/services/ServiceTypeLabelService';
+import { PaymentTypeLabelService } from '../domain/services/PaymentTypeLabelService';
 
 export interface PdfExportOptions {
   vehicleId: string;
@@ -29,21 +29,19 @@ export interface PdfExportOptions {
   dateTo?: number;
 }
 
-export type PdfExportResult =
-  | { success: true; fileUri: string }
-  | { success: false; error: string };
+export type PdfExportResult = { success: true; fileUri: string } | { success: false; error: string };
 
 function escapeHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 async function imageToDataUri(path: string): Promise<string | null> {
   try {
-    const uri = path.endsWith(".enc") ? await decryptImage(path) : path;
+    const uri = path.endsWith('.enc') ? await decryptImage(path) : path;
     const base64 = await FileSystem.readAsStringAsync(uri, {
-      encoding: FileSystem.EncodingType.Base64,
+      encoding: FileSystem.EncodingType.Base64
     });
-    const ext = uri.toLowerCase().endsWith(".png") ? "png" : "jpeg";
+    const ext = uri.toLowerCase().endsWith('.png') ? 'png' : 'jpeg';
     return `data:image/${ext};base64,${base64}`;
   } catch {
     return null;
@@ -57,73 +55,68 @@ export function usePdfExport() {
       try {
         const formatPdfDate = (ts: number) =>
           new Intl.DateTimeFormat(i18n.language, {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
           }).format(new Date(ts));
 
         const formatLiters = (value: number) =>
           new Intl.NumberFormat(i18n.language, {
             minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
+            maximumFractionDigits: 2
           }).format(value);
 
         const db = await getDatabase();
-        const vehicle = await new SQLiteVehicleRepo(db).getById(
-          options.vehicleId,
-        );
-        if (!vehicle) return { success: false, error: "Vehicle not found" };
+        const vehicle = await new SQLiteVehicleRepo(db).getById(options.vehicleId);
+        if (!vehicle) return { success: false, error: 'Vehicle not found' };
 
         const inRange = (ts: number) =>
-          (options.dateFrom === undefined || ts >= options.dateFrom) &&
-          (options.dateTo === undefined || ts <= options.dateTo);
+          (options.dateFrom === undefined || ts >= options.dateFrom) && (options.dateTo === undefined || ts <= options.dateTo);
 
-        let serviceSection = "";
+        let serviceSection = '';
         let serviceCount = 0;
         if (options.includeService) {
           const entries = await new SQLiteServiceEntryRepo(db).fetchFiltered({
             vehicleId: options.vehicleId,
-            limit: 1000,
+            limit: 1000
           });
           const filtered = entries.filter((e) => inRange(e.dateTs));
           serviceCount = filtered.length;
 
           const blocks = await Promise.all(
             filtered.map(async (e) => {
-              let photosHtml = "";
+              let photosHtml = '';
               if (options.includePhotos && e.imagePaths?.length) {
-                const dataUris = await Promise.all(
-                  e.imagePaths.map(imageToDataUri),
-                );
+                const dataUris = await Promise.all(e.imagePaths.map(imageToDataUri));
                 photosHtml = `<div class="photo-grid">${dataUris
                   .filter(Boolean)
                   .map((d) => `<img src="${d}" />`)
-                  .join("")}</div>`;
+                  .join('')}</div>`;
               }
               return `
                 <div class="entry-block">
                   <div class="entry-header">
                     <span class="entry-title">${escapeHtml(ServiceTypeLabelService.getLabel({ name: e.serviceTypeName, translationKey: e.translationKey }, t))}</span>
-                    ${options.includeCostValues && e.cost != null ? `<span class="entry-cost">${formatCost(e.cost)}</span>` : ""}
+                    ${options.includeCostValues && e.cost != null ? `<span class="entry-cost">${formatCost(e.cost)}</span>` : ''}
                   </div>
                   <div class="entry-meta">${formatPdfDate(e.dateTs)} · ${formatOdometer(e.odometerKm)}</div>
-                  ${options.includeNotes && e.notes ? `<div class="entry-notes">${escapeHtml(e.notes)}</div>` : ""}
+                  ${options.includeNotes && e.notes ? `<div class="entry-notes">${escapeHtml(e.notes)}</div>` : ''}
                   ${photosHtml}
                 </div>`;
-            }),
+            })
           );
 
           serviceSection = `
-            <h2>${escapeHtml(t("settings.pdfServiceHistory"))}</h2>
-            ${blocks.join("")}`;
+            <h2>${escapeHtml(t('settings.pdfServiceHistory'))}</h2>
+            ${blocks.join('')}`;
         }
 
-        let fuelSection = "";
+        let fuelSection = '';
         let fuelCount = 0;
         if (options.includeFuel) {
           const fuel = await new SQLiteFuelRepo(db).fetchFiltered({
             vehicleId: options.vehicleId,
-            limit: 1000,
+            limit: 1000
           });
           const filtered = fuel.filter((f) => inRange(f.dateTs));
           fuelCount = filtered.length;
@@ -133,34 +126,32 @@ export function usePdfExport() {
               <tr>
                 <td>${formatPdfDate(f.dateTs)}</td>
                 <td>${formatOdometer(f.odometerKm)}</td>
-                <td>${formatLiters(f.liters)} ${escapeHtml(t("settings.pdfLitersUnit"))}</td>
-                ${options.includeCostValues ? `<td class="cost-cell">${formatCost(f.cost)}</td>` : ""}
-                ${options.includeNotes ? `<td>${escapeHtml(f.notes ?? "")}</td>` : ""}
-              </tr>`,
+                <td>${formatLiters(f.liters)} ${escapeHtml(t('settings.pdfLitersUnit'))}</td>
+                ${options.includeCostValues ? `<td class="cost-cell">${formatCost(f.cost)}</td>` : ''}
+                ${options.includeNotes ? `<td>${escapeHtml(f.notes ?? '')}</td>` : ''}
+              </tr>`
             )
-            .join("");
+            .join('');
           fuelSection = `
-            <h2>${escapeHtml(t("settings.pdfFuelHistory"))}</h2>
+            <h2>${escapeHtml(t('settings.pdfFuelHistory'))}</h2>
             <table>
               <thead>
                 <tr>
-                  <th>${escapeHtml(t("common.date"))}</th><th>${escapeHtml(t("dashboard.odometer"))}</th><th>${escapeHtml(t("settings.pdfLiters"))}</th>
-                  ${options.includeCostValues ? `<th>${escapeHtml(t("dashboard.cost"))}</th>` : ""}
-                  ${options.includeNotes ? `<th>${escapeHtml(t("settings.pdfNotes"))}</th>` : ""}
+                  <th>${escapeHtml(t('common.date'))}</th><th>${escapeHtml(t('dashboard.odometer'))}</th><th>${escapeHtml(t('settings.pdfLiters'))}</th>
+                  ${options.includeCostValues ? `<th>${escapeHtml(t('dashboard.cost'))}</th>` : ''}
+                  ${options.includeNotes ? `<th>${escapeHtml(t('settings.pdfNotes'))}</th>` : ''}
                 </tr>
               </thead>
               <tbody>${rows}</tbody>
             </table>`;
         }
 
-        let costsSection = "";
+        let costsSection = '';
         if (options.includeCosts) {
           const paymentTypes = await new SQLitePaymentTypeRepo(db).getAll();
           const paymentTypeById = new Map(paymentTypes.map((pt) => [pt.id, pt]));
 
-          const costs = await new SQLiteVehicleCostRepo(db).getAll(
-            options.vehicleId,
-          );
+          const costs = await new SQLiteVehicleCostRepo(db).getAll(options.vehicleId);
           const filtered = costs.filter((c) => inRange(c.dateTs));
           const rows = filtered
             .map((c) => {
@@ -177,63 +168,61 @@ export function usePdfExport() {
               <tr>
                 <td>${formatPdfDate(c.dateTs)}</td>
                 <td>${escapeHtml(categoryLabel)}</td>
-                ${options.includeCostValues ? `<td class="cost-cell">${formatCost(c.amount)}</td>` : ""}
-                ${options.includeNotes ? `<td>${escapeHtml(c.notes ?? "")}</td>` : ""}
+                ${options.includeCostValues ? `<td class="cost-cell">${formatCost(c.amount)}</td>` : ''}
+                ${options.includeNotes ? `<td>${escapeHtml(c.notes ?? '')}</td>` : ''}
               </tr>`;
             })
-            .join("");
+            .join('');
           costsSection = `
-            <h2>${escapeHtml(t("settings.pdfOtherCosts"))}</h2>
+            <h2>${escapeHtml(t('settings.pdfOtherCosts'))}</h2>
             <table>
               <thead>
                 <tr>
-                  <th>${escapeHtml(t("common.date"))}</th><th>${escapeHtml(t("settings.pdfCategory"))}</th>
-                  ${options.includeCostValues ? `<th>${escapeHtml(t("settings.pdfAmount"))}</th>` : ""}
-                  ${options.includeNotes ? `<th>${escapeHtml(t("settings.pdfNotes"))}</th>` : ""}
+                  <th>${escapeHtml(t('common.date'))}</th><th>${escapeHtml(t('settings.pdfCategory'))}</th>
+                  ${options.includeCostValues ? `<th>${escapeHtml(t('settings.pdfAmount'))}</th>` : ''}
+                  ${options.includeNotes ? `<th>${escapeHtml(t('settings.pdfNotes'))}</th>` : ''}
                 </tr>
               </thead>
               <tbody>${rows}</tbody>
             </table>`;
         }
 
-        let documentsSection = "";
+        let documentsSection = '';
         if (options.includeDocuments) {
-          const documents = (
-            await new SQLiteDocumentRepo(db).getForVehicle(options.vehicleId)
-          ).filter((document) => inRange(document.dateTs));
+          const documents = (await new SQLiteDocumentRepo(db).getForVehicle(options.vehicleId)).filter((document) =>
+            inRange(document.dateTs)
+          );
           const blocks = await Promise.all(
             documents.map(async (document) => {
-              let pagesHtml = "";
+              let pagesHtml = '';
               if (options.includeDocumentImages && document.pages.length > 0) {
-                const dataUris = await Promise.all(
-                  document.pages.map((page) => imageToDataUri(page.path)),
-                );
+                const dataUris = await Promise.all(document.pages.map((page) => imageToDataUri(page.path)));
                 pagesHtml = `<div class="document-grid">${dataUris
                   .filter(Boolean)
                   .map((dataUri) => `<img src="${dataUri}" />`)
-                  .join("")}</div>`;
+                  .join('')}</div>`;
               }
               const ownerLabel =
-                document.ownerType === "vehicle"
-                  ? t("documents.vehicleTitle")
-                  : document.ownerType === "service"
-                    ? t("documents.serviceTitle")
-                    : t("documents.paymentTitle");
+                document.ownerType === 'vehicle'
+                  ? t('documents.vehicleTitle')
+                  : document.ownerType === 'service'
+                    ? t('documents.serviceTitle')
+                    : t('documents.paymentTitle');
               return `
                 <div class="entry-block">
                   <div class="entry-header">
                     <span class="entry-title">${escapeHtml(document.title)}</span>
                     <span class="document-owner">${escapeHtml(ownerLabel)}</span>
                   </div>
-                  <div class="entry-meta">${formatPdfDate(document.dateTs)}${document.category ? ` · ${escapeHtml(document.category)}` : ""}</div>
-                  ${options.includeNotes && document.notes ? `<div class="entry-notes">${escapeHtml(document.notes)}</div>` : ""}
+                  <div class="entry-meta">${formatPdfDate(document.dateTs)}${document.category ? ` · ${escapeHtml(document.category)}` : ''}</div>
+                  ${options.includeNotes && document.notes ? `<div class="entry-notes">${escapeHtml(document.notes)}</div>` : ''}
                   ${pagesHtml}
                 </div>`;
-            }),
+            })
           );
           documentsSection = `
-            <h2>${escapeHtml(t("documents.pdfTitle"))}</h2>
-            ${blocks.length > 0 ? blocks.join("") : `<div class="empty-text">${escapeHtml(t("documents.empty"))}</div>`}`;
+            <h2>${escapeHtml(t('documents.pdfTitle'))}</h2>
+            ${blocks.length > 0 ? blocks.join('') : `<div class="empty-text">${escapeHtml(t('documents.empty'))}</div>`}`;
         }
 
         const html = `
@@ -376,29 +365,23 @@ export function usePdfExport() {
             </head>
             <body>
               <div class="cover">
-                <div class="cover-eyebrow">${escapeHtml(t("settings.pdfVehicleReport"))}</div>
-                <div class="cover-title">${escapeHtml(
-                  formatVehicleName(
-                    vehicle.make,
-                    vehicle.model,
-                    vehicle.nickname,
-                  ),
-                )}</div>
-                <div class="cover-sub">${vehicle.year ? `${vehicle.year} · ` : ""}${escapeHtml(t("settings.pdfGeneratedOn", { date: formatPdfDate(Date.now()) }))}</div>
+                <div class="cover-eyebrow">${escapeHtml(t('settings.pdfVehicleReport'))}</div>
+                <div class="cover-title">${escapeHtml(formatVehicleName(vehicle.make, vehicle.model, vehicle.nickname))}</div>
+                <div class="cover-sub">${vehicle.year ? `${vehicle.year} · ` : ''}${escapeHtml(t('settings.pdfGeneratedOn', { date: formatPdfDate(Date.now()) }))}</div>
                 <div class="cover-stats">
                   <div class="cover-stat">
-                    <div class="cover-stat-label">${escapeHtml(t("dashboard.odometer"))}</div>
+                    <div class="cover-stat-label">${escapeHtml(t('dashboard.odometer'))}</div>
                     <div class="cover-stat-value">${formatOdometer(vehicle.currentOdometer)}</div>
                   </div>
                   ${
                     options.includeService
-                      ? `<div class="cover-stat"><div class="cover-stat-label">${escapeHtml(t("settings.pdfServiceEntries"))}</div><div class="cover-stat-value">${serviceCount}</div></div>`
-                      : ""
+                      ? `<div class="cover-stat"><div class="cover-stat-label">${escapeHtml(t('settings.pdfServiceEntries'))}</div><div class="cover-stat-value">${serviceCount}</div></div>`
+                      : ''
                   }
                   ${
                     options.includeFuel
-                      ? `<div class="cover-stat"><div class="cover-stat-label">${escapeHtml(t("settings.pdfFuelEntries"))}</div><div class="cover-stat-value">${fuelCount}</div></div>`
-                      : ""
+                      ? `<div class="cover-stat"><div class="cover-stat-label">${escapeHtml(t('settings.pdfFuelEntries'))}</div><div class="cover-stat-value">${fuelCount}</div></div>`
+                      : ''
                   }
                 </div>
               </div>
@@ -412,13 +395,13 @@ export function usePdfExport() {
 
         const { uri } = await Print.printToFileAsync({ html, base64: false });
 
-        const dateForFilename = new Intl.DateTimeFormat("sv-SE", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
+        const dateForFilename = new Intl.DateTimeFormat('sv-SE', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
         })
           .format(new Date())
-          .replace(/-/g, "");
+          .replace(/-/g, '');
         const filename = `revloguum-export-${dateForFilename}.pdf`;
         const finalUri = FileSystem.cacheDirectory + filename;
         await FileSystem.copyAsync({ from: uri, to: finalUri });
@@ -428,19 +411,22 @@ export function usePdfExport() {
         return { success: false, error: (e as Error).message };
       }
     },
-    [i18n.language, t],
+    [i18n.language, t]
   );
 
-  const shareGeneratedPdf = useCallback(async (fileUri: string) => {
-    const available = await Sharing.isAvailableAsync();
-    if (!available) return { success: false, error: "Sharing not available" };
-    await Sharing.shareAsync(fileUri, {
-      mimeType: "application/pdf",
-      dialogTitle: t("settings.pdfSaveDialogTitle"),
-      UTI: "com.adobe.pdf",
-    });
-    return { success: true };
-  }, [t]);
+  const shareGeneratedPdf = useCallback(
+    async (fileUri: string) => {
+      const available = await Sharing.isAvailableAsync();
+      if (!available) return { success: false, error: 'Sharing not available' };
+      await Sharing.shareAsync(fileUri, {
+        mimeType: 'application/pdf',
+        dialogTitle: t('settings.pdfSaveDialogTitle'),
+        UTI: 'com.adobe.pdf'
+      });
+      return { success: true };
+    },
+    [t]
+  );
 
   return { generatePdf, shareGeneratedPdf };
 }

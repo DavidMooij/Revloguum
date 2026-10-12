@@ -17,9 +17,9 @@ export default function Divider({ style }: Props) {
         styles.divider,
         {
           backgroundColor: readableColor('border0', readabilityMode),
-          opacity: readabilityMode ? 0.9 : 1,
+          opacity: readabilityMode ? 0.9 : 1
         },
-        style,
+        style
       ]}
     />
   );
@@ -28,6 +28,6 @@ export default function Divider({ style }: Props) {
 const styles = StyleSheet.create({
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.border0,
-  },
+    backgroundColor: colors.border0
+  }
 });

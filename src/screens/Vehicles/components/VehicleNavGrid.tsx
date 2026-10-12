@@ -1,17 +1,13 @@
-import React from "react";
-import { useTranslation } from "react-i18next";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { FontAwesome5 as Icon } from "@expo/vector-icons";
-import { colors } from "../../../theme/colors";
-import { spacing, radius } from "../../../theme/spacing";
-import { typography } from "../../../theme/typography";
-import { formatCost } from "../../../utils/format";
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { FontAwesome5 as Icon } from '@expo/vector-icons';
+import { colors } from '../../../theme/colors';
+import { spacing, radius } from '../../../theme/spacing';
+import { typography } from '../../../theme/typography';
+import { formatCost } from '../../../utils/format';
 
-export type VehicleNavScreen =
-  | "VehicleHistory"
-  | "VehicleFuelHistory"
-  | "VehicleCosts"
-  | "VehicleStats";
+export type VehicleNavScreen = 'VehicleHistory' | 'VehicleFuelHistory' | 'VehicleCosts' | 'VehicleStats';
 
 interface Props {
   totalServices: number;
@@ -20,15 +16,10 @@ interface Props {
   onNavigate: (screen: VehicleNavScreen) => void;
 }
 
-const BLUE = "#60A5FA";
-const BLUE_MUTED = "rgba(96,165,250,0.12)";
+const BLUE = '#60A5FA';
+const BLUE_MUTED = 'rgba(96,165,250,0.12)';
 
-export default function VehicleNavGrid({
-  totalServices,
-  totalFuelLiters,
-  totalOtherCost,
-  onNavigate,
-}: Props) {
+export default function VehicleNavGrid({ totalServices, totalFuelLiters, totalOtherCost, onNavigate }: Props) {
   const { t } = useTranslation();
 
   const tiles: {
@@ -40,48 +31,43 @@ export default function VehicleNavGrid({
     tintMuted: string;
   }[] = [
     {
-      label: t("vehicles.services"),
+      label: t('vehicles.services'),
       value: String(totalServices),
-      icon: "tools",
-      screen: "VehicleHistory",
+      icon: 'tools',
+      screen: 'VehicleHistory',
       tint: colors.accentBright,
-      tintMuted: colors.accentMuted,
+      tintMuted: colors.accentMuted
     },
     {
-      label: t("vehicles.fuelHistory"),
+      label: t('vehicles.fuelHistory'),
       value: `${totalFuelLiters.toFixed(0)} L`,
-      icon: "gas-pump",
-      screen: "VehicleFuelHistory",
+      icon: 'gas-pump',
+      screen: 'VehicleFuelHistory',
       tint: BLUE,
-      tintMuted: BLUE_MUTED,
+      tintMuted: BLUE_MUTED
     },
     {
-      label: t("payments.historyTitle"),
+      label: t('payments.historyTitle'),
       value: formatCost(totalOtherCost),
-      icon: "receipt",
-      screen: "VehicleCosts",
+      icon: 'receipt',
+      screen: 'VehicleCosts',
       tint: colors.warningText,
-      tintMuted: colors.warningMuted,
+      tintMuted: colors.warningMuted
     },
     {
-      label: t("stats.title"),
-      value: t("vehicles.analytics"),
-      icon: "chart-line",
-      screen: "VehicleStats",
+      label: t('stats.title'),
+      value: t('vehicles.analytics'),
+      icon: 'chart-line',
+      screen: 'VehicleStats',
       tint: colors.successText,
-      tintMuted: colors.successMuted,
-    },
+      tintMuted: colors.successMuted
+    }
   ];
 
   return (
     <View style={styles.grid}>
       {tiles.map((tile) => (
-        <TouchableOpacity
-          key={tile.screen}
-          style={styles.tile}
-          onPress={() => onNavigate(tile.screen)}
-          activeOpacity={0.85}
-        >
+        <TouchableOpacity key={tile.screen} style={styles.tile} onPress={() => onNavigate(tile.screen)} activeOpacity={0.85}>
           <View style={[styles.iconBadge, { backgroundColor: tile.tintMuted }]}>
             <Icon name={tile.icon} size={17} color={tile.tint} />
           </View>
@@ -101,37 +87,36 @@ export default function VehicleNavGrid({
 
 const styles = StyleSheet.create({
   grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm
   },
   tile: {
-    flexBasis: "48%",
+    flexBasis: '48%',
     flexGrow: 1,
     backgroundColor: colors.bg2,
     borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: colors.border1,
     padding: spacing.md,
-    gap: spacing.sm,
+    gap: spacing.sm
   },
   iconBadge: {
     width: 42,
     height: 42,
     borderRadius: 13,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   tileText: { gap: 2 },
   value: {
     ...typography.titleCard,
-    fontWeight: "800",
-    color: colors.text0,
+    fontWeight: '800',
+    color: colors.text0
   },
   label: {
     ...typography.caption,
-    fontWeight: "700",
-    color: colors.text2,
-  },
+    fontWeight: '700',
+    color: colors.text2
+  }
 });
-

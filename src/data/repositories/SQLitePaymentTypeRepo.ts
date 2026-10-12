@@ -1,10 +1,7 @@
-import type * as SQLite from "expo-sqlite";
-import type { IPaymentTypeRepo } from "../../domain/repositories/IPaymentTypeRepo";
-import type {
-  PaymentType,
-  CreatePaymentTypeInput,
-} from "../../domain/entities/PaymentType";
-import { generateUUID } from "../../utils/uuid";
+import type * as SQLite from 'expo-sqlite';
+import type { IPaymentTypeRepo } from '../../domain/repositories/IPaymentTypeRepo';
+import type { PaymentType, CreatePaymentTypeInput } from '../../domain/entities/PaymentType';
+import { generateUUID } from '../../utils/uuid';
 
 interface PaymentTypeRow {
   id: string;
@@ -24,7 +21,7 @@ function rowToEntity(row: PaymentTypeRow): PaymentType {
     icon: row.icon,
     isSystem: row.is_system === 1,
     sortOrder: row.sort_order,
-    createdAt: row.created_at,
+    createdAt: row.created_at
   };
 }
 
@@ -35,7 +32,7 @@ export class SQLitePaymentTypeRepo implements IPaymentTypeRepo {
     const rows = await this.db.getAllAsync<PaymentTypeRow>(
       `SELECT *
        FROM payment_types
-       ORDER BY sort_order ASC, name ASC;`,
+       ORDER BY sort_order ASC, name ASC;`
     );
 
     return rows.map(rowToEntity);
@@ -47,7 +44,7 @@ export class SQLitePaymentTypeRepo implements IPaymentTypeRepo {
        FROM payment_types
        WHERE id = ?
        LIMIT 1;`,
-      [id],
+      [id]
     );
 
     return row ? rowToEntity(row) : null;
@@ -69,14 +66,7 @@ export class SQLitePaymentTypeRepo implements IPaymentTypeRepo {
         created_at
       )
       VALUES (?, ?, ?, ?, 0, ?, ?);`,
-      [
-        id,
-        input.name,
-        input.translationKey ?? null,
-        input.icon,
-        input.sortOrder,
-        now,
-      ],
+      [id, input.name, input.translationKey ?? null, input.icon, input.sortOrder, now]
     );
 
     return {
@@ -86,7 +76,7 @@ export class SQLitePaymentTypeRepo implements IPaymentTypeRepo {
       icon: input.icon,
       isSystem: false,
       sortOrder: input.sortOrder,
-      createdAt: now,
+      createdAt: now
     };
   }
 
@@ -96,7 +86,7 @@ export class SQLitePaymentTypeRepo implements IPaymentTypeRepo {
        SET name = ?, icon = ?
        WHERE id = ?
        AND is_system = 0;`,
-      [name, icon, id],
+      [name, icon, id]
     );
   }
 
@@ -105,18 +95,18 @@ export class SQLitePaymentTypeRepo implements IPaymentTypeRepo {
       `SELECT COUNT(*) AS count
        FROM vehicle_costs
        WHERE category = ?;`,
-      [id],
+      [id]
     );
 
     if ((usage?.count ?? 0) > 0) {
-      throw new Error("Payment type is in use and cannot be deleted.");
+      throw new Error('Payment type is in use and cannot be deleted.');
     }
 
     await this.db.runAsync(
       `DELETE FROM payment_types
        WHERE id = ?
        AND is_system = 0;`,
-      [id],
+      [id]
     );
   }
 }

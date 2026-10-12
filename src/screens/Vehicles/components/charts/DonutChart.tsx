@@ -1,9 +1,9 @@
-import { colors } from "@/theme";
-import { typeScale } from "@/theme/typography";
-import { formatCost } from "@/utils/format";
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import Svg, { Circle, G } from "react-native-svg";
+import { colors } from '@/theme';
+import { typeScale } from '@/theme/typography';
+import { formatCost } from '@/utils/format';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import Svg, { Circle, G } from 'react-native-svg';
 
 export interface DonutSegment {
   label: string;
@@ -19,13 +19,7 @@ interface Props {
   centerSub?: string;
 }
 
-export default function DonutChart({
-  data,
-  size = 140,
-  strokeWidth = 22,
-  centerLabel,
-  centerSub,
-}: Props) {
+export default function DonutChart({ data, size = 140, strokeWidth = 22, centerLabel, centerSub }: Props) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const total = data.reduce((sum, d) => sum + d.value, 0) || 1;
@@ -39,14 +33,7 @@ export default function DonutChart({
       <View style={{ width: size, height: size }}>
         <Svg width={size} height={size}>
           <G rotation="-90" origin={`${cx}, ${cy}`}>
-            <Circle
-              cx={cx}
-              cy={cy}
-              r={radius}
-              fill="none"
-              stroke={colors.bg3}
-              strokeWidth={strokeWidth}
-            />
+            <Circle cx={cx} cy={cy} r={radius} fill="none" stroke={colors.bg3} strokeWidth={strokeWidth} />
             {data.map((seg, i) => {
               const dash = (seg.value / total) * circumference;
               const gap = circumference - dash;
@@ -72,9 +59,7 @@ export default function DonutChart({
 
         {(centerLabel || centerSub) && (
           <View style={[styles.center, { width: size, height: size }]}>
-            {centerLabel && (
-              <Text style={styles.centerLabel}>{centerLabel}</Text>
-            )}
+            {centerLabel && <Text style={styles.centerLabel}>{centerLabel}</Text>}
             {centerSub && <Text style={styles.centerSub}>{centerSub}</Text>}
           </View>
         )}
@@ -91,9 +76,7 @@ export default function DonutChart({
               <Text style={styles.legendAmount}>{formatCost(seg.value)}</Text>
             </View>
 
-            <Text style={styles.legendValue}>
-              {((seg.value / total) * 100).toFixed(0)}%
-            </Text>
+            <Text style={styles.legendValue}>{((seg.value / total) * 100).toFixed(0)}%</Text>
           </View>
         ))}
       </View>
@@ -102,46 +85,46 @@ export default function DonutChart({
 }
 
 const styles = StyleSheet.create({
-  wrapper: { flexDirection: "row", alignItems: "center", gap: 20 },
+  wrapper: { flexDirection: 'row', alignItems: 'center', gap: 20 },
   center: {
-    position: "absolute",
-    alignItems: "center",
-    justifyContent: "center",
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   centerLabel: {
     fontSize: typeScale.bodyLarge,
-    fontWeight: "700",
+    fontWeight: '700',
     color: colors.text0,
-    letterSpacing: -0.3,
+    letterSpacing: -0.3
   },
   centerSub: { fontSize: typeScale.caption, color: colors.text2, marginTop: 2 },
   legend: { flex: 1, gap: 8 },
   legendItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
   },
   legendDot: { width: 8, height: 8, borderRadius: 4 },
 
   legendText: {
-    flex: 1,
+    flex: 1
   },
 
   legendLabel: {
     fontSize: typeScale.captionLarge,
-    fontWeight: "600",
-    color: colors.text1,
+    fontWeight: '600',
+    color: colors.text1
   },
 
   legendAmount: {
     fontSize: typeScale.caption,
     color: colors.text2,
-    marginTop: 1,
+    marginTop: 1
   },
 
   legendValue: {
     fontSize: typeScale.captionLarge,
-    fontWeight: "700",
-    color: colors.text0,
-  },
+    fontWeight: '700',
+    color: colors.text0
+  }
 });

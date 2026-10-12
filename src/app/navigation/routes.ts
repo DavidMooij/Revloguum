@@ -20,7 +20,7 @@ export type RootStackParamList = {
   VehiclePaymentIntervals: { vehicleId: string };
   Documents: {
     vehicleId: string;
-    ownerType: "vehicle" | "service" | "cost";
+    ownerType: 'vehicle' | 'service' | 'cost';
     ownerId: string;
     title: string;
   };

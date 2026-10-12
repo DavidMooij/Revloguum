@@ -1,9 +1,9 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { colors } from "../../../../theme/colors";
-import { spacing, radius } from "../../../../theme/spacing";
-import { typography } from "../../../../theme/typography";
-import { formatCost } from "../../../../utils/format";
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { colors } from '../../../../theme/colors';
+import { spacing, radius } from '../../../../theme/spacing';
+import { typography } from '../../../../theme/typography';
+import { formatCost } from '../../../../utils/format';
 
 interface Props {
   totalCost: number;
@@ -12,12 +12,7 @@ interface Props {
   monthlyLabel: string;
 }
 
-export default function CostSummaryCard({
-  totalCost,
-  monthlyEstimate,
-  totalLabel,
-  monthlyLabel,
-}: Props) {
+export default function CostSummaryCard({ totalCost, monthlyEstimate, totalLabel, monthlyLabel }: Props) {
   return (
     <View style={styles.summaryCard}>
       <View style={styles.summaryBlock}>
@@ -37,7 +32,7 @@ export default function CostSummaryCard({
 
 const styles = StyleSheet.create({
   summaryCard: {
-    flexDirection: "row",
+    flexDirection: 'row',
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
     paddingVertical: spacing.md,
@@ -45,24 +40,24 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg1,
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border1,
+    borderColor: colors.border1
   },
   summaryBlock: {
-    flex: 1,
+    flex: 1
   },
   summaryDivider: {
     width: StyleSheet.hairlineWidth,
     backgroundColor: colors.border1,
-    marginHorizontal: spacing.md,
+    marginHorizontal: spacing.md
   },
   summaryLabel: {
     ...typography.overline,
-    letterSpacing: 1,
+    letterSpacing: 1
   },
   summaryValue: {
     marginTop: 5,
     ...typography.h2,
-    fontWeight: "800",
-    color: colors.text0,
-  },
+    fontWeight: '800',
+    color: colors.text0
+  }
 });

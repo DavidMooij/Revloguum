@@ -1,15 +1,11 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { FontAwesome5 as Icon } from "@expo/vector-icons";
-import { colors } from "../../theme/colors";
-import { spacing } from "../../theme/spacing";
-import { typeScale } from "../../theme/typography";
-import {
-  readableColor,
-  readableLineHeight,
-  readableSize,
-} from "../../theme/readability";
-import { useAppStore } from "../../store/appStore";
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { FontAwesome5 as Icon } from '@expo/vector-icons';
+import { colors } from '../../theme/colors';
+import { spacing } from '../../theme/spacing';
+import { typeScale } from '../../theme/typography';
+import { readableColor, readableLineHeight, readableSize } from '../../theme/readability';
+import { useAppStore } from '../../store/appStore';
 
 interface SettingsRowProps {
   icon: string;
@@ -20,14 +16,7 @@ interface SettingsRowProps {
   danger?: boolean;
 }
 
-export default function SettingsRow({
-  icon,
-  label,
-  sublabel,
-  onPress,
-  right,
-  danger,
-}: SettingsRowProps) {
+export default function SettingsRow({ icon, label, sublabel, onPress, right, danger }: SettingsRowProps) {
   const readabilityMode = useAppStore((s) => s.readabilityMode);
 
   return (
@@ -42,20 +31,14 @@ export default function SettingsRow({
           styles.rowIcon,
           danger && styles.rowIconDanger,
           {
-            backgroundColor: danger
-              ? readableColor("dangerMuted", readabilityMode)
-              : readableColor("bg3", readabilityMode),
-          },
+            backgroundColor: danger ? readableColor('dangerMuted', readabilityMode) : readableColor('bg3', readabilityMode)
+          }
         ]}
       >
         <Icon
           name={icon}
           size={14}
-          color={
-            danger
-              ? readableColor("dangerText", readabilityMode)
-              : readableColor("text1", readabilityMode)
-          }
+          color={danger ? readableColor('dangerText', readabilityMode) : readableColor('text1', readabilityMode)}
         />
       </View>
       <View style={styles.rowContent}>
@@ -64,12 +47,10 @@ export default function SettingsRow({
             styles.rowLabel,
             danger && styles.rowLabelDanger,
             {
-              color: danger
-                ? readableColor("dangerText", readabilityMode)
-                : readableColor("text0", readabilityMode),
+              color: danger ? readableColor('dangerText', readabilityMode) : readableColor('text0', readabilityMode),
               fontSize: readableSize(typeScale.body, readabilityMode, 1),
-              lineHeight: readableLineHeight(22, readabilityMode, 2),
-            },
+              lineHeight: readableLineHeight(22, readabilityMode, 2)
+            }
           ]}
         >
           {label}
@@ -79,10 +60,10 @@ export default function SettingsRow({
             style={[
               styles.rowSub,
               {
-                color: readableColor("text1", readabilityMode),
+                color: readableColor('text1', readabilityMode),
                 fontSize: readableSize(typeScale.captionLarge, readabilityMode, 1),
-                lineHeight: readableLineHeight(16, readabilityMode, 3),
-              },
+                lineHeight: readableLineHeight(16, readabilityMode, 3)
+              }
             ]}
           >
             {sublabel}
@@ -91,11 +72,7 @@ export default function SettingsRow({
       </View>
       {right ??
         (onPress ? (
-          <Icon
-            name="chevron-right"
-            size={readableSize(11, readabilityMode, 1)}
-            color={readableColor("text2", readabilityMode)}
-          />
+          <Icon name="chevron-right" size={readableSize(11, readabilityMode, 1)} color={readableColor('text2', readabilityMode)} />
         ) : null)}
     </TouchableOpacity>
   );
@@ -103,30 +80,30 @@ export default function SettingsRow({
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: spacing.md,
     gap: spacing.md,
-    minHeight: 56,
+    minHeight: 56
   },
   rowReadable: {
-    minHeight: 62,
+    minHeight: 62
   },
   rowIcon: {
     width: 34,
     height: 34,
     borderRadius: 17,
     backgroundColor: colors.bg3,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0
   },
   rowIconDanger: { backgroundColor: colors.dangerMuted },
   rowContent: { flex: 1 },
   rowLabel: {
-    fontWeight: "500",
-    color: colors.text0,
+    fontWeight: '500',
+    color: colors.text0
   },
   rowLabelDanger: { color: colors.dangerText },
-  rowSub: { color: colors.text2, marginTop: 2 },
+  rowSub: { color: colors.text2, marginTop: 2 }
 });

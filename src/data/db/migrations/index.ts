@@ -15,7 +15,20 @@ import { migrateV12 } from './v12_documents';
 
 type Migration = (db: SQLite.SQLiteDatabase) => Promise<void>;
 
-const MIGRATIONS: Migration[] = [migrateV1, migrateV2, migrateV3, migrateV4, migrateV5, migrateV6, migrateV7, migrateV8, migrateV9, migrateV10, migrateV11, migrateV12];
+const MIGRATIONS: Migration[] = [
+  migrateV1,
+  migrateV2,
+  migrateV3,
+  migrateV4,
+  migrateV5,
+  migrateV6,
+  migrateV7,
+  migrateV8,
+  migrateV9,
+  migrateV10,
+  migrateV11,
+  migrateV12
+];
 
 export async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
   await db.execAsync(`
@@ -24,9 +37,7 @@ export async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
     );
   `);
 
-  const row = await db.getFirstAsync<{ version: number }>(
-    'SELECT version FROM schema_version LIMIT 1;',
-  );
+  const row = await db.getFirstAsync<{ version: number }>('SELECT version FROM schema_version LIMIT 1;');
   const currentVersion = row?.version ?? 0;
 
   for (let i = currentVersion; i < MIGRATIONS.length; i++) {
