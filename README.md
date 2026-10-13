@@ -54,6 +54,7 @@ Screenshots show the English interface. Revloguum also includes a complete Germa
 - Manage multiple motorcycles, cars, and other vehicles
 - Record individual services or grouped workshop visits with notes and photos
 - Track fuel entries, consumption, prices, and mileage
+- Record vehicle purchase and residual values for full-cost analysis
 - Track one-time costs with photos and recurring payment intervals
 - Configure service and payment reminders as local notifications
 - Store multi-page vehicle documents and attach service or cost photos from camera or gallery

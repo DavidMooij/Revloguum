@@ -86,7 +86,7 @@ export class SQLiteVehicleCostRepo {
   async getHistory(vehicleId: string): Promise<VehicleCost[]> {
     const rows = await this.db.getAllAsync<VehicleCostRow>(
       `SELECT * FROM vehicle_costs
-       WHERE vehicle_id = ? AND COALESCE(kind, 'history') = 'history'
+        WHERE vehicle_id = ? AND COALESCE(kind, 'history') = 'history'
        ORDER BY date_ts DESC, created_at DESC;`,
       [vehicleId]
     );
@@ -96,7 +96,7 @@ export class SQLiteVehicleCostRepo {
   async getIntervals(vehicleId: string): Promise<VehicleCost[]> {
     const rows = await this.db.getAllAsync<VehicleCostRow>(
       `SELECT * FROM vehicle_costs
-       WHERE vehicle_id = ? AND COALESCE(kind, 'history') = 'interval'
+        WHERE vehicle_id = ? AND COALESCE(kind, 'history') = 'interval'
        ORDER BY date_ts ASC, created_at ASC;`,
       [vehicleId]
     );
@@ -202,7 +202,7 @@ export class SQLiteVehicleCostRepo {
     const row = await this.db.getFirstAsync<{ total: number }>(
       `SELECT COALESCE(SUM(amount), 0) AS total
        FROM vehicle_costs
-       WHERE vehicle_id = ? AND COALESCE(kind, 'history') = 'history';`,
+      WHERE vehicle_id = ? AND COALESCE(kind, 'history') = 'history';`,
       [vehicleId]
     );
     return row?.total ?? 0;
@@ -212,7 +212,7 @@ export class SQLiteVehicleCostRepo {
     const rows = await this.db.getAllAsync<{ category: string; total: number }>(
       `SELECT category, COALESCE(SUM(amount), 0) AS total
        FROM vehicle_costs
-       WHERE vehicle_id = ? AND COALESCE(kind, 'history') = 'history'
+      WHERE vehicle_id = ? AND COALESCE(kind, 'history') = 'history'
        GROUP BY category;`,
       [vehicleId]
     );
@@ -226,7 +226,7 @@ export class SQLiteVehicleCostRepo {
     const rows = await this.db.getAllAsync<{ date_ts: number; amount: number }>(
       `SELECT date_ts, amount
        FROM vehicle_costs
-       WHERE vehicle_id = ? AND COALESCE(kind, 'history') = 'history'
+      WHERE vehicle_id = ? AND COALESCE(kind, 'history') = 'history'
        ORDER BY date_ts ASC;`,
       [vehicleId]
     );

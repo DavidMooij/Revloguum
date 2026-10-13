@@ -41,6 +41,7 @@ Relevant code: [database.ts](src/data/db/database.ts), [keyGenerator.ts](src/sec
 - The media helper is implemented using AES-256-GCM and requests a fresh random 12-byte IV and authentication tag for each file.
 - Document pages are routed through the same helper as other managed images.
 - Import code is intended to encrypt imported media again with the destination device's database key.
+- The purchase-price migration transfers legacy cost notes and encrypted image/page references into a vehicle-owned document before deleting the old cost rows; it does not decrypt or rewrite the referenced media.
 
 Relevant code: [imageEncryption.ts](src/security/imageEncryption.ts) and [SQLiteDocumentRepo.ts](src/data/repositories/SQLiteDocumentRepo.ts).
 
@@ -131,6 +132,8 @@ Security-sensitive releases should manually verify:
 6. Imported images and document pages are encrypted under the destination device key.
 7. Deleting a document or its vehicle/service/payment owner removes its managed encrypted pages; deleting a cost removes its managed photos.
 8. PDF options include or omit notes, costs, photos, document metadata, and document pages as selected.
+9. Upgrade a database containing purchase-category costs with notes, cost photos, and attached documents; verify the purchase total is on the vehicle profile, migrated material appears in vehicle documents, old cost entries/category are gone, and media remains readable.
+10. Restore an older backup containing purchase-category costs and verify the same migration, then export and restore the resulting backup.
 
 The repository currently has no automated security test suite. TypeScript compilation does not replace these device checks or an independent security review.
 

@@ -475,9 +475,10 @@ After deletion the vehicle odometer is recalculated from the manually set baseli
 
 1. The user opens a vehicle's analytics.
 2. They see total recorded costs and their distribution.
-3. They see cost per kilometre, average consumption, average price per litre and total litres.
-4. They see the monthly estimate of recurring payments.
-5. They see the number of recorded services.
+3. They see average fuel per refuel entry, average consumption, average price per litre and total litres.
+4. They see operating cost per kilometre and, when a residual value is set, full cost per kilometre using the vehicle's purchase price and residual value.
+5. They see the monthly estimate of recurring payments.
+6. They see the number of recorded services.
 
 ### UC-061: Compare cost distributions
 
@@ -518,7 +519,10 @@ After deletion the vehicle odometer is recalculated from the manually set baseli
 
 - Consumption between two refuels is only meaningful if the refuel fill levels are comparable, typically full refuels. There is currently no dedicated “full tank” flag.
 - Monthly kilometres are derived from existing refuel odometer readings. If no refuel occurred in a month, the next visible difference may span multiple months.
-- "Cost per kilometre" uses recorded total costs relative to the current odometer. For used vehicles taken over, this value is not identical to cost per kilometre since app usage started.
+- Purchase price and residual value are maintained on the vehicle profile; purchase price is not a payment category or operating cost.
+- Operating cost per kilometre includes service, fuel and recorded vehicle costs, divided by kilometres driven since the vehicle's base odometer.
+- Full cost per kilometre adds the vehicle's purchase price, subtracts its residual value and adds operating costs, divided by kilometres driven since the base odometer. It is unavailable until a residual value is set.
+- Existing purchase-category costs are migrated into the vehicle's purchase price. Their notes, photos and attached document pages are moved into vehicle documents before the old cost entries are removed.
 - Analytics only show data that was actually recorded. Missing fuel, service or payment entries are not estimated.
 - Recurring payments are included as an estimate in monthly metrics; only recorded payment entries count as actually paid costs.
 

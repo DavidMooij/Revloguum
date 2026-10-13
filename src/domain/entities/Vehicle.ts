@@ -14,6 +14,8 @@ export interface Vehicle {
   nickname: string | null;
   currentOdometer: number;
   baseOdometer: number;
+  purchasePrice: number | null;
+  residualValue: number | null;
   vehicleType: VehicleType;
   photoPath: string | null;
   defaultTankLiters: number | null;

@@ -17,6 +17,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 
 import { getDatabase } from '../data/db/database';
+import { migrateLegacyPurchaseCostsInTransaction } from '../data/db/migrations/v15_vehicle_purchase_price';
 import { formatDate, todayTs } from '../utils/date';
 import { decryptImage, deleteEncryptedImage, encryptImage } from '@/security/imageEncryption';
 
@@ -241,11 +242,12 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
   }
 
   const costIds = new Set((payload.vehicleCosts ?? []).map((cost) => cost.id));
+  const purchaseCostIds = new Set((payload.vehicleCosts ?? []).filter((cost) => cost.category === 'purchase').map((cost) => cost.id));
   const legacyCostDocuments = (payload.documents ?? [])
     .filter((document) => {
       const ownerType = document.owner_type ?? document.ownerType;
       const ownerId = document.owner_id ?? document.ownerId;
-      return ownerType === 'cost' && costIds.has(ownerId);
+      return ownerType === 'cost' && costIds.has(ownerId) && !purchaseCostIds.has(ownerId);
     })
     .sort((first, second) => {
       const firstDate = first.date_ts ?? first.dateTs ?? 0;
@@ -324,10 +326,10 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
       if (restored[vehiclePhotoKey]) restoredPhotoPath = restored[vehiclePhotoKey];
       await db.runAsync(
         `INSERT OR REPLACE INTO vehicles
-            (id,make,model,year,nickname,current_odometer,base_odometer,photo_path,
-            default_tank_liters,default_fuel_price,service_intervals,
+          (id,make,model,year,nickname,current_odometer,base_odometer,purchase_price,residual_value,photo_path,
+          default_tank_liters,default_fuel_price,service_intervals,
             vehicle_type,created_at,updated_at)
-          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);`,
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);`,
         [
           v.id,
           v.make,
@@ -336,6 +338,8 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
           v.nickname ?? null,
           v.current_odometer ?? v.currentOdometer ?? 0,
           v.base_odometer ?? v.baseOdometer ?? v.current_odometer ?? v.currentOdometer ?? 0,
+          v.purchase_price ?? v.purchasePrice ?? null,
+          v.residual_value ?? v.residualValue ?? null,
           restoredPhotoPath,
           v.default_tank_liters ?? v.defaultTankLiters ?? null,
           v.default_fuel_price ?? v.defaultFuelPrice ?? null,
@@ -357,7 +361,7 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
     }
 
     for (const t of payload.paymentTypes ?? []) {
-      if (t.is_system || t.isSystem) continue;
+      if (t.id === 'purchase' || t.is_system || t.isSystem) continue;
       await db.runAsync(
         `INSERT OR IGNORE INTO payment_types (id,name,translation_key,icon,is_system,sort_order,created_at)
          VALUES (?,?,NULL,?,0,?,?);`,
@@ -481,6 +485,8 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
         [page.id, page.document_id ?? page.documentId, pagePath, page.sort_order ?? page.sortOrder ?? 0]
       );
     }
+
+    await migrateLegacyPurchaseCostsInTransaction(db);
   });
 
   const replacedImagePaths = new Set([...replacedDocumentPages.map((page) => page.path), ...replacedCostImages]);
