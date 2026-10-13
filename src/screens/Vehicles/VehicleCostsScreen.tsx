@@ -2,8 +2,8 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, TouchableOpacity, ActivityIndicator, Text, TextInput, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useRoute } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { FontAwesome5 as Icon } from '@expo/vector-icons';
 import type { RootStackParamList } from '../../app/navigation/routes';
 import { colors } from '../../theme/colors';
@@ -23,9 +23,9 @@ import { formatCost } from '@/utils/format';
 import { usePaymentTypes } from '@/hooks/usePaymentTypes';
 import { usePaymentTypeLabel } from '@/hooks/usePaymentTypeLabel';
 import VehicleHistoryLayout from './components/VehicleHistoryLayout';
+import { encryptImagePaths, deleteEncryptedImage } from '@/security/imageEncryption';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'VehicleCosts'>;
-type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 const DATE_PRESETS: { key: DateRangePreset; label: string }[] = [
   { key: 'last30', label: '30d' },
@@ -37,7 +37,6 @@ const DATE_PRESETS: { key: DateRangePreset; label: string }[] = [
 export default function VehicleCostsScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<Nav>();
   const route = useRoute<Props['route']>();
   const { vehicleId } = route.params;
   const { costs, intervals, totalCost, addCost, updateCost, deleteCost, loading } = useVehicleCosts(vehicleId);
@@ -47,6 +46,7 @@ export default function VehicleCostsScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingCost, setEditingCost] = useState<VehicleCost | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<CostCategory[]>([]);
   const [datePreset, setDatePreset] = useState<DateRangePreset>('all');
@@ -69,9 +69,11 @@ export default function VehicleCostsScreen() {
     dateTs: number;
     notes: string | null;
     paymentIntervalId: string | null;
+    imagePaths: string[];
   }) => {
     setSaving(true);
     try {
+      const encryptedImagePaths = await encryptImagePaths(value.imagePaths);
       const baseHistory = editingCost ? costs.filter((c) => c.id !== editingCost.id) : costs;
 
       const selectedInterval = value.paymentIntervalId ? (intervals.find((iv) => iv.id === value.paymentIntervalId) ?? null) : null;
@@ -94,7 +96,8 @@ export default function VehicleCostsScreen() {
         paymentIntervalId: value.paymentIntervalId,
         intervalDueTs,
         kind: 'history' as const,
-        notes: value.notes
+        notes: value.notes,
+        imagePaths: encryptedImagePaths
       };
 
       if (editingCost) {
@@ -105,9 +108,16 @@ export default function VehicleCostsScreen() {
           ...payload
         });
       }
+      const retainedPaths = new Set(encryptedImagePaths);
+      await Promise.all(
+        (editingCost?.imagePaths ?? []).filter((path) => !retainedPaths.has(path)).map((path) => deleteEncryptedImage(path).catch(() => {}))
+      );
       haptic.success();
       setModalVisible(false);
       setEditingCost(null);
+    } catch (error) {
+      haptic.error();
+      setSaveError((error as Error).message);
     } finally {
       setSaving(false);
     }
@@ -321,20 +331,7 @@ export default function VehicleCostsScreen() {
       ) : filteredCosts.length === 0 ? (
         <EmptyState icon="receipt" title={t('payments.noPayments')} subtitle={t('payments.noPaymentsHint')} />
       ) : (
-        <CostGroupsList
-          entries={sortedCosts}
-          paymentTypes={paymentTypes}
-          onEdit={openEdit}
-          onDeleteRequest={setDeleteTarget}
-          onDocuments={(cost) =>
-            navigation.navigate('Documents', {
-              vehicleId,
-              ownerType: 'cost',
-              ownerId: cost.id,
-              title: t('documents.paymentTitle')
-            })
-          }
-        />
+        <CostGroupsList entries={sortedCosts} paymentTypes={paymentTypes} onEdit={openEdit} onDeleteRequest={setDeleteTarget} />
       )}
 
       <CostEditModal
@@ -349,6 +346,16 @@ export default function VehicleCostsScreen() {
           setEditingCost(null);
         }}
         onSubmit={handleSave}
+      />
+
+      <AlertModal
+        visible={!!saveError}
+        onClose={() => setSaveError(null)}
+        icon="exclamation-triangle"
+        iconColor={colors.dangerText}
+        title={t('common.error')}
+        message={saveError ?? ''}
+        actions={[{ label: t('common.ok'), variant: 'secondary', onPress: () => {} }]}
       />
 
       <AlertModal

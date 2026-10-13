@@ -5,6 +5,22 @@ import { generateUUID } from '../../utils/uuid';
 const HISTORY_KIND: CostKind = 'history';
 const INTERVAL_KIND: CostKind = 'interval';
 
+interface VehicleCostRow {
+  id: string;
+  vehicle_id: string;
+  kind: string | null;
+  category: string;
+  amount: number;
+  date_ts: number;
+  interval_type: string | null;
+  interval_days: number | null;
+  payment_interval_id: string | null;
+  interval_due_ts: number | null;
+  notes: string | null;
+  image_paths: string | null;
+  created_at: number;
+}
+
 export interface UpsertPaymentIntervalInput {
   id?: string;
   category: CostCategory;
@@ -27,8 +43,8 @@ export class SQLiteVehicleCostRepo {
 
     await this.db.runAsync(
       `INSERT INTO vehicle_costs
-        (id, vehicle_id, kind, category, amount, date_ts, interval_type, interval_days, payment_interval_id, interval_due_ts, notes, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        (id, vehicle_id, kind, category, amount, date_ts, interval_type, interval_days, payment_interval_id, interval_due_ts, notes, image_paths, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       [
         id,
         input.vehicleId,
@@ -41,6 +57,7 @@ export class SQLiteVehicleCostRepo {
         input.paymentIntervalId ?? null,
         input.intervalDueTs ?? null,
         input.notes ?? null,
+        JSON.stringify(input.imagePaths ?? []),
         now
       ]
     );
@@ -57,6 +74,7 @@ export class SQLiteVehicleCostRepo {
       paymentIntervalId: input.paymentIntervalId ?? null,
       intervalDueTs: input.intervalDueTs ?? null,
       notes: input.notes ?? null,
+      imagePaths: input.imagePaths ?? [],
       createdAt: now
     };
   }
@@ -66,23 +84,35 @@ export class SQLiteVehicleCostRepo {
   }
 
   async getHistory(vehicleId: string): Promise<VehicleCost[]> {
-    const rows = await this.db.getAllAsync<any>(
+    const rows = await this.db.getAllAsync<VehicleCostRow>(
       `SELECT * FROM vehicle_costs
        WHERE vehicle_id = ? AND COALESCE(kind, 'history') = 'history'
        ORDER BY date_ts DESC, created_at DESC;`,
       [vehicleId]
     );
-    return rows.map(this.rowToEntity);
+    return rows.map((row) => this.rowToEntity(row));
   }
 
   async getIntervals(vehicleId: string): Promise<VehicleCost[]> {
-    const rows = await this.db.getAllAsync<any>(
+    const rows = await this.db.getAllAsync<VehicleCostRow>(
       `SELECT * FROM vehicle_costs
        WHERE vehicle_id = ? AND COALESCE(kind, 'history') = 'interval'
        ORDER BY date_ts ASC, created_at ASC;`,
       [vehicleId]
     );
-    return rows.map(this.rowToEntity);
+    return rows.map((row) => this.rowToEntity(row));
+  }
+
+  async getById(id: string): Promise<VehicleCost | null> {
+    const row = await this.db.getFirstAsync<VehicleCostRow>('SELECT * FROM vehicle_costs WHERE id = ? LIMIT 1;', [id]);
+    return row ? this.rowToEntity(row) : null;
+  }
+
+  async getImagePathsForVehicle(vehicleId: string): Promise<string[]> {
+    const rows = await this.db.getAllAsync<{ image_paths: string | null }>('SELECT image_paths FROM vehicle_costs WHERE vehicle_id = ?;', [
+      vehicleId
+    ]);
+    return rows.flatMap((row) => this.parseImagePaths(row.image_paths));
   }
 
   async replaceIntervals(vehicleId: string, intervals: UpsertPaymentIntervalInput[]): Promise<void> {
@@ -155,6 +185,10 @@ export class SQLiteVehicleCostRepo {
       sets.push('notes = ?');
       values.push(input.notes ?? null);
     }
+    if (input.imagePaths !== undefined) {
+      sets.push('image_paths = ?');
+      values.push(JSON.stringify(input.imagePaths ?? []));
+    }
     if (!sets.length) return;
     values.push(id);
     await this.db.runAsync(`UPDATE vehicle_costs SET ${sets.join(', ')} WHERE id = ?;`, values);
@@ -199,7 +233,7 @@ export class SQLiteVehicleCostRepo {
     return rows.map((r) => ({ dateTs: r.date_ts, amount: r.amount }));
   }
 
-  private rowToEntity(row: any): VehicleCost {
+  private rowToEntity(row: VehicleCostRow): VehicleCost {
     const kind: CostKind = row.kind === INTERVAL_KIND ? INTERVAL_KIND : HISTORY_KIND;
     const intervalType: IntervalType =
       row.interval_type === 'monthly' || row.interval_type === 'yearly' || row.interval_type === 'custom' ? row.interval_type : null;
@@ -219,7 +253,17 @@ export class SQLiteVehicleCostRepo {
       paymentIntervalId: row.payment_interval_id ?? null,
       intervalDueTs: row.interval_due_ts ?? null,
       notes: row.notes,
+      imagePaths: this.parseImagePaths(row.image_paths),
       createdAt: row.created_at
     };
+  }
+
+  private parseImagePaths(value: string | null | undefined): string[] {
+    try {
+      const parsed: unknown = JSON.parse(value ?? '[]');
+      return Array.isArray(parsed) && parsed.every((path) => typeof path === 'string') ? parsed : [];
+    } catch {
+      return [];
+    }
   }
 }

@@ -20,7 +20,7 @@ Revloguum is intended to be a local-first mobile application. Its security goals
 - detect modification of authenticated encrypted media and backups;
 - avoid server-side exposure of personal vehicle data by design.
 
-Sensitive data includes vehicle details, odometer history, service records, fuel entries, payments, notes, vehicle and service photos, document metadata, document pages, and exported reports or backups.
+Sensitive data includes vehicle details, odometer history, service records, fuel entries, payments, notes, vehicle, service, and cost photos, document metadata, document pages, and exported reports or backups.
 
 ## Current Implementation
 
@@ -37,7 +37,7 @@ Relevant code: [database.ts](src/data/db/database.ts), [keyGenerator.ts](src/sec
 
 ### Persistent Images and Document Pages
 
-- The source code attempts to encrypt new vehicle photos, service photos, and document pages individually before storing managed copies in the app's persistent directory.
+- The source code attempts to encrypt new vehicle, service, and cost photos, plus document pages, individually before storing managed copies in the app's persistent directory.
 - The media helper is implemented using AES-256-GCM and requests a fresh random 12-byte IV and authentication tag for each file.
 - Document pages are routed through the same helper as other managed images.
 - Import code is intended to encrypt imported media again with the destination device's database key.
@@ -89,8 +89,8 @@ The current source code contains no Revloguum account system, advertising SDK, a
 
 ### Permissions
 
-- Camera access is requested when the user chooses to capture a service image or document page.
-- Photo-library access is used when the user selects a vehicle image, service image, or document page through the platform picker.
+- Camera access is requested when the user chooses to capture a vehicle, service, or cost photo, or a document page.
+- Photo-library access is used when the user selects a vehicle, service, or cost photo, or a document page through the platform picker.
 - Notification permission is requested for local reminders. The operating system controls lock-screen visibility.
 - The system document picker and sharing interface are used for user-directed backup and report operations.
 
@@ -124,12 +124,12 @@ Data normally remains until it is edited or deleted, the in-app delete-all flow 
 Security-sensitive releases should manually verify:
 
 1. A fresh install creates a keyed SQLCipher database and an unkeyed open cannot read it.
-2. Vehicle, service, and document images are not stored as plain JPEG or PNG files in persistent app storage.
+2. Vehicle, service, cost, and document images are not stored as plain JPEG or PNG files in persistent app storage.
 3. A backup imports with the correct password and fails with a wrong password.
 4. Modifying encrypted backup bytes causes authentication failure.
-5. Vehicle, service, fuel, cost, intervals, custom types, photos, documents, and document page order survive backup and restore.
+5. Vehicle, service, fuel, cost entries and their photos, intervals, custom types, documents, and document page order survive backup and restore.
 6. Imported images and document pages are encrypted under the destination device key.
-7. Deleting a document or its vehicle/service/payment owner removes its managed encrypted pages.
+7. Deleting a document or its vehicle/service/payment owner removes its managed encrypted pages; deleting a cost removes its managed photos.
 8. PDF options include or omit notes, costs, photos, document metadata, and document pages as selected.
 
 The repository currently has no automated security test suite. TypeScript compilation does not replace these device checks or an independent security review.

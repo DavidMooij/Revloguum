@@ -8,6 +8,7 @@ import { recalculateVehicleOdometer } from '../utils/updateVehicleOdometer';
 import { SQLiteDocumentRepo } from '../data/repositories/SQLiteDocumentRepo';
 import { deleteEncryptedImage } from '../security/imageEncryption';
 import { SQLiteServiceEntryRepo } from '../data/repositories/SQLiteServiceEntryRepo';
+import { SQLiteVehicleCostRepo } from '../data/repositories/SQLiteVehicleCostRepo';
 
 export function useVehicles() {
   const { vehicles, setVehicles, activeVehicleId, setActiveVehicleId, getActiveVehicle } = useAppStore();
@@ -58,17 +59,22 @@ export function useVehicles() {
     async (id: string) => {
       const db = await getDatabase();
       const repo = new SQLiteVehicleRepo(db);
-      const [vehicle, documents, serviceImagePaths] = await Promise.all([
+      const [vehicle, documents, serviceImagePaths, costImagePaths] = await Promise.all([
         repo.getById(id),
         new SQLiteDocumentRepo(db).getForVehicle(id),
-        new SQLiteServiceEntryRepo(db).getImagePathsForVehicle(id)
+        new SQLiteServiceEntryRepo(db).getImagePathsForVehicle(id),
+        new SQLiteVehicleCostRepo(db).getImagePathsForVehicle(id)
       ]);
       await repo.delete(id);
-      await Promise.all(
-        [vehicle?.photoPath ?? null, ...serviceImagePaths, ...documents.flatMap((document) => document.pages.map((page) => page.path))]
-          .filter((path): path is string => !!path)
-          .map(deleteEncryptedImage)
+      const imagePaths = new Set(
+        [
+          vehicle?.photoPath ?? null,
+          ...serviceImagePaths,
+          ...costImagePaths,
+          ...documents.flatMap((document) => document.pages.map((page) => page.path))
+        ].filter((path): path is string => !!path)
       );
+      await Promise.all([...imagePaths].map(deleteEncryptedImage));
       await refresh();
       await syncNotifications();
     },

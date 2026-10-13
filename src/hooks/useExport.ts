@@ -176,6 +176,19 @@ async function readAllData(): Promise<BackupPayload> {
     }
   }
 
+  for (const cost of vehicleCosts) {
+    let paths: string[] = [];
+    try {
+      paths = JSON.parse(cost.image_paths ?? '[]');
+    } catch {}
+    for (let i = 0; i < paths.length; i++) {
+      const decryptedUri = paths[i].endsWith('.enc') ? await decryptImage(paths[i]) : paths[i];
+      images[`cost_${cost.id}_${i}`] = await FileSystem.readAsStringAsync(decryptedUri, {
+        encoding: FileSystem.EncodingType.Base64
+      });
+    }
+  }
+
   for (const v of vehicles) {
     const photoPath: string | null = v.photo_path ?? null;
     if (photoPath) {
@@ -216,7 +229,59 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
     throw new Error('Backup is missing a document page');
   }
 
-  const restoredDocumentIds = (payload.documents ?? []).map((document) => document.id);
+  const missingCostPhoto = (payload.vehicleCosts ?? []).find((cost) => {
+    let paths: string[] = [];
+    try {
+      paths = JSON.parse(cost.image_paths ?? cost.imagePaths ?? '[]');
+    } catch {}
+    return paths.some((_: string, index: number) => !payload.images?.[`cost_${cost.id}_${index}`]);
+  });
+  if (missingCostPhoto) {
+    throw new Error('Backup is missing a cost photo');
+  }
+
+  const costIds = new Set((payload.vehicleCosts ?? []).map((cost) => cost.id));
+  const legacyCostDocuments = (payload.documents ?? [])
+    .filter((document) => {
+      const ownerType = document.owner_type ?? document.ownerType;
+      const ownerId = document.owner_id ?? document.ownerId;
+      return ownerType === 'cost' && costIds.has(ownerId);
+    })
+    .sort((first, second) => {
+      const firstDate = first.date_ts ?? first.dateTs ?? 0;
+      const secondDate = second.date_ts ?? second.dateTs ?? 0;
+      if (secondDate !== firstDate) return secondDate - firstDate;
+      const firstCreated = first.created_at ?? first.createdAt ?? 0;
+      const secondCreated = second.created_at ?? second.createdAt ?? 0;
+      return secondCreated - firstCreated || String(first.id).localeCompare(String(second.id));
+    });
+  const legacyCostDocumentIds = new Set(legacyCostDocuments.map((document) => document.id));
+  const legacyCostDocumentOrder = new Map(legacyCostDocuments.map((document, index) => [document.id, index] as const));
+  const legacyCostDocumentOwners = new Map(
+    legacyCostDocuments.map((document) => [document.id, document.owner_id ?? document.ownerId] as const)
+  );
+  const legacyCostPagesByCost = new Map<string, string[]>();
+  const legacyCostPages = (payload.documentPages ?? [])
+    .filter((page) => legacyCostDocumentIds.has(page.document_id ?? page.documentId))
+    .sort((first, second) => {
+      const firstDocumentOrder = legacyCostDocumentOrder.get(first.document_id ?? first.documentId) ?? 0;
+      const secondDocumentOrder = legacyCostDocumentOrder.get(second.document_id ?? second.documentId) ?? 0;
+      return (
+        firstDocumentOrder - secondDocumentOrder ||
+        (first.sort_order ?? first.sortOrder ?? 0) - (second.sort_order ?? second.sortOrder ?? 0)
+      );
+    });
+  for (const page of legacyCostPages) {
+    const ownerId = legacyCostDocumentOwners.get(page.document_id ?? page.documentId);
+    if (!ownerId) continue;
+    const pageIds = legacyCostPagesByCost.get(ownerId) ?? [];
+    pageIds.push(page.id);
+    legacyCostPagesByCost.set(ownerId, pageIds);
+  }
+
+  const restoredDocumentIds = (payload.documents ?? [])
+    .filter((document) => !legacyCostDocumentIds.has(document.id))
+    .map((document) => document.id);
   const replacedDocumentPages =
     restoredDocumentIds.length > 0
       ? await db.getAllAsync<{ path: string }>(
@@ -225,6 +290,22 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
           restoredDocumentIds
         )
       : [];
+  const restoredCostIds = (payload.vehicleCosts ?? []).map((cost) => cost.id).filter(Boolean);
+  const replacedCostImageRows =
+    restoredCostIds.length > 0
+      ? await db.getAllAsync<{ image_paths: string | null }>(
+          `SELECT image_paths FROM vehicle_costs WHERE id IN (${restoredCostIds.map(() => '?').join(',')});`,
+          restoredCostIds
+        )
+      : [];
+  const replacedCostImages = replacedCostImageRows.flatMap((row) => {
+    try {
+      const paths: unknown = JSON.parse(row.image_paths ?? '[]');
+      return Array.isArray(paths) ? paths.filter((path): path is string => typeof path === 'string') : [];
+    } catch {
+      return [];
+    }
+  });
 
   const restored: Record<string, string> = {};
   for (const [key, b64] of Object.entries(payload.images ?? {})) {
@@ -339,11 +420,17 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
 
       const restoredIntervalDays =
         c.interval_days ?? c.intervalDays ?? (restoredIntervalType === 'monthly' ? 30 : restoredIntervalType === 'yearly' ? 365 : null);
+      let oldImagePaths: string[] = [];
+      try {
+        oldImagePaths = JSON.parse(c.image_paths ?? c.imagePaths ?? '[]');
+      } catch {}
+      const imagePaths = oldImagePaths.map((_: string, index: number) => restored[`cost_${c.id}_${index}`]).filter(Boolean);
+      imagePaths.push(...(legacyCostPagesByCost.get(c.id) ?? []).map((pageId) => restored[`document_page_${pageId}`]).filter(Boolean));
 
       await db.runAsync(
         `INSERT OR REPLACE INTO vehicle_costs
-           (id,vehicle_id,kind,category,amount,date_ts,interval_type,interval_days,payment_interval_id,interval_due_ts,notes,created_at)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?);`,
+           (id,vehicle_id,kind,category,amount,date_ts,interval_type,interval_days,payment_interval_id,interval_due_ts,notes,image_paths,created_at)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);`,
         [
           c.id,
           c.vehicle_id ?? c.vehicleId,
@@ -356,12 +443,14 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
           c.payment_interval_id ?? c.paymentIntervalId ?? null,
           c.interval_due_ts ?? c.intervalDueTs ?? null,
           c.notes ?? null,
+          JSON.stringify(imagePaths),
           c.created_at ?? c.createdAt ?? Date.now()
         ]
       );
     }
 
     for (const document of payload.documents ?? []) {
+      if (legacyCostDocumentIds.has(document.id)) continue;
       await db.runAsync(
         `INSERT OR REPLACE INTO documents
           (id,vehicle_id,owner_type,owner_id,title,category,date_ts,notes,created_at,updated_at)
@@ -382,6 +471,7 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
     }
 
     for (const page of payload.documentPages ?? []) {
+      if (legacyCostDocumentIds.has(page.document_id ?? page.documentId)) continue;
       const pagePath = restored[`document_page_${page.id}`];
       if (!pagePath) continue;
       await db.runAsync(
@@ -393,7 +483,8 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
     }
   });
 
-  await Promise.all(replacedDocumentPages.map((page) => deleteEncryptedImage(page.path)));
+  const replacedImagePaths = new Set([...replacedDocumentPages.map((page) => page.path), ...replacedCostImages]);
+  await Promise.all([...replacedImagePaths].map((path) => deleteEncryptedImage(path)));
 }
 
 export function useExport() {

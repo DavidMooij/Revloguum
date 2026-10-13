@@ -153,8 +153,8 @@ export function usePdfExport() {
 
           const costs = await new SQLiteVehicleCostRepo(db).getAll(options.vehicleId);
           const filtered = costs.filter((c) => inRange(c.dateTs));
-          const rows = filtered
-            .map((c) => {
+          const rows = await Promise.all(
+            filtered.map(async (c) => {
               const paymentType = paymentTypeById.get(c.category);
               const categoryLabel = paymentType
                 ? PaymentTypeLabelService.getLabel(paymentType, t)
@@ -164,15 +164,24 @@ export function usePdfExport() {
                     return translated === key ? c.category : translated;
                   })();
 
+              const photosHtml =
+                options.includePhotos && c.imagePaths.length > 0
+                  ? `<div class="photo-grid">${(await Promise.all(c.imagePaths.map(imageToDataUri)))
+                      .filter(Boolean)
+                      .map((dataUri) => `<img src="${dataUri}" />`)
+                      .join('')}</div>`
+                  : '';
+              const columnCount = 2 + Number(options.includeCostValues) + Number(options.includeNotes);
+
               return `
               <tr>
                 <td>${formatPdfDate(c.dateTs)}</td>
                 <td>${escapeHtml(categoryLabel)}</td>
                 ${options.includeCostValues ? `<td class="cost-cell">${formatCost(c.amount)}</td>` : ''}
                 ${options.includeNotes ? `<td>${escapeHtml(c.notes ?? '')}</td>` : ''}
-              </tr>`;
+              </tr>${photosHtml ? `<tr><td colspan="${columnCount}">${photosHtml}</td></tr>` : ''}`;
             })
-            .join('');
+          );
           costsSection = `
             <h2>${escapeHtml(t('settings.pdfOtherCosts'))}</h2>
             <table>

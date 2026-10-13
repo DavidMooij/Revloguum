@@ -427,7 +427,8 @@ After deletion the vehicle odometer is recalculated from the manually set baseli
 4. They enter amount and date.
 5. They may add a note.
 6. They may associate the entry with a configured recurring payment.
-7. They save the entry.
+7. They may attach photos from the gallery or camera.
+8. They save the entry.
 
 **Outcome:** The expense appears in the history and is included in cost overviews. If associated with an interval, the matching due item is considered paid.
 
@@ -454,8 +455,8 @@ After deletion the vehicle odometer is recalculated from the manually set baseli
 **Flow:**
 
 1. The user opens an existing payment entry for editing.
-2. Type, amount, date, note and interval association are prefilled.
-3. They adjust the values and save.
+2. Type, amount, date, note, interval association and photos are prefilled.
+3. They adjust the values or add/remove photos and save.
 4. Totals and due items are recalculated.
 
 ### UC-054: Delete a payment
@@ -727,7 +728,7 @@ In Settings the user can see that local data and images are stored protected, th
 - During saving, import, export and PDF generation the app shows a busy or processing state.
 - Errors are displayed in a way that allows the user to continue working or retry the action.
 
-## 16. Vehicle and entry documents
+## 16. Vehicle documents and entry photos
 
 ### UC-140: Add a vehicle document
 
@@ -741,20 +742,19 @@ In Settings the user can see that local data and images are stored protected, th
 
 **Examples:** Insurance policy, vehicle registration, torque table, owner manual or warranty document.
 
-### UC-141: Attach a document to a service
+### UC-141: Add photos to a service
 
-1. The user opens details of an existing service or workshop visit.
-2. They add a document in the "Service documents" area.
-3. They enter a title and at least one image page.
-4. Optionally they add category, date and a note.
-5. The document remains attached to the service even after editing the entry.
+1. The user creates or edits a service entry.
+2. They add one or more photos from the gallery or camera.
+3. A preview is shown and selected photos can be removed before saving.
+4. Photos remain attached to the service entry after editing.
 
-### UC-142: Attach a receipt or document to a payment
+### UC-142: Add photos to a payment or expense
 
-1. The user opens payment history.
-2. They choose the document icon on the relevant entry.
-3. They add an invoice, receipt, policy or other proof with one or more pages.
-4. The document is exclusively associated with that payment entry.
+1. The user creates or edits a payment or expense.
+2. They add one or more photos from the gallery or camera.
+3. A preview is shown and selected photos can be removed before saving.
+4. Photos are attached to that payment or expense and need no separate title.
 
 ### UC-143: View and edit a document
 
@@ -776,4 +776,4 @@ In Settings the user can see that local data and images are stored protected, th
 - The encrypted backup contains document metadata and all pages.
 - On import the pages are re-protected for the target device.
 - In the PDF export document metadata can be chosen independently of the image pages.
-- Vehicle, service and payment documents are labeled with their association in the report.
+- Vehicle documents are labeled with their association in the report. Service and payment photos use the report's photo option.

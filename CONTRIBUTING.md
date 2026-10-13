@@ -92,6 +92,7 @@ There is no automated test suite yet. Manually test the affected flows on a deve
 - odometer recalculation after lowering or deleting entries;
 - service and payment interval persistence and reminder rescheduling;
 - document create/edit/reorder/delete from camera and gallery;
+- cost photo add/edit/remove, encrypted cleanup after cost or vehicle deletion, and backup/PDF inclusion options;
 - encrypted media cleanup after replacement and owner deletion;
 - backup export, wrong-password failure, restore, and old-backup compatibility;
 - PDF combinations for costs, notes, photos, documents, and document pages;

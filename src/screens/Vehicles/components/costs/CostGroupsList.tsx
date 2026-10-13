@@ -17,10 +17,9 @@ interface Props {
   paymentTypes: PaymentType[];
   onEdit: (cost: VehicleCost) => void;
   onDeleteRequest: (costId: string) => void;
-  onDocuments: (cost: VehicleCost) => void;
 }
 
-export default function CostGroupsList({ entries, paymentTypes, onEdit, onDeleteRequest, onDocuments }: Props) {
+export default function CostGroupsList({ entries, paymentTypes, onEdit, onDeleteRequest }: Props) {
   const { t } = useTranslation();
   const getPaymentTypeLabel = usePaymentTypeLabel();
   const paymentTypeById = new Map(paymentTypes.map((pt) => [pt.id, pt]));
@@ -74,9 +73,6 @@ export default function CostGroupsList({ entries, paymentTypes, onEdit, onDelete
                   {formatCost(item.amount)}
                 </Text>
               </View>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.documentButton} onPress={() => onDocuments(item)} hitSlop={8}>
-              <Icon name="file-alt" size={13} color={colors.accent} />
             </TouchableOpacity>
           </View>
         );
@@ -142,13 +138,5 @@ const styles = StyleSheet.create({
     fontSize: typeScale.bodyLarge,
     fontWeight: '800',
     color: colors.successText
-  },
-  documentButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: colors.accentMuted,
-    alignItems: 'center',
-    justifyContent: 'center'
   }
 });

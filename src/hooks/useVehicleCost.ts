@@ -60,9 +60,16 @@ export function useVehicleCosts(vehicleId: string) {
   const deleteCost = useCallback(
     async (id: string) => {
       const db = await getDatabase();
-      const documents = await new SQLiteDocumentRepo(db).getForOwner('cost', id);
+      const [cost, documents] = await Promise.all([
+        new SQLiteVehicleCostRepo(db).getById(id),
+        new SQLiteDocumentRepo(db).getForOwner('cost', id)
+      ]);
       await new SQLiteVehicleCostRepo(db).delete(id);
-      await Promise.all(documents.flatMap((document) => document.pages).map((page) => deleteEncryptedImage(page.path)));
+      const imagePaths = new Set([
+        ...(cost?.imagePaths ?? []),
+        ...documents.flatMap((document) => document.pages.map((page) => page.path))
+      ]);
+      await Promise.all([...imagePaths].map((path) => deleteEncryptedImage(path)));
       await load();
       await syncNotifications();
     },
