@@ -23,6 +23,7 @@ import { haptic } from '@/utils/haptics';
 import DatePickerField from '../../../AddEntry/components/DatePickerField';
 import { usePaymentTypeLabel } from '@/hooks/usePaymentTypeLabel';
 import PhotoAttachmentsField from '../../../components/PhotoAttachmentsField';
+import ModalDragHandle from '../../../components/ModalDragHandle';
 
 interface CostFormValue {
   category: CostCategory;
@@ -125,7 +126,7 @@ export default function CostEditModal({
         <Pressable style={styles.overlay} onPress={onClose}>
           <Pressable onPress={(e) => e.stopPropagation()}>
             <View style={[styles.sheet, { paddingBottom: insetsBottom + spacing.xl }]}>
-              <View style={styles.handle} />
+              <ModalDragHandle onClose={onClose} style={styles.handle} />
               <Text style={styles.sheetTitle}>{editingCost ? t('costs.editCosts') : t('costs.addCosts')}</Text>
 
               <ScrollView
@@ -267,9 +268,6 @@ const styles = StyleSheet.create({
   formScroll: { flexShrink: 1 },
   formContent: { gap: spacing.sm, paddingBottom: spacing.sm },
   handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
     backgroundColor: colors.border2,
     alignSelf: 'center',
     marginBottom: spacing.sm

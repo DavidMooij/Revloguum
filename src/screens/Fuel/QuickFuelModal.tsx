@@ -23,6 +23,7 @@ import { typography, typeScale } from '../../theme/typography';
 import { haptic } from '@/utils/haptics';
 import DatePickerField from '../AddEntry/components/DatePickerField';
 import { useOdometerTimelineValidation } from '../../hooks/useOdometerTimelineValidation';
+import ModalDragHandle from '../components/ModalDragHandle';
 
 interface Props {
   visible: boolean;
@@ -208,7 +209,7 @@ export default function QuickFuelModal({ visible, onClose, onSave, vehicle, last
         <TouchableOpacity style={StyleSheet.absoluteFill} onPress={onClose} activeOpacity={1} />
         <View style={styles.keyboardArea}>
           <Animated.View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, spacing.md), marginBottom: sheetBottomOffset }]}>
-            <View style={styles.handle} />
+            <ModalDragHandle onClose={onClose} disabled={saving} style={styles.handle} />
             <View style={styles.header}>
               <View style={styles.headerLeft}>
                 <Text style={styles.vehicleName} numberOfLines={1}>
@@ -363,9 +364,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden'
   },
   handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
     backgroundColor: colors.border2,
     alignSelf: 'center'
   },
