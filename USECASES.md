@@ -101,7 +101,7 @@ Revloguum targets people who manage one or more vehicles and want to document se
 **Flow:**
 
 1. The user triggers the quick-refuel action.
-2. The step-by-step refuel input opens for the active vehicle.
+2. A single-page refuel form opens for the active vehicle, with date, odometer, litres, price and notes visible together. The date defaults to today and can be changed.
 3. After saving, the Dashboard, odometer, and refuel analytics are updated.
 
 ## 4. Garage and vehicles
@@ -240,6 +240,7 @@ Service intervals, payment intervals and vehicle documents are edited separately
 
 - At least one service type must be chosen.
 - Odometer must be a valid non-negative number.
+- The odometer must not decrease across dated service and fuel entries. Same-day entries and equal readings are allowed.
 - Optional costs must be entered as a valid amount.
 
 **Outcome:** The entry appears in service history and can affect due dates and the vehicle odometer.
@@ -353,43 +354,27 @@ After deletion the vehicle odometer is recalculated from the manually set baseli
 
 ## 6. Fuel entries
 
-### UC-040: Stepwise refuel entry
+### UC-040: Single-page refuel entry
 
 **Prerequisite:** A vehicle is selected.
 
-**Step 1 – Odometer:**
-
-1. The user enters the odometer value using the numeric field.
-2. The last refuel odometer is shown as orientation if available.
-3. For a new entry the value must not be below the vehicle's current odometer.
-
-**Step 2 – Litres:**
-
-1. The vehicle's default tank capacity is preselected.
-2. The user increases or decreases the amount in small or large steps.
-3. They can revert to the default amount.
-4. A fill-level indicator relates the amount to the stored default tank capacity.
-
-**Step 3 – Price:**
-
-1. The user chooses between total price and price per litre.
-2. In total-price mode they enter the paid total and see the calculated price per litre.
-3. In price-per-litre mode they adjust the price and see the calculated total.
-
-**Step 4 – Confirmation and notes:**
-
-1. Odometer, litres, price-per-litre and total amount are summarised.
-2. The user may add an optional note, e.g. station, fuel type or trip context.
-3. They save the refuel entry.
+1. The date defaults to today for a new entry; the user can select another date. Editing an entry starts with its saved date.
+2. The user enters the odometer value in kilometres.
+3. The last refuel odometer is shown as orientation if available.
+4. Historical odometer values are allowed when they fit between the nearest dated service and fuel readings. Same-day entries and equal readings are allowed.
+5. The vehicle's default tank capacity is prefilled; litres can be entered to two decimal places. A fill-level indicator relates the amount to the stored default tank capacity.
+6. Price per litre and total amount are shown as editable fields. Changing either value updates the other; changing litres recalculates the value that was not edited most recently.
+7. The user may add an optional note, e.g. station, fuel type or trip context.
+8. They can cancel or save directly from the form.
 
 **Outcome:** The entry appears in fuel history. A higher odometer updates the vehicle.
 
 ### UC-041: Correct or cancel refuel before saving
 
-- The user can go back to any previous step using "Back".
-- They can cancel the input via the close icon or tapping outside the dialog.
+- All entry fields remain visible and editable on the same page.
+- They can cancel the input via the cancel button or tapping outside the dialog.
 - Unsaved inputs are reset on re-opening.
-- All steps keep the same dialog height to avoid visual jumps while progressing.
+- The form can scroll when its content does not fit the available screen height; save and cancel remain available.
 
 ### UC-042: View fuel history
 
@@ -416,8 +401,9 @@ After deletion the vehicle odometer is recalculated from the manually set baseli
 
 1. The user long-presses a fuel entry.
 2. They choose "Edit".
-3. The step-by-step input opens with odometer, litres, amount and note.
+3. The single-page input opens with date, odometer, litres, amount and note.
 4. They change values and save.
+5. The same chronological odometer validation applies; the entry being edited is excluded from the comparison.
 
 ### UC-045: Delete a fuel entry
 

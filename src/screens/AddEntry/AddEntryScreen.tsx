@@ -10,6 +10,7 @@ import { typography, typeScale } from '../../theme/typography';
 import { spacing, radius } from '../../theme/spacing';
 import { useServiceTypes } from '../../hooks/useServiceTypes';
 import { useServiceEntryActions } from '../../hooks/useServiceHistory';
+import { useOdometerTimelineValidation } from '../../hooks/useOdometerTimelineValidation';
 import { useVehicles } from '../../hooks/useVehicles';
 import { getDatabase } from '../../data/db/database';
 import { SQLiteServiceEntryRepo } from '../../data/repositories/SQLiteServiceEntryRepo';
@@ -39,6 +40,7 @@ export default function AddEntryScreen() {
 
   const { serviceTypes } = useServiceTypes();
   const { addGroup, deleteGroup, deleteEntry } = useServiceEntryActions();
+  const validateOdometerTimeline = useOdometerTimelineValidation();
   const { vehicles, activeVehicleId } = useVehicles();
 
   const resolvedMotoId = vehicleId ?? activeVehicleId ?? vehicles[0]?.id ?? '';
@@ -55,6 +57,7 @@ export default function AddEntryScreen() {
   const [displayUris, setDisplayUris] = useState<Record<string, string>>({});
   const [editGroupId, setEditGroupId] = useState<string | null>(null);
   const [editVehicleId, setEditVehicleId] = useState<string | null>(null);
+  const [editEntryIds, setEditEntryIds] = useState<string[]>([]);
   const { showToast, showCelebration } = useFeedback();
 
   const updateBlock = useCallback((key: string, patch: Partial<ServiceBlock>) => {
@@ -88,9 +91,11 @@ export default function AddEntryScreen() {
       setOdometer(String(entry.odometerKm));
       setImages(entry.imagePaths ?? []);
       setEditVehicleId(entry.vehicleId);
+      setEditEntryIds([entry.id]);
       if (entry.groupId) {
         const groupItems = await repo.getGroup(entry.groupId);
         setEditGroupId(entry.groupId);
+        setEditEntryIds(groupItems.map((item) => item.id));
         setBlocks(
           groupItems.map((g) => ({
             key: g.id,
@@ -181,6 +186,23 @@ export default function AddEntryScreen() {
     setSaving(true);
     try {
       const parsedOdo = parseInt(odometer, 10);
+      const timelineIssue = await validateOdometerTimeline(
+        isEditing ? (editVehicleId ?? resolvedMotoId) : resolvedMotoId,
+        dateTs,
+        parsedOdo,
+        isEditing ? editEntryIds : []
+      );
+      if (timelineIssue) {
+        setErrors((previous) => ({
+          ...previous,
+          odometer: t(timelineIssue.kind === 'belowPrevious' ? 'common.odometerBelowTimeline' : 'common.odometerAboveTimeline', {
+            km: timelineIssue.boundaryKm.toLocaleString()
+          })
+        }));
+        haptic.error();
+        return;
+      }
+
       const encryptedImages = await getEncryptedImages(images);
       const items = blocks
         .filter((b) => b.serviceTypeId)
@@ -257,6 +279,8 @@ export default function AddEntryScreen() {
     editEntryId,
     editVehicleId,
     resolvedMotoId,
+    editEntryIds,
+    validateOdometerTimeline,
     dateTs,
     addGroup,
     deleteGroup,
@@ -297,14 +321,23 @@ export default function AddEntryScreen() {
           <TextInputField
             label={t('addEntry.odometer')}
             value={odometer}
-            onChangeText={setOdometer}
+            onChangeText={(value) => {
+              setOdometer(value);
+              setErrors((previous) => ({ ...previous, odometer: undefined }));
+            }}
             keyboardType="numeric"
             placeholder={t('addEntry.placeholderOdometer')}
             suffix="km"
             error={errors.odometer}
           />
 
-          <DatePickerField value={dateTs} onChange={setDateTs} />
+          <DatePickerField
+            value={dateTs}
+            onChange={(value) => {
+              setDateTs(value);
+              setErrors((previous) => ({ ...previous, odometer: undefined }));
+            }}
+          />
 
           <View style={styles.imageSection}>
             <Text style={styles.imageLabel}>{t('addEntry.photos')}</Text>

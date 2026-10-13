@@ -17,9 +17,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.veruum.Revloguum",
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      "permissions": ["android.permission.RECORD_AUDIO"]
     },
     "web": {
       "favicon": "./assets/image.png"
@@ -39,9 +37,7 @@
             "compileSdkVersion": 36,
             "targetSdkVersion": 36,
             "packagingOptions": {
-              "pickFirst": [
-                "**/libcrypto.so"
-              ]
+              "pickFirst": ["**/libcrypto.so"]
             }
           },
           "ios": {

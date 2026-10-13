@@ -10,7 +10,9 @@
     "error": "Fehler",
     "saveChanges": "Änderungen speichern",
     "cannotBeUndone": "Kann nicht rückgängig gemacht werden.",
-    "date": "Datum"
+    "date": "Datum",
+    "odometerBelowTimeline": "Ein früherer Eintrag hat {{km}} km oder mehr. Passe Datum oder Kilometerstand an.",
+    "odometerAboveTimeline": "Ein späterer Eintrag hat {{km}} km oder weniger. Passe Datum oder Kilometerstand an."
   },
   "documents": {
     "title": "Dokumente",
@@ -404,6 +406,15 @@
     "title": "Tankeinträge",
     "noEntries": "Keine Einträge",
     "noEntriesSubtitle": "Noch keine Tankeinträge",
+    "newTitle": "NEUE TANKUNG",
+    "editTitle": "TANKUNG BEARBEITEN",
+    "odometerPlaceholder": "Kilometerstand in km",
+    "litersPlaceholder": "Liter",
+    "amountPlaceholder": "Gesamtbetrag",
+    "pricePlaceholder": "Preis pro Liter",
+    "requiredField": "Dieses Feld ist erforderlich.",
+    "invalidLiters": "Gib eine Menge grösser als null ein.",
+    "invalidAmount": "Gib einen Preis grösser als null ein.",
     "stepOdometer": "KILOMETERSTAND",
     "stepLiters": "GETANKTE LITER",
     "stepPrice": "PREIS PRO LITER",
@@ -437,8 +448,6 @@
     "priceDisplay": "CHF {{price}}",
     "totalEq": "= CHF {{total}}",
     "resetDefault": "{{liters}} L ↺",
-    "priceModeTotal": "Gesamtpreis",
-    "priceModePerLiter": "Preis/L",
     "pricePerLiterEq": "≈ {{price}} CHF/L"
   },
   "costs": {

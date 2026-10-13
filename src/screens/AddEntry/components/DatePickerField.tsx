@@ -35,17 +35,18 @@ export default function DatePickerField({ value, onChange, label, showLabel = tr
     return String(v).padStart(field === 'year' ? 4 : 2, '0');
   };
 
-  const commitEdit = (field: Field, text: string) => {
+  const getEditedDate = (date: Date, field: Field, text: string) => {
     const n = parseInt(text, 10);
-    if (!isNaN(n)) {
-      setTempDate((prev) => {
-        const d = new Date(prev);
-        if (field === 'day' && n >= 1 && n <= 31) d.setDate(n);
-        if (field === 'month' && n >= 1 && n <= 12) d.setMonth(n - 1);
-        if (field === 'year' && n > 1900 && n < 2200) d.setFullYear(n);
-        return d;
-      });
-    }
+    const d = new Date(date);
+    if (Number.isNaN(n)) return d;
+    if (field === 'day' && n >= 1 && n <= 31) d.setDate(n);
+    if (field === 'month' && n >= 1 && n <= 12) d.setMonth(n - 1);
+    if (field === 'year' && n > 1900 && n < 2200) d.setFullYear(n);
+    return d;
+  };
+
+  const commitEdit = (field: Field, text: string) => {
+    setTempDate((prev) => getEditedDate(prev, field, text));
     setEditing(null);
   };
 
@@ -65,8 +66,9 @@ export default function DatePickerField({ value, onChange, label, showLabel = tr
   };
 
   const confirm = () => {
-    if (editing) commitEdit(editing, editText);
-    onChange(tempDate.getTime());
+    const selectedDate = editing ? getEditedDate(tempDate, editing, editText) : tempDate;
+    if (editing) setTempDate(selectedDate);
+    onChange(selectedDate.getTime());
     setOpen(false);
   };
 

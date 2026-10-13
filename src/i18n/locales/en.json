@@ -10,7 +10,9 @@
     "error": "Error",
     "saveChanges": "Save changes",
     "cannotBeUndone": "This action cannot be undone.",
-    "date": "Date"
+    "date": "Date",
+    "odometerBelowTimeline": "An earlier entry has {{km}} km or more. Adjust the date or odometer.",
+    "odometerAboveTimeline": "A later entry has {{km}} km or less. Adjust the date or odometer."
   },
   "documents": {
     "title": "Documents",
@@ -405,6 +407,15 @@
     "title": "Fuel Entries",
     "noEntries": "No entries",
     "noEntriesSubtitle": "No fuel entries yet",
+    "newTitle": "NEW REFUEL",
+    "editTitle": "EDIT REFUEL",
+    "odometerPlaceholder": "Odometer in km",
+    "litersPlaceholder": "Litres",
+    "amountPlaceholder": "Total amount",
+    "pricePlaceholder": "Price per litre",
+    "requiredField": "This field is required.",
+    "invalidLiters": "Enter a volume greater than zero.",
+    "invalidAmount": "Enter a price greater than zero.",
     "stepOdometer": "ODOMETER",
     "stepLiters": "LITERS FILLED",
     "stepPrice": "PRICE PER LITER",
@@ -441,8 +452,6 @@
     "resetDefault": "{{liters}} L ↺",
     "invalidOdometerTitle": "Invalid odometer",
     "invalidOdometerMessage": "The odometer must be at least {{km}} km.",
-    "priceModeTotal": "Total price",
-    "priceModePerLiter": "Price/L",
     "pricePerLiterEq": "≈ {{price}} CHF/L"
   },
   "costs": {

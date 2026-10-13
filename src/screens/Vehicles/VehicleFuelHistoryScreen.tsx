@@ -303,6 +303,7 @@ export default function VehicleFuelHistoryScreen() {
           onSave={async (data) => {
             if (editTarget) {
               await updateEntry(editTarget.id, {
+                dateTs: data.dateTs,
                 odometerKm: data.odometerKm,
                 liters: data.liters,
                 cost: data.cost,
@@ -311,11 +312,11 @@ export default function VehicleFuelHistoryScreen() {
             } else {
               await addEntry({
                 vehicleId,
+                dateTs: data.dateTs,
                 odometerKm: data.odometerKm,
                 liters: data.liters,
                 cost: data.cost,
-                notes: data.notes,
-                dateTs: Date.now()
+                notes: data.notes
               });
             }
             setFuelModal(false);
