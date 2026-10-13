@@ -616,6 +616,8 @@ After deletion the vehicle odometer is recalculated from the manually set baseli
 
 The Images detail option includes the vehicle photo, service and cost photos, and document-page scans for selected sections. Exported image copies are resized to at most 1800 pixels on the longest edge and JPEG-compressed; stored originals remain unchanged.
 
+When payment history and cost amounts are included, the report also shows the vehicle's purchase price and residual value when available.
+
 Grouped service entries appear under a shared heading and date/odometer. The group total is shown at the right when costs are enabled; individual services retain their own costs and notes, and shared photos appear separately at the end of the group.
 
 Each payment-history entry is shown as a separate block, with its own photo directly below its amount and notes.
@@ -636,11 +638,13 @@ Each payment-history entry is shown as a separate block, with its own photo dire
 1. The user selects "Export data".
 2. They enter a user-chosen password.
 3. Export cannot start without a password.
-4. The app prepares vehicles, services, fuel entries, payments, intervals, custom types, documents and image pages as a backup file.
+4. The app prepares vehicle profile values, services, fuel entries, payments, intervals, custom types, documents and their referenced images as a backup file.
 5. After completion the app confirms the file is ready.
 6. The user opens the system dialog to save or share the file.
 
 **Important note:** The password is required for later import. The app does not provide recovery for a forgotten export password.
+
+If a referenced vehicle, service, cost or document image cannot be read, backup export fails instead of silently omitting it.
 
 ### UC-101: Import backup
 
@@ -652,6 +656,7 @@ Each payment-history entry is shown as a separate block, with its own photo dire
 6. Records with the same identifier are replaced by the backup state; other existing data remains.
 7. Vehicle lists and views are updated after successful import.
 8. Document pages are re-protected on the device during import.
+9. A completion summary reports restored record counts and any skipped images or invalid optional notes, with up to three affected locations.
 
 **Error cases:**
 
@@ -659,6 +664,8 @@ Each payment-history entry is shown as a separate block, with its own photo dire
 - Selection cancelled: No data is changed.
 - Wrong password or corrupted file: No unconfirmed content is shown; the app reports the error.
 - File not in expected backup format: Import is rejected.
+- Missing or unreadable image: That attachment is skipped while other valid records are restored and reported in the summary.
+- Invalid optional note value: Only that note is skipped and reported; invalid core records still abort the import.
 
 ## 13. Presentation and interaction
 

@@ -48,9 +48,10 @@ Relevant code: [imageEncryption.ts](src/security/imageEncryption.ts) and [SQLite
 ### Backups
 
 - Backup code is intended to include database records and referenced media and document pages.
+- Backup export fails when a referenced vehicle, service, cost or document image cannot be read instead of silently omitting it.
 - The current implementation requests a 32-byte random salt and uses PBKDF2-HMAC-SHA256 with 650,000 iterations to derive a 256-bit key from the user's password.
 - It uses AES-256-GCM with a requested fresh 12-byte IV for the backup payload.
-- Import code attempts to reject an invalid envelope, wrong password, authentication failure, malformed core data, or missing document-page data.
+- Import rejects an invalid envelope, wrong password, authentication failure, or malformed core data before committing records. Missing or unreadable optional images and invalid optional notes are skipped and reported in the completion summary.
 - Import is implemented with merge/replace-by-identifier semantics rather than a destructive full-database replacement.
 - The code includes a compatibility path for backups created using the historical authenticated app identifier.
 
@@ -130,12 +131,13 @@ Security-sensitive releases should manually verify:
 2. Vehicle, service, cost, and document images are not stored as plain JPEG or PNG files in persistent app storage.
 3. A backup imports with the correct password and fails with a wrong password.
 4. Modifying encrypted backup bytes causes authentication failure.
-5. Vehicle, service, fuel, cost entries and their photos, intervals, custom types, documents, and document page order survive backup and restore.
+5. Vehicle profile values, service, fuel, cost entries and their photos, intervals, custom types, documents, and document page order survive backup and restore.
 6. Imported images and document pages are encrypted under the destination device key.
 7. Deleting a document or its vehicle/service/payment owner removes its managed encrypted pages; deleting a cost removes its managed photos.
-8. PDF options include or omit selected sections and details; verify the Images option controls the vehicle, service, cost, and selected document-page images, with document pages included only when Documents is selected; verify grouped services show a right-aligned total when costs are enabled, retain per-entry costs and notes, and place shared photos once at the end of the group; on Android verify document pages remain visible and stored originals are unchanged.
+8. PDF options include or omit selected sections and details; verify the Images option controls the vehicle, service, cost, and selected document-page images, with document pages included only when Documents is selected; verify purchase and residual values appear only when payment history and cost amounts are enabled; verify grouped services show a right-aligned total when costs are enabled, retain per-entry costs and notes, and place shared photos once at the end of the group; on Android verify document pages remain visible and stored originals are unchanged.
 9. Upgrade a database containing purchase-category costs with notes, cost photos, and attached documents; verify the purchase total is on the vehicle profile, migrated material appears in vehicle documents, old cost entries/category are gone, and media remains readable.
 10. Restore an older backup containing purchase-category costs and verify the same migration, then export and restore the resulting backup.
+11. Restore a valid backup with one missing or unreadable image and one invalid optional note; verify other records import, skipped items are reported with locations, and malformed core records still leave the database unchanged.
 
 The repository currently has no automated security test suite. TypeScript compilation does not replace these device checks or an independent security review.
 

@@ -107,6 +107,13 @@ export function usePdfExport() {
         let serviceCount = 0;
         const vehiclePhotoDataUri = options.includeImages && vehicle.photoPath ? await imageToDataUri(vehicle.photoPath) : null;
         const vehiclePhotoHtml = vehiclePhotoDataUri ? `<img class="cover-photo" src="${vehiclePhotoDataUri}" />` : '';
+        const vehicleValuesHtml =
+          options.includeCosts && options.includeCostValues && (vehicle.purchasePrice != null || vehicle.residualValue != null)
+            ? `<div class="vehicle-values">
+                ${vehicle.purchasePrice != null ? `<div class="vehicle-value"><div class="vehicle-value-label">${escapeHtml(t('settings.pdfPurchasePrice'))}</div><div class="vehicle-value-amount">${formatCost(vehicle.purchasePrice)}</div></div>` : ''}
+                ${vehicle.residualValue != null ? `<div class="vehicle-value"><div class="vehicle-value-label">${escapeHtml(t('settings.pdfResidualValue'))}</div><div class="vehicle-value-amount">${formatCost(vehicle.residualValue)}</div></div>` : ''}
+              </div>`
+            : '';
 
         if (options.includeService) {
           const entries = await new SQLiteServiceEntryRepo(db).fetchFiltered({
@@ -389,6 +396,23 @@ export function usePdfExport() {
                   font-weight: 700;
                   color: #18181B;
                 }
+                .vehicle-values {
+                  display: flex;
+                  flex-wrap: wrap;
+                  gap: 18px;
+                  margin-top: 14px;
+                  padding-top: 12px;
+                  border-top: 1px solid #EDE7FB;
+                }
+                .vehicle-value { flex: 1; min-width: 140px; }
+                .vehicle-value-label {
+                  color: #71717A;
+                  font-size: 9px;
+                  font-weight: 700;
+                  text-transform: uppercase;
+                  margin-bottom: 3px;
+                }
+                .vehicle-value-amount { color: #18181B; font-size: 13px; font-weight: 700; }
                 h2 {
                   font-size: 13.5px;
                   font-weight: 700;
@@ -539,6 +563,7 @@ export function usePdfExport() {
                       : ''
                   }
                 </div>
+                ${vehicleValuesHtml}
               </div>
 
               ${serviceSection}

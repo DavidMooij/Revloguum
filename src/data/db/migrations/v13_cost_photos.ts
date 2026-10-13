@@ -15,6 +15,7 @@ export async function migrateV13(db: SQLite.SQLiteDatabase): Promise<void> {
        JOIN vehicle_costs c ON c.id = d.owner_id
        JOIN document_pages p ON p.document_id = d.id
        WHERE d.owner_type = 'cost'
+         AND c.category <> 'purchase'
        ORDER BY c.id, d.date_ts DESC, d.created_at DESC, d.id, p.sort_order ASC;`
     );
 
@@ -33,7 +34,7 @@ export async function migrateV13(db: SQLite.SQLiteDatabase): Promise<void> {
     await db.runAsync(
       `DELETE FROM documents
        WHERE owner_type = 'cost'
-         AND owner_id IN (SELECT id FROM vehicle_costs);`
+         AND owner_id IN (SELECT id FROM vehicle_costs WHERE category <> 'purchase');`
     );
   });
 }

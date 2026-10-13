@@ -124,10 +124,32 @@ export default function SettingsScreen() {
         const all = await new SQLiteVehicleRepo(db).getAll();
         setVehicles(all);
       } catch {}
+      const summaryLines = [t('settings.importSummary', result.summary.counts)];
+      if (result.summary.issues.length > 0) {
+        summaryLines.push(t('settings.importWarnings', { count: result.summary.issues.length }));
+        for (const issue of result.summary.issues.slice(0, 3)) {
+          let key: string;
+          if (issue.kind === 'note') {
+            key = 'settings.importSkippedNote';
+          } else if (issue.source === 'vehicle') {
+            key = 'settings.importSkippedVehicleImage';
+          } else if (issue.source === 'service') {
+            key = 'settings.importSkippedServiceImage';
+          } else if (issue.source === 'cost') {
+            key = 'settings.importSkippedCostImage';
+          } else {
+            key = 'settings.importSkippedDocumentPage';
+          }
+          summaryLines.push(`- ${t(key, { location: issue.location })}`);
+        }
+        if (result.summary.issues.length > 3) {
+          summaryLines.push(t('settings.importMoreWarnings', { count: result.summary.issues.length - 3 }));
+        }
+      }
       setModal({
         type: 'result',
         success: true,
-        message: t('settings.dataRestored')
+        message: summaryLines.join('\n')
       });
     } else if (!result.cancelled) {
       setModal({
