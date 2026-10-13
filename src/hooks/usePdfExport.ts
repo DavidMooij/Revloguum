@@ -1,7 +1,9 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Image } from 'react-native';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { getDatabase } from '../data/db/database';
 import { SQLiteVehicleRepo } from '../data/repositories/SQLiteVehicleRepo';
 import { SQLiteServiceEntryRepo } from '../data/repositories/SQLiteServiceEntryRepo';
@@ -20,9 +22,8 @@ export interface PdfExportOptions {
   includeService: boolean;
   includeFuel: boolean;
   includeCosts: boolean;
-  includePhotos: boolean;
+  includeImages: boolean;
   includeDocuments: boolean;
-  includeDocumentImages: boolean;
   includeCostValues: boolean;
   includeNotes: boolean;
   dateFrom?: number;
@@ -35,14 +36,43 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+function getImageDimensions(uri: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    Image.getSize(uri, (width, height) => resolve({ width, height }), reject);
+  });
+}
+
 async function imageToDataUri(path: string): Promise<string | null> {
   try {
     const uri = path.endsWith('.enc') ? await decryptImage(path) : path;
-    const base64 = await FileSystem.readAsStringAsync(uri, {
-      encoding: FileSystem.EncodingType.Base64
-    });
-    const ext = uri.toLowerCase().endsWith('.png') ? 'png' : 'jpeg';
-    return `data:image/${ext};base64,${base64}`;
+    const { width, height } = await getImageDimensions(uri);
+    const scale = Math.min(1, 1800 / Math.max(width, height));
+    const context = ImageManipulator.ImageManipulator.manipulate(uri);
+
+    try {
+      if (scale < 1) {
+        context.resize({ width: Math.round(width * scale), height: Math.round(height * scale) });
+      }
+
+      const image = await context.renderAsync();
+      try {
+        const result = await image.saveAsync({
+          format: ImageManipulator.SaveFormat.JPEG,
+          compress: 0.75,
+          base64: true
+        });
+        try {
+          if (!result.base64) return null;
+          return `data:image/jpeg;base64,${result.base64}`;
+        } finally {
+          await FileSystem.deleteAsync(result.uri, { idempotent: true }).catch(() => {});
+        }
+      } finally {
+        image.release();
+      }
+    } finally {
+      context.release();
+    }
   } catch {
     return null;
   }
@@ -75,6 +105,9 @@ export function usePdfExport() {
 
         let serviceSection = '';
         let serviceCount = 0;
+        const vehiclePhotoDataUri = options.includeImages && vehicle.photoPath ? await imageToDataUri(vehicle.photoPath) : null;
+        const vehiclePhotoHtml = vehiclePhotoDataUri ? `<img class="cover-photo" src="${vehiclePhotoDataUri}" />` : '';
+
         if (options.includeService) {
           const entries = await new SQLiteServiceEntryRepo(db).fetchFiltered({
             vehicleId: options.vehicleId,
@@ -83,25 +116,70 @@ export function usePdfExport() {
           const filtered = entries.filter((e) => inRange(e.dateTs));
           serviceCount = filtered.length;
 
+          const groupsByKey = new Map<string, typeof filtered>();
+          for (const entry of filtered) {
+            const key = entry.groupId ?? entry.id;
+            const group = groupsByKey.get(key) ?? [];
+            group.push(entry);
+            groupsByKey.set(key, group);
+          }
+
           const blocks = await Promise.all(
-            filtered.map(async (e) => {
+            [...groupsByKey.values()].map(async (group) => {
+              const firstEntry = group[0];
+              const imagePaths = [...new Set(group.flatMap((entry) => entry.imagePaths ?? []))];
               let photosHtml = '';
-              if (options.includePhotos && e.imagePaths?.length) {
-                const dataUris = await Promise.all(e.imagePaths.map(imageToDataUri));
-                photosHtml = `<div class="photo-grid">${dataUris
-                  .filter(Boolean)
-                  .map((d) => `<img src="${d}" />`)
-                  .join('')}</div>`;
+              if (options.includeImages && imagePaths.length > 0) {
+                const uniqueDataUris = new Set<string>();
+                for (const imagePath of imagePaths) {
+                  const dataUri = await imageToDataUri(imagePath);
+                  if (dataUri) uniqueDataUris.add(dataUri);
+                }
+                photosHtml = `<div class="photo-grid">${[...uniqueDataUris].map((dataUri) => `<img src="${dataUri}" />`).join('')}</div>`;
               }
+
+              if (group.length === 1) {
+                const entry = firstEntry;
+                return `
+                  <div class="entry-block">
+                    <div class="entry-header">
+                      <span class="entry-title">${escapeHtml(ServiceTypeLabelService.getLabel({ name: entry.serviceTypeName, translationKey: entry.translationKey }, t))}</span>
+                      ${options.includeCostValues && entry.cost != null ? `<span class="entry-cost">${formatCost(entry.cost)}</span>` : ''}
+                    </div>
+                    <div class="entry-meta">${formatPdfDate(entry.dateTs)} · ${formatOdometer(entry.odometerKm)}</div>
+                    ${options.includeNotes && entry.notes ? `<div class="entry-notes">${escapeHtml(entry.notes)}</div>` : ''}
+                    ${photosHtml}
+                  </div>`;
+              }
+
+              const serviceItems = group
+                .map((entry) => {
+                  const label = ServiceTypeLabelService.getLabel({ name: entry.serviceTypeName, translationKey: entry.translationKey }, t);
+                  return `
+                    <div class="group-service">
+                      <div class="entry-header">
+                        <span class="entry-title">${escapeHtml(label)}</span>
+                        ${options.includeCostValues && entry.cost != null ? `<span class="entry-cost">${formatCost(entry.cost)}</span>` : ''}
+                      </div>
+                      ${options.includeNotes && entry.notes ? `<div class="entry-notes">${escapeHtml(entry.notes)}</div>` : ''}
+                    </div>`;
+                })
+                .join('');
+              const groupTotal = group.reduce((total, entry) => total + (entry.cost ?? 0), 0);
+              const hasGroupCost = group.some((entry) => entry.cost != null);
+              const groupedPhotosHtml = photosHtml
+                ? `<div class="group-photos"><div class="group-photos-title">${escapeHtml(t('settings.pdfGroupPhotos'))}</div>${photosHtml}</div>`
+                : '';
+
               return `
                 <div class="entry-block">
-                  <div class="entry-header">
-                    <span class="entry-title">${escapeHtml(ServiceTypeLabelService.getLabel({ name: e.serviceTypeName, translationKey: e.translationKey }, t))}</span>
-                    ${options.includeCostValues && e.cost != null ? `<span class="entry-cost">${formatCost(e.cost)}</span>` : ''}
+                  <div class="service-group-header">
+                    <span class="service-group-title">${escapeHtml(t('settings.pdfServiceGroup'))}</span>
+                    ${options.includeCostValues && hasGroupCost ? `<span class="service-group-total"><span>${escapeHtml(t('settings.pdfGroupTotal'))}</span><strong>${formatCost(groupTotal)}</strong></span>` : ''}
                   </div>
-                  <div class="entry-meta">${formatPdfDate(e.dateTs)} · ${formatOdometer(e.odometerKm)}</div>
-                  ${options.includeNotes && e.notes ? `<div class="entry-notes">${escapeHtml(e.notes)}</div>` : ''}
-                  ${photosHtml}
+                  <div class="entry-meta">${formatPdfDate(firstEntry.dateTs)} · ${formatOdometer(firstEntry.odometerKm)}</div>
+                  <div class="group-service-list">${serviceItems}</div>
+                  ${groupedPhotosHtml}
                 </div>`;
             })
           );
@@ -153,7 +231,7 @@ export function usePdfExport() {
 
           const costs = await new SQLiteVehicleCostRepo(db).getAll(options.vehicleId);
           const filtered = costs.filter((c) => inRange(c.dateTs));
-          const rows = await Promise.all(
+          const blocks = await Promise.all(
             filtered.map(async (c) => {
               const paymentType = paymentTypeById.get(c.category);
               const categoryLabel = paymentType
@@ -165,35 +243,28 @@ export function usePdfExport() {
                   })();
 
               const photosHtml =
-                options.includePhotos && c.imagePaths.length > 0
+                options.includeImages && c.imagePaths.length > 0
                   ? `<div class="photo-grid">${(await Promise.all(c.imagePaths.map(imageToDataUri)))
                       .filter(Boolean)
                       .map((dataUri) => `<img src="${dataUri}" />`)
                       .join('')}</div>`
                   : '';
-              const columnCount = 2 + Number(options.includeCostValues) + Number(options.includeNotes);
 
               return `
-              <tr>
-                <td>${formatPdfDate(c.dateTs)}</td>
-                <td>${escapeHtml(categoryLabel)}</td>
-                ${options.includeCostValues ? `<td class="cost-cell">${formatCost(c.amount)}</td>` : ''}
-                ${options.includeNotes ? `<td>${escapeHtml(c.notes ?? '')}</td>` : ''}
-              </tr>${photosHtml ? `<tr><td colspan="${columnCount}">${photosHtml}</td></tr>` : ''}`;
+                <div class="entry-block">
+                  <div class="entry-header">
+                    <span class="entry-title">${escapeHtml(categoryLabel)}</span>
+                    ${options.includeCostValues ? `<span class="entry-cost">${formatCost(c.amount)}</span>` : ''}
+                  </div>
+                  <div class="entry-meta">${formatPdfDate(c.dateTs)}</div>
+                  ${options.includeNotes && c.notes ? `<div class="entry-notes">${escapeHtml(c.notes)}</div>` : ''}
+                  ${photosHtml}
+                </div>`;
             })
           );
           costsSection = `
             <h2>${escapeHtml(t('settings.pdfOtherCosts'))}</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>${escapeHtml(t('common.date'))}</th><th>${escapeHtml(t('settings.pdfCategory'))}</th>
-                  ${options.includeCostValues ? `<th>${escapeHtml(t('settings.pdfAmount'))}</th>` : ''}
-                  ${options.includeNotes ? `<th>${escapeHtml(t('settings.pdfNotes'))}</th>` : ''}
-                </tr>
-              </thead>
-              <tbody>${rows}</tbody>
-            </table>`;
+            ${blocks.join('')}`;
         }
 
         let documentsSection = '';
@@ -201,23 +272,30 @@ export function usePdfExport() {
           const documents = (await new SQLiteDocumentRepo(db).getForVehicle(options.vehicleId)).filter((document) =>
             inRange(document.dateTs)
           );
-          const blocks = await Promise.all(
-            documents.map(async (document) => {
-              let pagesHtml = '';
-              if (options.includeDocumentImages && document.pages.length > 0) {
-                const dataUris = await Promise.all(document.pages.map((page) => imageToDataUri(page.path)));
-                pagesHtml = `<div class="document-grid">${dataUris
-                  .filter(Boolean)
-                  .map((dataUri) => `<img src="${dataUri}" />`)
-                  .join('')}</div>`;
+          const blocks: string[] = [];
+          for (const document of documents) {
+            let pagesHtml = '';
+            if (options.includeImages && document.pages.length > 0) {
+              const dataUris: string[] = [];
+              for (const page of document.pages) {
+                let dataUri: string | null;
+                try {
+                  dataUri = await imageToDataUri(page.path);
+                } catch {
+                  dataUri = null;
+                }
+                if (!dataUri) return { success: false, error: t('settings.pdfDocumentPageFailed') };
+                dataUris.push(dataUri);
               }
-              const ownerLabel =
-                document.ownerType === 'vehicle'
-                  ? t('documents.vehicleTitle')
-                  : document.ownerType === 'service'
-                    ? t('documents.serviceTitle')
-                    : t('documents.paymentTitle');
-              return `
+              pagesHtml = `<div class="document-grid">${dataUris.map((dataUri) => `<img src="${dataUri}" />`).join('')}</div>`;
+            }
+            const ownerLabel =
+              document.ownerType === 'vehicle'
+                ? t('documents.vehicleTitle')
+                : document.ownerType === 'service'
+                  ? t('documents.serviceTitle')
+                  : t('documents.paymentTitle');
+            blocks.push(`
                 <div class="entry-block">
                   <div class="entry-header">
                     <span class="entry-title">${escapeHtml(document.title)}</span>
@@ -226,9 +304,8 @@ export function usePdfExport() {
                   <div class="entry-meta">${formatPdfDate(document.dateTs)}${document.category ? ` · ${escapeHtml(document.category)}` : ''}</div>
                   ${options.includeNotes && document.notes ? `<div class="entry-notes">${escapeHtml(document.notes)}</div>` : ''}
                   ${pagesHtml}
-                </div>`;
-            })
-          );
+                </div>`);
+          }
           documentsSection = `
             <h2>${escapeHtml(t('documents.pdfTitle'))}</h2>
             ${blocks.length > 0 ? blocks.join('') : `<div class="empty-text">${escapeHtml(t('documents.empty'))}</div>`}`;
@@ -254,6 +331,21 @@ export function usePdfExport() {
                   border-radius: 14px;
                   padding: 32px 34px;
                   margin-bottom: 26px;
+                }
+                .cover-main {
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: flex-start;
+                  gap: 18px;
+                  margin-bottom: 18px;
+                }
+                .cover-copy { flex: 1; min-width: 0; }
+                .cover-photo {
+                  width: 120px;
+                  height: 90px;
+                  object-fit: cover;
+                  border: 1px solid #ECECEF;
+                  border-radius: 8px;
                 }
                 .cover-eyebrow {
                   font-size: 10px;
@@ -328,7 +420,7 @@ export function usePdfExport() {
                   vertical-align: top;
                   color: #27272A;
                 }
-                .cost-cell { font-weight: 700; color: #18181B; }
+                .cost-cell { font-weight: 700; color: #8B5CF6; }
                 .entry-block {
                   border: 1px solid #ECECEF;
                   border-radius: 10px;
@@ -341,6 +433,55 @@ export function usePdfExport() {
                   justify-content: space-between;
                   align-items: baseline;
                   margin-bottom: 6px;
+                }
+                .service-group-header {
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: flex-start;
+                  gap: 12px;
+                  margin-bottom: 14px;
+                  padding-bottom: 10px;
+                  border-bottom: 1px solid #E4E4E7;
+                }
+                .service-group-title {
+                  font-size: 15px;
+                  font-weight: 700;
+                  color: #18181B;
+                }
+                .service-group-total {
+                  display: flex;
+                  flex-direction: column;
+                  align-items: flex-end;
+                  gap: 2px;
+                  color: #71717A;
+                  font-size: 9px;
+                  text-align: right;
+                }
+                .service-group-total strong {
+                  color: #8B5CF6;
+                  font-size: 13px;
+                }
+                .group-service-list {
+                  margin: 12px 0 0 4px;
+                  padding-left: 14px;
+                  border-left: 2px solid #D4D4D8;
+                }
+                .group-service + .group-service {
+                  border-top: 1px solid #F1F1F3;
+                  padding-top: 8px;
+                  margin-top: 8px;
+                }
+                .group-photos {
+                  margin-top: 14px;
+                  padding-top: 10px;
+                  border-top: 1px solid #E4E4E7;
+                }
+                .group-photos-title {
+                  margin-bottom: 8px;
+                  color: #71717A;
+                  font-size: 9px;
+                  font-weight: 700;
+                  text-transform: uppercase;
                 }
                 .entry-title { font-size: 15px; font-weight: 700; color: #18181B; }
                 .entry-meta { font-size: 12px; font-weight: 600; color: #52525B; }
@@ -374,9 +515,14 @@ export function usePdfExport() {
             </head>
             <body>
               <div class="cover">
-                <div class="cover-eyebrow">${escapeHtml(t('settings.pdfVehicleReport'))}</div>
-                <div class="cover-title">${escapeHtml(formatVehicleName(vehicle.make, vehicle.model, vehicle.nickname))}</div>
-                <div class="cover-sub">${vehicle.year ? `${vehicle.year} · ` : ''}${escapeHtml(t('settings.pdfGeneratedOn', { date: formatPdfDate(Date.now()) }))}</div>
+                <div class="cover-main">
+                  <div class="cover-copy">
+                    <div class="cover-eyebrow">${escapeHtml(t('settings.pdfVehicleReport'))}</div>
+                    <div class="cover-title">${escapeHtml(formatVehicleName(vehicle.make, vehicle.model, vehicle.nickname))}</div>
+                    <div class="cover-sub">${vehicle.year ? `${vehicle.year} · ` : ''}${escapeHtml(t('settings.pdfGeneratedOn', { date: formatPdfDate(Date.now()) }))}</div>
+                  </div>
+                  ${vehiclePhotoHtml}
+                </div>
                 <div class="cover-stats">
                   <div class="cover-stat">
                     <div class="cover-stat-label">${escapeHtml(t('dashboard.odometer'))}</div>
@@ -416,8 +562,8 @@ export function usePdfExport() {
         await FileSystem.copyAsync({ from: uri, to: finalUri });
 
         return { success: true, fileUri: finalUri };
-      } catch (e) {
-        return { success: false, error: (e as Error).message };
+      } catch {
+        return { success: false, error: t('settings.pdfExportFailed') };
       }
     },
     [i18n.language, t]

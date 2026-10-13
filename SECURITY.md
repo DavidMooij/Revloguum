@@ -99,6 +99,8 @@ The current source code contains no Revloguum account system, advertising SDK, a
 
 The backup implementation is intended to password-protect `.rvlg` files, but this property is not guaranteed without independent verification. Generated PDF reports are plaintext and may contain sensitive records and media. Once a file leaves the app, its retention and protection depend on the selected destination and the user.
 
+When document pages are included in a PDF, export copies are resized to a maximum 1800-pixel longest edge and JPEG-compressed at 75% quality to limit Android rendering memory. The encrypted source pages are not modified. The generated PDF remains plaintext in the app cache and after sharing.
+
 ### Retention and Deletion
 
 Data normally remains until it is edited or deleted, the in-app delete-all flow is used, app storage is cleared, or the app is uninstalled according to operating-system behavior. Deletion code attempts to remove associated managed media, but immediate or forensic deletion from flash storage, caches, system backups, exports, or other apps is not guaranteed.
@@ -131,7 +133,7 @@ Security-sensitive releases should manually verify:
 5. Vehicle, service, fuel, cost entries and their photos, intervals, custom types, documents, and document page order survive backup and restore.
 6. Imported images and document pages are encrypted under the destination device key.
 7. Deleting a document or its vehicle/service/payment owner removes its managed encrypted pages; deleting a cost removes its managed photos.
-8. PDF options include or omit notes, costs, photos, document metadata, and document pages as selected.
+8. PDF options include or omit selected sections and details; verify the Images option controls the vehicle, service, cost, and selected document-page images, with document pages included only when Documents is selected; verify grouped services show a right-aligned total when costs are enabled, retain per-entry costs and notes, and place shared photos once at the end of the group; on Android verify document pages remain visible and stored originals are unchanged.
 9. Upgrade a database containing purchase-category costs with notes, cost photos, and attached documents; verify the purchase total is on the vehicle profile, migrated material appears in vehicle documents, old cost entries/category are gone, and media remains readable.
 10. Restore an older backup containing purchase-category costs and verify the same migration, then export and restore the resulting backup.
 

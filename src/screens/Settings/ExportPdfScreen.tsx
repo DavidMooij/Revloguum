@@ -31,9 +31,8 @@ export default function ExportPdfScreen() {
   const [includeService, setIncludeService] = useState(true);
   const [includeFuel, setIncludeFuel] = useState(true);
   const [includeCosts, setIncludeCosts] = useState(true);
-  const [includePhotos, setIncludePhotos] = useState(false);
+  const [includeImages, setIncludeImages] = useState(false);
   const [includeDocuments, setIncludeDocuments] = useState(true);
-  const [includeDocumentImages, setIncludeDocumentImages] = useState(false);
   const [includeCostValues, setIncludeCostValues] = useState(true);
   const [includeNotes, setIncludeNotes] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -50,9 +49,8 @@ export default function ExportPdfScreen() {
       includeService,
       includeFuel,
       includeCosts,
-      includePhotos,
+      includeImages,
       includeDocuments,
-      includeDocumentImages,
       includeCostValues,
       includeNotes
     };
@@ -105,19 +103,12 @@ export default function ExportPdfScreen() {
           <OptionRow icon="tools" label={t('history.title')} value={includeService} onChange={setIncludeService} />
           <OptionRow icon="gas-pump" label={t('vehicles.fuel')} value={includeFuel} onChange={setIncludeFuel} />
           <OptionRow icon="receipt" label={t('payments.historyTitle')} value={includeCosts} onChange={setIncludeCosts} />
-          <OptionRow icon="images" label={t('addEntry.photos')} value={includePhotos} onChange={setIncludePhotos} />
           <OptionRow icon="file-alt" label={t('documents.pdfInclude')} value={includeDocuments} onChange={setIncludeDocuments} />
-          <OptionRow
-            icon="file-image"
-            label={t('documents.pdfIncludePages')}
-            value={includeDocumentImages}
-            onChange={setIncludeDocumentImages}
-            disabled={!includeDocuments}
-          />
         </View>
 
         <Text style={styles.sectionLabel}>{t('settings.pdfDetails')}</Text>
         <View style={styles.section}>
+          <OptionRow icon="images" label={t('settings.pdfIncludeImages')} value={includeImages} onChange={setIncludeImages} />
           <OptionRow icon="euro-sign" label={t('settings.pdfIncludeCosts')} value={includeCostValues} onChange={setIncludeCostValues} />
           <OptionRow icon="align-left" label={t('settings.pdfIncludeNotes')} value={includeNotes} onChange={setIncludeNotes} />
         </View>

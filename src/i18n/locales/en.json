@@ -35,8 +35,7 @@
     "camera": "Camera",
     "cameraPermission": "Camera access is required to photograph documents.",
     "pdfTitle": "Documents",
-    "pdfInclude": "Include documents",
-    "pdfIncludePages": "Include document pages"
+    "pdfInclude": "Documents"
   },
   "dashboard": {
     "title": "Revloguum",
@@ -618,7 +617,10 @@
     "deleteAllFailed": "Deletion failed",
     "exportPdf": "Export PDF",
     "exportPdfHint": "Create a PDF report to share or sell with",
+    "pdfExportFailed": "The PDF could not be created. Please try again.",
+    "pdfDocumentPageFailed": "A document page could not be processed. Please try the export again.",
     "pdfContent": "Include in PDF",
+    "pdfIncludeImages": "Include photos and scans",
     "pdfSelectAtLeastOne": "Select at least one section",
     "pdfDetails": "Details",
     "pdfIncludeCosts": "Show prices",
@@ -628,6 +630,9 @@
     "pdfServiceEntries": "Service entries",
     "pdfFuelEntries": "Fuel entries",
     "pdfServiceHistory": "Service history",
+    "pdfServiceGroup": "Service group",
+    "pdfGroupTotal": "Total cost",
+    "pdfGroupPhotos": "Shared photos",
     "pdfFuelHistory": "Fuel history",
     "pdfOtherCosts": "Payment history",
     "pdfLiters": "Liters",

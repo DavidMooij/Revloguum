@@ -614,6 +614,12 @@ After deletion the vehicle odometer is recalculated from the manually set baseli
 8. They decide separately whether to embed document image pages.
 9. They start generation.
 
+The Images detail option includes the vehicle photo, service and cost photos, and document-page scans for selected sections. Exported image copies are resized to at most 1800 pixels on the longest edge and JPEG-compressed; stored originals remain unchanged.
+
+Grouped service entries appear under a shared heading and date/odometer. The group total is shown at the right when costs are enabled; individual services retain their own costs and notes, and shared photos appear separately at the end of the group.
+
+Each payment-history entry is shown as a separate block, with its own photo directly below its amount and notes.
+
 **Validation:** At least one content area must be selected.
 
 ### UC-091: Generate and share PDF
