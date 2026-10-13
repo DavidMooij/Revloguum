@@ -124,7 +124,7 @@ async function buildPlannedNotifications(): Promise<PlannedNotification[]> {
       const st = serviceTypeMap.get(interval.serviceTypeId);
       if (!st) continue;
 
-      const serviceName = st.translationKey ? i18n.t(`serviceTypes.${st.translationKey}`) : st.name;
+      const serviceName = st.translationKey ? i18n.t(st.translationKey) : st.name;
 
       const last = await serviceRepo.getLastByTypeForVehicle(vehicle.id, interval.serviceTypeId);
       const status = computeServiceDueStatus({
