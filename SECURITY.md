@@ -143,10 +143,10 @@ The repository currently has no automated security test suite. TypeScript compil
 
 ## Dependency Advisory Status
 
-As of 2026-09-01, `npm audit --omit=dev` reports 24 transitive advisories: 19 moderate and 5 high.
+As of 2026-10-13, `npm audit --omit=dev` reports 28 transitive advisories: 8 moderate and 20 high.
 
-- The high-severity findings are in `image-size` through Metro/Expo build tooling.
-- Moderate findings are reported through React Navigation's URI parsing dependencies and Expo/Xcode tooling.
+- High-severity findings affect `braces` through Metro, `image-size` through Metro/Expo tooling, and `node-forge` through Expo tooling.
+- Moderate findings include `uuid` through Xcode/Expo configuration tooling.
 - `npm audit fix --force` proposes an incompatible Expo downgrade and must not be applied blindly.
 
 These are upstream transitive dependencies rather than application-owned cryptographic code, but they still require review before a production binary release. Update only to versions supported by the active Expo SDK, run native regression tests after upgrading, and rerun the audit. Do not process untrusted project assets with affected build tooling.
