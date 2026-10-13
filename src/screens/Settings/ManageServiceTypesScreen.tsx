@@ -81,9 +81,9 @@ export default function ManageServiceTypesScreen() {
       }
       haptic.success();
       setModalVisible(false);
-    } catch (e) {
+    } catch {
       haptic.error();
-      setErrorAlert((e as Error).message);
+      setErrorAlert(t('common.unexpectedError'));
     } finally {
       setSaving(false);
     }

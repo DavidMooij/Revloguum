@@ -8,6 +8,8 @@
     "confirm": "Bestätigen",
     "ok": "OK",
     "error": "Fehler",
+    "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.",
+    "databaseOpenFailed": "Die lokale Datenbank konnte nicht geöffnet werden.",
     "saveChanges": "Änderungen speichern",
     "cannotBeUndone": "Kann nicht rückgängig gemacht werden.",
     "date": "Datum",
@@ -579,6 +581,12 @@
     "aboutVersion": "Version 1.0.0",
     "aboutMessage": "Version 1.0.0\n\nIn der Garage geboren, mit Kaffee betankt und von einer fragwürdig grossen Menge KI unterstützt.\n\nKeine Motorräder wurden während der Entwicklung beschädigt (Glaube zumindest daran)\n\nGebaut von veruum_ / DavidMooij",
     "exportFailed": "Export fehlgeschlagen",
+    "sharingUnavailable": "Teilen ist auf diesem Gerät nicht verfügbar.",
+    "sharingFailed": "Die Datei konnte nicht geteilt werden. Bitte versuche es erneut.",
+    "passwordRequired": "Gib ein Backup-Passwort ein.",
+    "invalidBackupFile": "Dies ist keine gültige Revloguum-Backup-Datei.",
+    "wrongPasswordOrCorruptBackup": "Das Passwort ist falsch oder das Backup ist beschädigt.",
+    "corruptedBackup": "Die Backup-Datei ist beschädigt und kann nicht wiederhergestellt werden.",
     "dataRestored": "Alle Daten wurden wiederhergestellt.",
     "importSuccess": "Import erfolgreich",
     "importFailed": "Import fehlgeschlagen",
@@ -725,7 +733,8 @@
     "save": "Speichern",
     "add": "Hinzufügen",
     "deleteType": "\"%s\" löschen?",
-    "deleteTypeMessage": "Zahlungseinträge mit diesem Typ behalten ihre Daten."
+    "deleteTypeMessage": "Zahlungseinträge mit diesem Typ behalten ihre Daten.",
+    "inUse": "Dieser Payment-Typ wird bei bestehenden Kosten verwendet und kann nicht gelöscht werden."
   },
   "chart": {
     "notEnoughData": "Nicht genügend Daten"

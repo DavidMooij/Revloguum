@@ -129,7 +129,7 @@ export default function SettingsScreen() {
         success: true,
         message: t('settings.dataRestored')
       });
-    } else if (result.error !== 'Cancelled') {
+    } else if (!result.cancelled) {
       setModal({
         type: 'result',
         success: false,

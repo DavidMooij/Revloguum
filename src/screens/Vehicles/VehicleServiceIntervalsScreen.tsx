@@ -81,8 +81,8 @@ export default function VehicleServiceIntervalsScreen() {
       await syncNotifications();
       setInitialIntervals(cloneIntervals(intervals));
       showToast({ titleKey: 'toast.vehicleUpdated', variant: 'success' });
-    } catch (cause) {
-      setError((cause as Error).message);
+    } catch {
+      setError(t('common.unexpectedError'));
     } finally {
       setSaving(false);
     }

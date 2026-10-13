@@ -115,9 +115,9 @@ export default function VehicleCostsScreen() {
       haptic.success();
       setModalVisible(false);
       setEditingCost(null);
-    } catch (error) {
+    } catch {
       haptic.error();
-      setSaveError((error as Error).message);
+      setSaveError(t('common.unexpectedError'));
     } finally {
       setSaving(false);
     }

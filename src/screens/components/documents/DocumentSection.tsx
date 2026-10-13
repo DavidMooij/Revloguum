@@ -67,8 +67,8 @@ export default function DocumentSection({ vehicleId, ownerType, ownerId, title }
       await Promise.all(paths.map((path) => deleteEncryptedImage(path)));
       setDeleteTarget(null);
       await load();
-    } catch (cause) {
-      setError((cause as Error).message);
+    } catch {
+      setError(t('common.unexpectedError'));
     }
   };
 

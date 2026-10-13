@@ -9,6 +9,7 @@ import { spacing, radius } from '../../theme/spacing';
 import { usePaymentTypes } from '../../hooks/usePaymentTypes';
 import { usePaymentTypeLabel } from '../../hooks/usePaymentTypeLabel';
 import type { PaymentType } from '../../domain/entities/PaymentType';
+import { PaymentTypeInUseError } from '../../domain/repositories/IPaymentTypeRepo';
 import ScreenHeader from '../components/ScreenHeader';
 import PrimaryButton from '../components/PrimaryButton';
 import Divider from '../components/Divider';
@@ -98,9 +99,9 @@ export default function ManagePaymentTypesScreen() {
       }
       haptic.success();
       setModalVisible(false);
-    } catch (e) {
+    } catch {
       haptic.error();
-      setErrorAlert((e as Error).message);
+      setErrorAlert(t('common.unexpectedError'));
     } finally {
       setSaving(false);
     }
@@ -212,7 +213,15 @@ export default function ManagePaymentTypesScreen() {
             label: t('common.delete'),
             variant: 'danger',
             onPress: async () => {
-              if (deleteTarget) await deletePaymentType(deleteTarget.id);
+              if (!deleteTarget) return;
+              try {
+                await deletePaymentType(deleteTarget.id);
+                setDeleteTarget(null);
+              } catch (error) {
+                setDeleteTarget(null);
+                haptic.error();
+                setErrorAlert(error instanceof PaymentTypeInUseError ? t('paymentTypes.inUse') : t('common.unexpectedError'));
+              }
             }
           }
         ]}

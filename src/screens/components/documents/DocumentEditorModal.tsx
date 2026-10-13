@@ -86,11 +86,11 @@ export default function DocumentEditorModal({ visible, document, vehicleId, owne
       }
       onClose();
       await onSaved();
-    } catch (cause) {
+    } catch {
       if (!persisted) {
         await Promise.all(newlyEncryptedPaths.map((path) => deleteEncryptedImage(path).catch(() => {})));
       }
-      onError((cause as Error).message);
+      onError(t('common.unexpectedError'));
     } finally {
       setSaving(false);
     }

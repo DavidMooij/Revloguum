@@ -12,6 +12,7 @@
  * (OWASP recommendation: 600,000+)
  */
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
@@ -23,7 +24,7 @@ import { decryptImage, deleteEncryptedImage, encryptImage } from '@/security/ima
 
 export type ExportResult = { success: true; fileUri: string } | { success: false; error: string };
 
-export type ImportResult = { success: boolean; error?: string };
+export type ImportResult = { success: true } | { success: false; error?: string; cancelled?: true };
 
 interface BackupPayload {
   version: number;
@@ -494,100 +495,111 @@ async function restoreAllData(payload: BackupPayload): Promise<void> {
 }
 
 export function useExport() {
+  const { t } = useTranslation();
+
   /**
    * Export: reads all data → PBKDF2+AES-256-GCM encrypt with user password →
    * writes .rvlg file → returns fileUri (does NOT share yet).
    */
-  const exportDatabase = useCallback(async (password: string): Promise<ExportResult> => {
-    try {
-      const payload = await readAllData();
-      const envelope = await encryptPayload(JSON.stringify(payload), password);
-      const fileContent = JSON.stringify(envelope);
+  const exportDatabase = useCallback(
+    async (password: string): Promise<ExportResult> => {
+      try {
+        const payload = await readAllData();
+        const envelope = await encryptPayload(JSON.stringify(payload), password);
+        const fileContent = JSON.stringify(envelope);
 
-      const filename = `Revloguum_backup_${formatDate(todayTs())}.rvlg`;
-      const fileUri = FileSystem.cacheDirectory + filename;
+        const filename = `Revloguum_backup_${formatDate(todayTs())}.rvlg`;
+        const fileUri = FileSystem.cacheDirectory + filename;
 
-      await FileSystem.writeAsStringAsync(fileUri, fileContent, {
-        encoding: FileSystem.EncodingType.UTF8
-      });
+        await FileSystem.writeAsStringAsync(fileUri, fileContent, {
+          encoding: FileSystem.EncodingType.UTF8
+        });
 
-      return { success: true, fileUri };
-    } catch (e) {
-      return { success: false, error: (e as Error).message };
-    }
-  }, []);
+        return { success: true, fileUri };
+      } catch {
+        return { success: false, error: t('settings.exportFailed') };
+      }
+    },
+    [t]
+  );
 
   /** Step 2: share the prepared file via expo-sharing (works correctly on Android). */
-  const shareExportFile = useCallback(async (fileUri: string): Promise<{ success: boolean; error?: string }> => {
-    try {
-      const available = await Sharing.isAvailableAsync();
-      if (!available) {
-        return {
-          success: false,
-          error: 'Sharing is not available on this device'
-        };
+  const shareExportFile = useCallback(
+    async (fileUri: string): Promise<{ success: boolean; error?: string }> => {
+      try {
+        const available = await Sharing.isAvailableAsync();
+        if (!available) {
+          return {
+            success: false,
+            error: t('settings.sharingUnavailable')
+          };
+        }
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'application/octet-stream',
+          dialogTitle: 'Save Revloguum backup',
+          UTI: 'public.data'
+        });
+        return { success: true };
+      } catch (error) {
+        if (error instanceof Error && error.message.toLowerCase().includes('cancel')) return { success: true };
+        return { success: false, error: t('settings.sharingFailed') };
       }
-      await Sharing.shareAsync(fileUri, {
-        mimeType: 'application/octet-stream',
-        dialogTitle: 'Save Revloguum backup',
-        UTI: 'public.data'
-      });
-      return { success: true };
-    } catch (e: any) {
-      if (e?.message?.toLowerCase().includes('cancel')) return { success: true };
-      return { success: false, error: (e as Error).message };
-    }
-  }, []);
+    },
+    [t]
+  );
 
   /**
    * Import: pick .rvlg → PBKDF2+AES-256-GCM decrypt → INSERT OR REPLACE.
    * DB stays open the whole time - no file system manipulation.
    */
-  const importDatabase = useCallback(async (password: string): Promise<ImportResult> => {
-    if (!password.trim()) {
-      return { success: false, error: 'Password is required' };
-    }
-
-    let picked: Awaited<ReturnType<typeof DocumentPicker.getDocumentAsync>>;
-    try {
-      picked = await DocumentPicker.getDocumentAsync({
-        type: '*/*',
-        copyToCacheDirectory: true
-      });
-    } catch (e) {
-      return { success: false, error: (e as Error).message };
-    }
-    if (picked.canceled) return { success: false, error: 'Cancelled' };
-
-    try {
-      const fileContent = await FileSystem.readAsStringAsync(picked.assets[0].uri, { encoding: FileSystem.EncodingType.UTF8 });
-
-      const envelope: EncryptedEnvelope = JSON.parse(fileContent);
-      if (envelope.version !== 2 || !envelope.iv || !envelope.data || !envelope.salt) {
-        return { success: false, error: 'Not a valid Revloguum backup file' };
+  const importDatabase = useCallback(
+    async (password: string): Promise<ImportResult> => {
+      if (!password.trim()) {
+        return { success: false, error: t('settings.passwordRequired') };
       }
 
-      let json: string;
+      let picked: Awaited<ReturnType<typeof DocumentPicker.getDocumentAsync>>;
       try {
-        json = await decryptPayload(envelope, password);
+        picked = await DocumentPicker.getDocumentAsync({
+          type: '*/*',
+          copyToCacheDirectory: true
+        });
       } catch {
-        return {
-          success: false,
-          error: 'Wrong password or corrupted backup'
-        };
+        return { success: false, error: t('settings.importFailed') };
       }
+      if (picked.canceled) return { success: false, cancelled: true };
 
-      const payload: BackupPayload = JSON.parse(json);
-      if (!Array.isArray(payload.vehicles)) {
-        return { success: false, error: 'Backup file is corrupted' };
+      try {
+        const fileContent = await FileSystem.readAsStringAsync(picked.assets[0].uri, { encoding: FileSystem.EncodingType.UTF8 });
+
+        const envelope: EncryptedEnvelope = JSON.parse(fileContent);
+        if (envelope.version !== 2 || !envelope.iv || !envelope.data || !envelope.salt) {
+          return { success: false, error: t('settings.invalidBackupFile') };
+        }
+
+        let json: string;
+        try {
+          json = await decryptPayload(envelope, password);
+        } catch {
+          return {
+            success: false,
+            error: t('settings.wrongPasswordOrCorruptBackup')
+          };
+        }
+
+        const payload: BackupPayload = JSON.parse(json);
+        if (!Array.isArray(payload.vehicles)) {
+          return { success: false, error: t('settings.corruptedBackup') };
+        }
+
+        await restoreAllData(payload);
+        return { success: true };
+      } catch {
+        return { success: false, error: t('settings.importFailed') };
       }
-
-      await restoreAllData(payload);
-      return { success: true };
-    } catch (e) {
-      return { success: false, error: (e as Error).message };
-    }
-  }, []);
+    },
+    [t]
+  );
 
   /** Wipe all user data without touching the DB file or encryption key. */
   const clearAllData = useCallback(async (): Promise<ImportResult> => {
@@ -611,10 +623,10 @@ export function useExport() {
         }
       }
       return { success: true };
-    } catch (e) {
-      return { success: false, error: (e as Error).message };
+    } catch {
+      return { success: false, error: t('settings.deleteAllFailed') };
     }
-  }, []);
+  }, [t]);
 
   return { exportDatabase, shareExportFile, importDatabase, clearAllData };
 }

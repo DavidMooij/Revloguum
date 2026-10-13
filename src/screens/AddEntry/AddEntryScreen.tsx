@@ -204,9 +204,9 @@ export default function AddEntryScreen() {
         });
       }
       navigation.goBack();
-    } catch (e) {
+    } catch {
       haptic.error();
-      setErrorAlert((e as Error).message);
+      setErrorAlert(t('common.unexpectedError'));
     } finally {
       setSaving(false);
     }

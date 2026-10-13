@@ -179,9 +179,9 @@ export default function AddVehicleScreen() {
       }
 
       navigation.goBack();
-    } catch (e) {
+    } catch {
       haptic.error();
-      setErrorAlert((e as Error).message);
+      setErrorAlert(t('common.unexpectedError'));
     } finally {
       setSaving(false);
     }

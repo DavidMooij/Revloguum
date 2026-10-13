@@ -1,5 +1,5 @@
 import 'react-native-gesture-handler';
-import '../i18n';
+import i18n from '../i18n';
 import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet, AppState, type AppStateStatus } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -31,7 +31,7 @@ export default function App() {
   useEffect(() => {
     getDatabase()
       .then(() => setDbReady(true))
-      .catch((e) => setInitError((e as Error).message));
+      .catch(() => setInitError(i18n.t('common.databaseOpenFailed')));
   }, [setDbReady]);
 
   useEffect(() => {
@@ -52,7 +52,7 @@ export default function App() {
     return (
       <View style={[styles.center, { backgroundColor: readableColor('bg0', readabilityMode) }]}>
         <StatusBar style="light" />
-        <Text style={[typography.h3, { color: readableColor('danger', readabilityMode) }]}>Database error</Text>
+        <Text style={[typography.h3, { color: readableColor('danger', readabilityMode) }]}>{i18n.t('common.error')}</Text>
         <Text
           style={[
             typography.bodySmall,

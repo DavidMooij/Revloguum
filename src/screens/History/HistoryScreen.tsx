@@ -58,7 +58,7 @@ export default function HistoryScreen() {
     [vehicleId, selectedTypeIds, dateRange.from, dateRange.to, searchText]
   );
 
-  const { entries, loading, loadingMore, refresh, loadMore } = useServiceHistory(filter);
+  const { entries, loading, loadingMore, error, refresh, loadMore } = useServiceHistory(filter);
 
   const groups = useMemo(() => groupServiceEntries(entries), [entries]);
 
@@ -103,6 +103,8 @@ export default function HistoryScreen() {
         onSearchText={setSearchText}
         onClear={clearFilters}
       />
+
+      {error && <Text style={styles.errorMessage}>{t('common.unexpectedError')}</Text>}
 
       {loading ? (
         <View style={styles.center}>
@@ -198,5 +200,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm
   },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  errorMessage: { color: colors.dangerText, paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
   list: { padding: spacing.lg, paddingBottom: 120 }
 });
