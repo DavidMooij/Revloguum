@@ -10,6 +10,7 @@ import { radius, spacing } from '../../../theme/spacing';
 import { typography, typeScale } from '../../../theme/typography';
 import DatePickerField from '../../AddEntry/components/DatePickerField';
 import DocumentPagesEditor from './DocumentPagesEditor';
+import ModalDragHandle from '../ModalDragHandle';
 
 interface Props {
   visible: boolean;
@@ -85,11 +86,11 @@ export default function DocumentEditorModal({ visible, document, vehicleId, owne
       }
       onClose();
       await onSaved();
-    } catch (cause) {
+    } catch {
       if (!persisted) {
         await Promise.all(newlyEncryptedPaths.map((path) => deleteEncryptedImage(path).catch(() => {})));
       }
-      onError((cause as Error).message);
+      onError(t('common.unexpectedError'));
     } finally {
       setSaving(false);
     }
@@ -99,7 +100,7 @@ export default function DocumentEditorModal({ visible, document, vehicleId, owne
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.modalOverlay} onPress={onClose}>
         <Pressable style={styles.modalSheet} onPress={(event) => event.stopPropagation()}>
-          <View style={styles.modalHandle} />
+          <ModalDragHandle onClose={onClose} style={styles.modalHandle} />
           <Text style={styles.modalTitle}>{document ? t('documents.edit') : t('documents.add')}</Text>
           <ScrollView keyboardShouldPersistTaps="handled">
             <Text style={styles.fieldLabel}>{t('documents.name')}</Text>
@@ -163,9 +164,6 @@ const styles = StyleSheet.create({
     gap: spacing.md
   },
   modalHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
     backgroundColor: colors.border2,
     alignSelf: 'center'
   },

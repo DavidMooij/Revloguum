@@ -1,5 +1,5 @@
 import type * as SQLite from 'expo-sqlite';
-import type { IPaymentTypeRepo } from '../../domain/repositories/IPaymentTypeRepo';
+import { PaymentTypeInUseError, type IPaymentTypeRepo } from '../../domain/repositories/IPaymentTypeRepo';
 import type { PaymentType, CreatePaymentTypeInput } from '../../domain/entities/PaymentType';
 import { generateUUID } from '../../utils/uuid';
 
@@ -99,7 +99,7 @@ export class SQLitePaymentTypeRepo implements IPaymentTypeRepo {
     );
 
     if ((usage?.count ?? 0) > 0) {
-      throw new Error('Payment type is in use and cannot be deleted.');
+      throw new PaymentTypeInUseError();
     }
 
     await this.db.runAsync(

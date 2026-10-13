@@ -16,11 +16,12 @@ export interface VehicleCost {
   paymentIntervalId: string | null;
   intervalDueTs: number | null;
   notes: string | null;
+  imagePaths: string[];
   createdAt: number;
 }
 
 export type CreateVehicleCostInput = Omit<
   VehicleCost,
-  'id' | 'createdAt' | 'kind' | 'intervalDays' | 'paymentIntervalId' | 'intervalDueTs'
+  'id' | 'createdAt' | 'kind' | 'intervalDays' | 'paymentIntervalId' | 'intervalDueTs' | 'imagePaths'
 > &
-  Partial<Pick<VehicleCost, 'kind' | 'intervalDays' | 'paymentIntervalId' | 'intervalDueTs'>>;
+  Partial<Pick<VehicleCost, 'kind' | 'intervalDays' | 'paymentIntervalId' | 'intervalDueTs' | 'imagePaths'>>;

@@ -101,7 +101,7 @@ Revloguum targets people who manage one or more vehicles and want to document se
 **Flow:**
 
 1. The user triggers the quick-refuel action.
-2. The step-by-step refuel input opens for the active vehicle.
+2. A single-page refuel form opens for the active vehicle, with date, odometer, litres, price and notes visible together. The date defaults to today and can be changed.
 3. After saving, the Dashboard, odometer, and refuel analytics are updated.
 
 ## 4. Garage and vehicles
@@ -240,6 +240,7 @@ Service intervals, payment intervals and vehicle documents are edited separately
 
 - At least one service type must be chosen.
 - Odometer must be a valid non-negative number.
+- The odometer must not decrease across dated service and fuel entries. Same-day entries and equal readings are allowed.
 - Optional costs must be entered as a valid amount.
 
 **Outcome:** The entry appears in service history and can affect due dates and the vehicle odometer.
@@ -353,43 +354,27 @@ After deletion the vehicle odometer is recalculated from the manually set baseli
 
 ## 6. Fuel entries
 
-### UC-040: Stepwise refuel entry
+### UC-040: Single-page refuel entry
 
 **Prerequisite:** A vehicle is selected.
 
-**Step 1 – Odometer:**
-
-1. The user enters the odometer value using the numeric field.
-2. The last refuel odometer is shown as orientation if available.
-3. For a new entry the value must not be below the vehicle's current odometer.
-
-**Step 2 – Litres:**
-
-1. The vehicle's default tank capacity is preselected.
-2. The user increases or decreases the amount in small or large steps.
-3. They can revert to the default amount.
-4. A fill-level indicator relates the amount to the stored default tank capacity.
-
-**Step 3 – Price:**
-
-1. The user chooses between total price and price per litre.
-2. In total-price mode they enter the paid total and see the calculated price per litre.
-3. In price-per-litre mode they adjust the price and see the calculated total.
-
-**Step 4 – Confirmation and notes:**
-
-1. Odometer, litres, price-per-litre and total amount are summarised.
-2. The user may add an optional note, e.g. station, fuel type or trip context.
-3. They save the refuel entry.
+1. The date defaults to today for a new entry; the user can select another date. Editing an entry starts with its saved date.
+2. The user enters the odometer value in kilometres.
+3. The last refuel odometer is shown as orientation if available.
+4. Historical odometer values are allowed when they fit between the nearest dated service and fuel readings. Same-day entries and equal readings are allowed.
+5. The vehicle's default tank capacity is prefilled; litres can be entered to two decimal places. A fill-level indicator relates the amount to the stored default tank capacity.
+6. Price per litre and total amount are shown as editable fields. Changing either value updates the other; changing litres recalculates the value that was not edited most recently.
+7. The user may add an optional note, e.g. station, fuel type or trip context.
+8. They can cancel or save directly from the form.
 
 **Outcome:** The entry appears in fuel history. A higher odometer updates the vehicle.
 
 ### UC-041: Correct or cancel refuel before saving
 
-- The user can go back to any previous step using "Back".
-- They can cancel the input via the close icon or tapping outside the dialog.
+- All entry fields remain visible and editable on the same page.
+- They can cancel the input via the cancel button or tapping outside the dialog.
 - Unsaved inputs are reset on re-opening.
-- All steps keep the same dialog height to avoid visual jumps while progressing.
+- The form can scroll when its content does not fit the available screen height; save and cancel remain available.
 
 ### UC-042: View fuel history
 
@@ -416,8 +401,9 @@ After deletion the vehicle odometer is recalculated from the manually set baseli
 
 1. The user long-presses a fuel entry.
 2. They choose "Edit".
-3. The step-by-step input opens with odometer, litres, amount and note.
+3. The single-page input opens with date, odometer, litres, amount and note.
 4. They change values and save.
+5. The same chronological odometer validation applies; the entry being edited is excluded from the comparison.
 
 ### UC-045: Delete a fuel entry
 
@@ -441,7 +427,8 @@ After deletion the vehicle odometer is recalculated from the manually set baseli
 4. They enter amount and date.
 5. They may add a note.
 6. They may associate the entry with a configured recurring payment.
-7. They save the entry.
+7. They may attach photos from the gallery or camera.
+8. They save the entry.
 
 **Outcome:** The expense appears in the history and is included in cost overviews. If associated with an interval, the matching due item is considered paid.
 
@@ -468,8 +455,8 @@ After deletion the vehicle odometer is recalculated from the manually set baseli
 **Flow:**
 
 1. The user opens an existing payment entry for editing.
-2. Type, amount, date, note and interval association are prefilled.
-3. They adjust the values and save.
+2. Type, amount, date, note, interval association and photos are prefilled.
+3. They adjust the values or add/remove photos and save.
 4. Totals and due items are recalculated.
 
 ### UC-054: Delete a payment
@@ -488,9 +475,10 @@ After deletion the vehicle odometer is recalculated from the manually set baseli
 
 1. The user opens a vehicle's analytics.
 2. They see total recorded costs and their distribution.
-3. They see cost per kilometre, average consumption, average price per litre and total litres.
-4. They see the monthly estimate of recurring payments.
-5. They see the number of recorded services.
+3. They see average fuel per refuel entry, average consumption, average price per litre and total litres.
+4. They see operating cost per kilometre and, when a residual value is set, full cost per kilometre using the vehicle's purchase price and residual value.
+5. They see the monthly estimate of recurring payments.
+6. They see the number of recorded services.
 
 ### UC-061: Compare cost distributions
 
@@ -531,7 +519,10 @@ After deletion the vehicle odometer is recalculated from the manually set baseli
 
 - Consumption between two refuels is only meaningful if the refuel fill levels are comparable, typically full refuels. There is currently no dedicated “full tank” flag.
 - Monthly kilometres are derived from existing refuel odometer readings. If no refuel occurred in a month, the next visible difference may span multiple months.
-- "Cost per kilometre" uses recorded total costs relative to the current odometer. For used vehicles taken over, this value is not identical to cost per kilometre since app usage started.
+- Purchase price and residual value are maintained on the vehicle profile; purchase price is not a payment category or operating cost.
+- Operating cost per kilometre includes service, fuel and recorded vehicle costs, divided by kilometres driven since the vehicle's base odometer.
+- Full cost per kilometre adds the vehicle's purchase price, subtracts its residual value and adds operating costs, divided by kilometres driven since the base odometer. It is unavailable until a residual value is set.
+- Existing purchase-category costs are migrated into the vehicle's purchase price. Their notes, photos and attached document pages are moved into vehicle documents before the old cost entries are removed.
 - Analytics only show data that was actually recorded. Missing fuel, service or payment entries are not estimated.
 - Recurring payments are included as an estimate in monthly metrics; only recorded payment entries count as actually paid costs.
 
@@ -623,6 +614,14 @@ After deletion the vehicle odometer is recalculated from the manually set baseli
 8. They decide separately whether to embed document image pages.
 9. They start generation.
 
+The Images detail option includes the vehicle photo, service and cost photos, and document-page scans for selected sections. Exported image copies are resized to at most 1800 pixels on the longest edge and JPEG-compressed; stored originals remain unchanged.
+
+When payment history and cost amounts are included, the report also shows the vehicle's purchase price and residual value when available.
+
+Grouped service entries appear under a shared heading and date/odometer. The group total is shown at the right when costs are enabled; individual services retain their own costs and notes, and shared photos appear separately at the end of the group.
+
+Each payment-history entry is shown as a separate block, with its own photo directly below its amount and notes.
+
 **Validation:** At least one content area must be selected.
 
 ### UC-091: Generate and share PDF
@@ -639,11 +638,13 @@ After deletion the vehicle odometer is recalculated from the manually set baseli
 1. The user selects "Export data".
 2. They enter a user-chosen password.
 3. Export cannot start without a password.
-4. The app prepares vehicles, services, fuel entries, payments, intervals, custom types, documents and image pages as a backup file.
+4. The app prepares vehicle profile values, services, fuel entries, payments, intervals, custom types, documents and their referenced images as a backup file.
 5. After completion the app confirms the file is ready.
 6. The user opens the system dialog to save or share the file.
 
 **Important note:** The password is required for later import. The app does not provide recovery for a forgotten export password.
+
+If a referenced vehicle, service, cost or document image cannot be read, backup export fails instead of silently omitting it.
 
 ### UC-101: Import backup
 
@@ -655,6 +656,7 @@ After deletion the vehicle odometer is recalculated from the manually set baseli
 6. Records with the same identifier are replaced by the backup state; other existing data remains.
 7. Vehicle lists and views are updated after successful import.
 8. Document pages are re-protected on the device during import.
+9. A completion summary reports restored record counts and any skipped images or invalid optional notes, with up to three affected locations.
 
 **Error cases:**
 
@@ -662,6 +664,8 @@ After deletion the vehicle odometer is recalculated from the manually set baseli
 - Selection cancelled: No data is changed.
 - Wrong password or corrupted file: No unconfirmed content is shown; the app reports the error.
 - File not in expected backup format: Import is rejected.
+- Missing or unreadable image: That attachment is skipped while other valid records are restored and reported in the summary.
+- Invalid optional note value: Only that note is skipped and reported; invalid core records still abort the import.
 
 ## 13. Presentation and interaction
 
@@ -741,7 +745,7 @@ In Settings the user can see that local data and images are stored protected, th
 - During saving, import, export and PDF generation the app shows a busy or processing state.
 - Errors are displayed in a way that allows the user to continue working or retry the action.
 
-## 16. Vehicle and entry documents
+## 16. Vehicle documents and entry photos
 
 ### UC-140: Add a vehicle document
 
@@ -755,20 +759,19 @@ In Settings the user can see that local data and images are stored protected, th
 
 **Examples:** Insurance policy, vehicle registration, torque table, owner manual or warranty document.
 
-### UC-141: Attach a document to a service
+### UC-141: Add photos to a service
 
-1. The user opens details of an existing service or workshop visit.
-2. They add a document in the "Service documents" area.
-3. They enter a title and at least one image page.
-4. Optionally they add category, date and a note.
-5. The document remains attached to the service even after editing the entry.
+1. The user creates or edits a service entry.
+2. They add one or more photos from the gallery or camera.
+3. A preview is shown and selected photos can be removed before saving.
+4. Photos remain attached to the service entry after editing.
 
-### UC-142: Attach a receipt or document to a payment
+### UC-142: Add photos to a payment or expense
 
-1. The user opens payment history.
-2. They choose the document icon on the relevant entry.
-3. They add an invoice, receipt, policy or other proof with one or more pages.
-4. The document is exclusively associated with that payment entry.
+1. The user creates or edits a payment or expense.
+2. They add one or more photos from the gallery or camera.
+3. A preview is shown and selected photos can be removed before saving.
+4. Photos are attached to that payment or expense and need no separate title.
 
 ### UC-143: View and edit a document
 
@@ -790,4 +793,4 @@ In Settings the user can see that local data and images are stored protected, th
 - The encrypted backup contains document metadata and all pages.
 - On import the pages are re-protected for the target device.
 - In the PDF export document metadata can be chosen independently of the image pages.
-- Vehicle, service and payment documents are labeled with their association in the report.
+- Vehicle documents are labeled with their association in the report. Service and payment photos use the report's photo option.

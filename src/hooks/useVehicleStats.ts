@@ -163,7 +163,9 @@ export interface VehicleStatsData {
   fuelStats: any;
   otherCost: number;
   totalCost: number;
-  costPerKm: number;
+  averageFuelFillUpLiters: number;
+  operatingCostPerKm: number;
+  fullCostPerKm: number | null;
   costDonutData: DonutSegment[];
   paymentTypeCostData: DonutSegment[];
   monthlyPaymentCostBarData: BarChartData[];
@@ -227,7 +229,12 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
 
         const fuelEntries = [...allFuel].reverse();
         const totalCost = serviceCost + fuelStats.totalCost + otherCost;
-        const costPerKm = moto.currentOdometer > 0 ? totalCost / moto.currentOdometer : 0;
+        const operatingCosts = serviceCost + fuelStats.totalCost + otherCost;
+        const totalKm = Math.max(0, moto.currentOdometer - moto.baseOdometer);
+        const averageFuelFillUpLiters = fuelStats.totalEntries > 0 ? fuelStats.totalLiters / fuelStats.totalEntries : 0;
+        const operatingCostPerKm = totalKm > 0 ? operatingCosts / totalKm : 0;
+        const fullCostPerKm =
+          moto.residualValue == null ? null : totalKm > 0 ? ((moto.purchasePrice ?? 0) - moto.residualValue + operatingCosts) / totalKm : 0;
 
         const insuranceCost = costsByCategory.find((c) => c.category === 'insurance')?.total ?? 0;
         const maintenanceCost = costsByCategory.find((c) => c.category === 'maintenance')?.total ?? 0;
@@ -343,7 +350,9 @@ export function useVehicleStats(vehicleId: string): VehicleStatsData | null {
           fuelStats,
           otherCost,
           totalCost,
-          costPerKm,
+          averageFuelFillUpLiters,
+          operatingCostPerKm,
+          fullCostPerKm,
           costDonutData,
           paymentTypeCostData,
           monthlyPaymentCostBarData,

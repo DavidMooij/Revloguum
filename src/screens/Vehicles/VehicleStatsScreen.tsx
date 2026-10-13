@@ -37,7 +37,9 @@ export default function VehicleStatsScreen() {
     moto,
     count,
     fuelStats,
-    costPerKm,
+    averageFuelFillUpLiters,
+    operatingCostPerKm,
+    fullCostPerKm,
     costDonutData,
     paymentTypeCostData,
     monthlyPaymentCostBarData,
@@ -54,9 +56,9 @@ export default function VehicleStatsScreen() {
 
   const metrics = [
     {
-      label: t('costs.costPerKm'),
-      value: `CHF ${costPerKm.toFixed(2)}`,
-      icon: 'road'
+      label: t('stats.averageFuelPerRefuel'),
+      value: `${averageFuelFillUpLiters.toFixed(1)} L`,
+      icon: 'gas-pump'
     },
     {
       label: t('costs.lPer100km'),
@@ -113,6 +115,25 @@ export default function VehicleStatsScreen() {
               </Text>
             </View>
           ))}
+        </View>
+
+        <View style={styles.perKmCards}>
+          <View style={styles.perKmCard}>
+            <Text style={styles.perKmLabel}>{t('stats.operatingCostPerKm')}</Text>
+            <Text style={styles.perKmValue} adjustsFontSizeToFit numberOfLines={1} minimumFontScale={0.7}>
+              {formatCost(operatingCostPerKm)}
+            </Text>
+          </View>
+          <View style={styles.perKmCard}>
+            <Text style={styles.perKmLabel}>{t('stats.fullCostPerKm')}</Text>
+            {fullCostPerKm == null ? (
+              <Text style={styles.perKmUnavailable}>{t('stats.fullCostUnavailableResidual')}</Text>
+            ) : (
+              <Text style={styles.perKmValue} adjustsFontSizeToFit numberOfLines={1} minimumFontScale={0.7}>
+                {formatCost(fullCostPerKm)}
+              </Text>
+            )}
+          </View>
         </View>
 
         {monthlyFuelCostBarData.some((d) => d.value > 0) && (
@@ -277,6 +298,21 @@ const styles = StyleSheet.create({
     gap: spacing.md
   },
   metricsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  perKmCards: { flexDirection: 'row', gap: spacing.sm },
+  perKmCard: {
+    flex: 1,
+    minHeight: 84,
+    backgroundColor: colors.bg1,
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border1,
+    padding: spacing.md,
+    justifyContent: 'space-between',
+    gap: spacing.sm
+  },
+  perKmLabel: { ...typography.overline, color: colors.text2 },
+  perKmValue: { ...typography.bodyStrong, color: colors.text0 },
+  perKmUnavailable: { fontSize: typeScale.captionLarge, lineHeight: 17, color: colors.text2 },
   metricCard: {
     width: (SCREEN_WIDTH - spacing.lg * 2 - spacing.sm * 2) / 3,
     backgroundColor: colors.bg1,

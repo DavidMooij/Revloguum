@@ -22,6 +22,8 @@ import type { PaymentType } from '@/domain/entities/PaymentType';
 import { haptic } from '@/utils/haptics';
 import DatePickerField from '../../../AddEntry/components/DatePickerField';
 import { usePaymentTypeLabel } from '@/hooks/usePaymentTypeLabel';
+import PhotoAttachmentsField from '../../../components/PhotoAttachmentsField';
+import ModalDragHandle from '../../../components/ModalDragHandle';
 
 interface CostFormValue {
   category: CostCategory;
@@ -29,6 +31,7 @@ interface CostFormValue {
   dateTs: number;
   notes: string | null;
   paymentIntervalId: string | null;
+  imagePaths: string[];
 }
 
 interface Props {
@@ -67,6 +70,7 @@ export default function CostEditModal({
   const [dateTs, setDateTs] = useState(Date.now());
   const [notes, setNotes] = useState('');
   const [paymentIntervalId, setPaymentIntervalId] = useState<string | null>(null);
+  const [images, setImages] = useState<string[]>([]);
 
   useEffect(() => {
     if (!visible) return;
@@ -76,6 +80,7 @@ export default function CostEditModal({
       setDateTs(editingCost.dateTs);
       setNotes(editingCost.notes ?? '');
       setPaymentIntervalId(editingCost.paymentIntervalId ?? null);
+      setImages(editingCost.imagePaths ?? []);
       return;
     }
     setCategory(defaultCategory);
@@ -83,6 +88,7 @@ export default function CostEditModal({
     setDateTs(Date.now());
     setNotes('');
     setPaymentIntervalId(null);
+    setImages([]);
   }, [visible, editingCost, defaultCategory]);
 
   useEffect(() => {
@@ -94,6 +100,7 @@ export default function CostEditModal({
   }, [paymentIntervalId, paymentIntervals]);
 
   const submit = async () => {
+    if (saving) return;
     const amt = parseFloat(amount);
     if (isNaN(amt) || amt <= 0) {
       haptic.error();
@@ -106,7 +113,8 @@ export default function CostEditModal({
       amount: amt,
       dateTs,
       notes: notes.trim() || null,
-      paymentIntervalId
+      paymentIntervalId,
+      imagePaths: images
     });
   };
 
@@ -118,101 +126,111 @@ export default function CostEditModal({
         <Pressable style={styles.overlay} onPress={onClose}>
           <Pressable onPress={(e) => e.stopPropagation()}>
             <View style={[styles.sheet, { paddingBottom: insetsBottom + spacing.xl }]}>
-              <View style={styles.handle} />
+              <ModalDragHandle onClose={onClose} style={styles.handle} />
               <Text style={styles.sheetTitle}>{editingCost ? t('costs.editCosts') : t('costs.addCosts')}</Text>
 
-              <Text style={styles.fieldLabel}>{t('costs.categoryLabel')}</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
-                <View style={styles.chipRow}>
-                  {paymentTypes.map((cat) => (
-                    <TouchableOpacity
-                      key={cat.id}
-                      style={[styles.catChip, category === cat.id && styles.catChipActive, paymentIntervalId && styles.catChipDisabled]}
-                      onPress={() => {
-                        if (paymentIntervalId) return;
-                        setCategory(cat.id);
-                      }}
-                      disabled={!!paymentIntervalId}
-                    >
-                      <Icon name={cat.icon} size={12} color={category === cat.id ? colors.white : colors.text2} />
-                      <Text style={[styles.catChipText, category === cat.id && styles.catChipTextActive]}>{getPaymentTypeLabel(cat)}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </ScrollView>
-
-              <Text style={styles.fieldLabel}>{t('payments.linkToInterval')}</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
-                <View style={styles.chipRow}>
-                  <TouchableOpacity
-                    style={[styles.linkChip, paymentIntervalId === null && styles.linkChipActive]}
-                    onPress={() => setPaymentIntervalId(null)}
-                  >
-                    <Text style={[styles.linkChipText, paymentIntervalId === null && styles.linkChipTextActive]}>{t('costs.once')}</Text>
-                  </TouchableOpacity>
-
-                  {paymentIntervals.map((interval) => {
-                    const active = paymentIntervalId === interval.id;
-                    const intervalType = paymentTypeById.get(interval.category);
-                    const fallbackKey = `costs.categories.${interval.category}`;
-                    const intervalLabel = intervalType
-                      ? getPaymentTypeLabel(intervalType)
-                      : (() => {
-                          const translated = t(fallbackKey);
-                          return translated === fallbackKey ? interval.category : translated;
-                        })();
-                    return (
+              <ScrollView
+                style={styles.formScroll}
+                contentContainerStyle={styles.formContent}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                <Text style={styles.fieldLabel}>{t('costs.categoryLabel')}</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+                  <View style={styles.chipRow}>
+                    {paymentTypes.map((cat) => (
                       <TouchableOpacity
-                        key={interval.id}
-                        style={[styles.linkChip, active && styles.linkChipActive]}
-                        onPress={() => setPaymentIntervalId(interval.id)}
+                        key={cat.id}
+                        style={[styles.catChip, category === cat.id && styles.catChipActive, paymentIntervalId && styles.catChipDisabled]}
+                        onPress={() => {
+                          if (paymentIntervalId) return;
+                          setCategory(cat.id);
+                        }}
+                        disabled={!!paymentIntervalId}
                       >
-                        <Text style={[styles.linkChipText, active && styles.linkChipTextActive]}>{intervalLabel}</Text>
-                        <Text style={[styles.linkChipSub, active && styles.linkChipSubActive]}>
-                          {formatAmount(interval.amount)} · {intervalBadgeLabel(interval, t)}
+                        <Icon name={cat.icon} size={12} color={category === cat.id ? colors.white : colors.text2} />
+                        <Text style={[styles.catChipText, category === cat.id && styles.catChipTextActive]}>
+                          {getPaymentTypeLabel(cat)}
                         </Text>
                       </TouchableOpacity>
-                    );
-                  })}
+                    ))}
+                  </View>
+                </ScrollView>
+
+                <Text style={styles.fieldLabel}>{t('payments.linkToInterval')}</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+                  <View style={styles.chipRow}>
+                    <TouchableOpacity
+                      style={[styles.linkChip, paymentIntervalId === null && styles.linkChipActive]}
+                      onPress={() => setPaymentIntervalId(null)}
+                    >
+                      <Text style={[styles.linkChipText, paymentIntervalId === null && styles.linkChipTextActive]}>{t('costs.once')}</Text>
+                    </TouchableOpacity>
+
+                    {paymentIntervals.map((interval) => {
+                      const active = paymentIntervalId === interval.id;
+                      const intervalType = paymentTypeById.get(interval.category);
+                      const fallbackKey = `costs.categories.${interval.category}`;
+                      const intervalLabel = intervalType
+                        ? getPaymentTypeLabel(intervalType)
+                        : (() => {
+                            const translated = t(fallbackKey);
+                            return translated === fallbackKey ? interval.category : translated;
+                          })();
+                      return (
+                        <TouchableOpacity
+                          key={interval.id}
+                          style={[styles.linkChip, active && styles.linkChipActive]}
+                          onPress={() => setPaymentIntervalId(interval.id)}
+                        >
+                          <Text style={[styles.linkChipText, active && styles.linkChipTextActive]}>{intervalLabel}</Text>
+                          <Text style={[styles.linkChipSub, active && styles.linkChipSubActive]}>
+                            {formatAmount(interval.amount)} · {intervalBadgeLabel(interval, t)}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </ScrollView>
+
+                <View style={styles.formRow}>
+                  <View style={styles.formCol}>
+                    <Text style={styles.fieldLabel}>{t('costs.amountLabel')}</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={amount}
+                      onChangeText={setAmount}
+                      keyboardType="decimal-pad"
+                      placeholder={t('costs.placeholderCost')}
+                      placeholderTextColor={colors.text2}
+                      autoFocus={!editingCost}
+                      editable={!linkedInterval}
+                    />
+                  </View>
+                  <View style={styles.formCol}>
+                    <Text style={styles.fieldLabel}>{t('costs.dateLabel')}</Text>
+                    <DatePickerField value={dateTs} onChange={setDateTs} showLabel={false} />
+                  </View>
                 </View>
+
+                <PhotoAttachmentsField label={t('costs.photos')} images={images} onChange={setImages} />
+                <Text style={styles.fieldLabel}>{t('costs.notesLabel')}</Text>
+                <TextInput
+                  style={[styles.input, styles.notesInput]}
+                  value={notes}
+                  onChangeText={setNotes}
+                  placeholder={t('costs.placeholderNotes')}
+                  placeholderTextColor={colors.text2}
+                  multiline
+                  numberOfLines={2}
+                />
               </ScrollView>
-
-              <View style={styles.formRow}>
-                <View style={styles.formCol}>
-                  <Text style={styles.fieldLabel}>{t('costs.amountLabel')}</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={amount}
-                    onChangeText={setAmount}
-                    keyboardType="decimal-pad"
-                    placeholder={t('costs.placeholderCost')}
-                    placeholderTextColor={colors.text2}
-                    autoFocus={!editingCost}
-                    editable={!linkedInterval}
-                  />
-                </View>
-                <View style={styles.formCol}>
-                  <Text style={styles.fieldLabel}>{t('costs.dateLabel')}</Text>
-                  <DatePickerField value={dateTs} onChange={setDateTs} showLabel={false} />
-                </View>
-              </View>
-
-              <Text style={styles.fieldLabel}>{t('costs.notesLabel')}</Text>
-              <TextInput
-                style={[styles.input, styles.notesInput]}
-                value={notes}
-                onChangeText={setNotes}
-                placeholder={t('costs.placeholderNotes')}
-                placeholderTextColor={colors.text2}
-                multiline
-                numberOfLines={2}
-              />
 
               <View style={styles.actions}>
                 <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
                   <Text style={styles.cancelText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.saveBtn} onPress={submit}>
+                <TouchableOpacity style={styles.saveBtn} onPress={submit} disabled={saving}>
                   {saving ? (
                     <ActivityIndicator color={colors.white} size="small" />
                   ) : (
@@ -239,16 +257,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.6)'
   },
   sheet: {
+    maxHeight: '92%',
+    flexShrink: 1,
     backgroundColor: colors.bg1,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: spacing.lg,
     gap: spacing.sm
   },
+  formScroll: { flexShrink: 1 },
+  formContent: { gap: spacing.sm, paddingBottom: spacing.sm },
   handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
     backgroundColor: colors.border2,
     alignSelf: 'center',
     marginBottom: spacing.sm

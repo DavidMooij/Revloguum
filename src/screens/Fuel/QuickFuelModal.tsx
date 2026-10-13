@@ -1,6 +1,18 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Dimensions, ActivityIndicator, Alert, TextInput } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Modal,
+  TouchableOpacity,
+  ActivityIndicator,
+  TextInput,
+  ScrollView,
+  Animated,
+  Keyboard,
+  useWindowDimensions
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontAwesome5 as Icon } from '@expo/vector-icons';
 import type { Vehicle } from '../../domain/entities/Vehicle';
@@ -9,458 +21,326 @@ import { colors } from '../../theme/colors';
 import { spacing, radius } from '../../theme/spacing';
 import { typography, typeScale } from '../../theme/typography';
 import { haptic } from '@/utils/haptics';
+import DatePickerField from '../AddEntry/components/DatePickerField';
+import { useOdometerTimelineValidation } from '../../hooks/useOdometerTimelineValidation';
+import ModalDragHandle from '../components/ModalDragHandle';
 
 interface Props {
   visible: boolean;
   onClose: () => void;
-  onSave: (data: { odometerKm: number; liters: number; cost: number; notes: string | null }) => Promise<void>;
+  onSave: (data: { dateTs: number; odometerKm: number; liters: number; cost: number; notes: string | null }) => Promise<void>;
   vehicle: Vehicle;
   lastEntry: FuelEntry | null;
   editEntry?: FuelEntry | null;
 }
 
-const { width } = Dimensions.get('window');
-const BTN_WIDTH = (width - 80 - spacing.sm * 2) / 3;
-const NAV_BTN_WIDTH = 140;
+type PriceSource = 'total' | 'perLiter';
 
-function NumPad({ value, onChange, allowDecimal }: { value: string; onChange: (v: string) => void; allowDecimal?: boolean }) {
-  const keys = allowDecimal
-    ? ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', '⌫']
-    : ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'];
+function parseAmount(value: string) {
+  const parsed = Number.parseFloat(value.replace(',', '.'));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function sanitizeDecimal(value: string, decimalPlaces: number) {
+  const normalized = value.replace(',', '.').replace(/[^0-9.]/g, '');
+  const [integer, ...fraction] = normalized.split('.');
+  return fraction.length ? `${integer}.${fraction.join('').slice(0, decimalPlaces)}` : integer;
+}
+
+function FormField({ label, children, error }: { label: string; children: React.ReactNode; error?: string }) {
   return (
-    <View style={numStyles.grid}>
-      {keys.map((k, i) => (
-        <TouchableOpacity
-          key={i}
-          style={[numStyles.key, k === '' && numStyles.keyEmpty]}
-          onPress={() => {
-            if (!k) return;
-            haptic.soft();
-            if (k === '⌫') {
-              onChange(value.slice(0, -1));
-              return;
-            }
-            if (k === '.' && value.includes('.')) return;
-            const next = value === '0' || value === '' ? (k === '.' ? '0.' : k) : value + k;
-            if (next.length <= 8) onChange(next);
-          }}
-          activeOpacity={0.55}
-          disabled={!k}
-        >
-          {k !== '' && (k === '⌫' ? <Icon name="backspace" size={18} color={colors.text1} /> : <Text style={numStyles.keyText}>{k}</Text>)}
-        </TouchableOpacity>
-      ))}
+    <View style={styles.field}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      {children}
+      {error ? <Text style={styles.fieldError}>{error}</Text> : null}
     </View>
   );
 }
-
-const numStyles = StyleSheet.create({
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    justifyContent: 'center'
-  },
-  key: {
-    width: BTN_WIDTH,
-    height: 54,
-    borderRadius: radius.md,
-    backgroundColor: colors.bg2,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border1,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  keyEmpty: { backgroundColor: 'transparent', borderWidth: 0 },
-  keyText: {
-    fontSize: typeScale.titleLarge,
-    fontWeight: '600',
-    color: colors.text0
-  }
-});
-
-function Dots({ current, total }: { current: number; total: number }) {
-  return (
-    <View style={dotStyles.row}>
-      {Array.from({ length: total }).map((_, i) => (
-        <View key={i} style={[dotStyles.dot, i === current && dotStyles.dotActive, i < current && dotStyles.dotDone]} />
-      ))}
-    </View>
-  );
-}
-const dotStyles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: 6, alignSelf: 'center' },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.bg3 },
-  dotActive: { width: 20, backgroundColor: colors.accent },
-  dotDone: { backgroundColor: colors.accentMuted }
-});
-
-function ConfirmRow({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
-  return (
-    <View style={cfStyles.row}>
-      <Text style={cfStyles.label}>{label}</Text>
-      <Text style={[cfStyles.value, accent && cfStyles.accent]}>{value}</Text>
-    </View>
-  );
-}
-const cfStyles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.sm + 2,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border0
-  },
-  label: { fontSize: typeScale.bodyMedium, color: colors.text2 },
-  value: {
-    fontSize: typeScale.bodyMedium,
-    fontWeight: '600',
-    color: colors.text0
-  },
-  accent: {
-    color: colors.accent,
-    fontSize: typeScale.subtitle,
-    fontWeight: '700'
-  }
-});
-
-function AdjBtn({ label, onPress, accent }: { label: string; onPress: () => void; accent?: boolean }) {
-  return (
-    <TouchableOpacity style={[adjStyles.btn, accent && adjStyles.btnAccent]} onPress={onPress} activeOpacity={0.7}>
-      <Text style={[adjStyles.text, accent && adjStyles.textAccent]}>{label}</Text>
-    </TouchableOpacity>
-  );
-}
-const adjStyles = StyleSheet.create({
-  btn: {
-    flex: 1,
-    height: 52,
-    borderRadius: radius.md,
-    backgroundColor: colors.bg2,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border1,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  btnAccent: {
-    backgroundColor: colors.accentMuted,
-    borderColor: colors.accent
-  },
-  text: { fontSize: typeScale.body, fontWeight: '700', color: colors.text0 },
-  textAccent: { color: colors.accentText }
-});
-
-type PriceMode = 'total' | 'perLiter';
 
 export default function QuickFuelModal({ visible, onClose, onSave, vehicle, lastEntry, editEntry }: Props) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const [step, setStep] = useState(0);
+  const { height: windowHeight } = useWindowDimensions();
+  const sheetBottomOffset = useRef(new Animated.Value(0)).current;
+  const validateOdometerTimeline = useOdometerTimelineValidation();
+  const [dateTs, setDateTs] = useState(Date.now());
   const [odometer, setOdometer] = useState('');
-  const [liters, setLiters] = useState(0);
-  const [pricePerLiter, setPricePerLiter] = useState(0);
-  const [priceMode, setPriceMode] = useState<PriceMode>('total');
+  const [litersInput, setLitersInput] = useState('');
+  const [pricePerLiterInput, setPricePerLiterInput] = useState('');
+  const [priceSource, setPriceSource] = useState<PriceSource>('total');
   const [totalInput, setTotalInput] = useState('');
   const [notes, setNotes] = useState<string | null>(null);
+  const [notesHeight, setNotesHeight] = useState(48);
   const [saving, setSaving] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [odometerTimelineError, setOdometerTimelineError] = useState<string | null>(null);
 
-  const defaultLiters = vehicle.defaultTankLiters ?? 15;
-  const defaultPrice = vehicle.defaultFuelPrice ?? (lastEntry ? lastEntry.cost / lastEntry.liters : 2.05);
+  const defaultLiters = vehicle.defaultTankLiters;
+  const defaultPrice = vehicle.defaultFuelPrice ?? (lastEntry && lastEntry.liters > 0 ? lastEntry.cost / lastEntry.liters : 2.05);
   const kmSinceLast = lastEntry ? vehicle.currentOdometer - lastEntry.odometerKm : 0;
 
   useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', (event) => {
+      Animated.timing(sheetBottomOffset, {
+        toValue: event.endCoordinates.height,
+        duration: event.duration ?? 250,
+        useNativeDriver: false
+      }).start();
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', (event) => {
+      Animated.timing(sheetBottomOffset, {
+        toValue: 0,
+        duration: event.duration ?? 250,
+        useNativeDriver: false
+      }).start();
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, [sheetBottomOffset]);
+
+  useEffect(() => {
     if (visible) {
-      setStep(0);
+      setNotesHeight(48);
+      setOdometerTimelineError(null);
       if (editEntry) {
+        setDateTs(editEntry.dateTs);
         setOdometer(String(editEntry.odometerKm));
-        setLiters(editEntry.liters);
+        setLitersInput(editEntry.liters.toFixed(2));
         const perLiter = editEntry.liters > 0 ? editEntry.cost / editEntry.liters : defaultPrice;
-        setPricePerLiter(Math.round(perLiter * 100) / 100);
-        setPriceMode('total');
+        setPricePerLiterInput(perLiter.toFixed(2));
+        setPriceSource('total');
         setTotalInput(editEntry.cost.toFixed(2));
         setNotes(editEntry.notes);
       } else {
+        setDateTs(Date.now());
         setOdometer('');
-        setLiters(defaultLiters);
+        setLitersInput(defaultLiters?.toFixed(2) ?? '');
         const initialPrice = Math.round(defaultPrice * 100) / 100;
-        setPricePerLiter(initialPrice);
-        setPriceMode('total');
-        setTotalInput((Math.round(defaultLiters * initialPrice * 100) / 100).toFixed(2));
+        setPricePerLiterInput(initialPrice.toFixed(2));
+        setPriceSource(defaultLiters === null ? 'perLiter' : 'total');
+        setTotalInput(defaultLiters === null ? '' : (Math.round(defaultLiters * initialPrice * 100) / 100).toFixed(2));
         setNotes(null);
       }
       setSaving(false);
+      setSubmitted(false);
     }
-  }, [visible, editEntry]);
+  }, [visible, editEntry, defaultLiters, defaultPrice]);
 
-  const totalCost =
-    priceMode === 'total' ? Math.round((parseFloat(totalInput || '0') || 0) * 100) / 100 : Math.round(liters * pricePerLiter * 100) / 100;
+  const liters = parseAmount(litersInput);
+  const pricePerLiter = parseAmount(pricePerLiterInput);
+  const totalCost = Math.round(parseAmount(totalInput) * 100) / 100;
+  const enteredOdometer = Number.parseInt(odometer || '0', 10);
+  const odometerInvalid = odometer !== '' && !Number.isFinite(enteredOdometer);
+  const litersInvalid = liters <= 0;
+  const totalInvalid = totalCost <= 0;
+  const pricePerLiterInvalid = pricePerLiter <= 0;
+  const canSave = odometer !== '' && !odometerInvalid && !litersInvalid && !totalInvalid && !pricePerLiterInvalid;
 
-  const effectivePricePerLiter = priceMode === 'total' ? (liters > 0 ? totalCost / liters : 0) : pricePerLiter;
+  const handleLitersChange = (value: string) => {
+    const nextInput = sanitizeDecimal(value, 2);
+    const nextLiters = parseAmount(nextInput);
+    setLitersInput(nextInput);
+    if (nextLiters <= 0) return;
+    if (priceSource === 'total') {
+      setPricePerLiterInput((parseAmount(totalInput) / nextLiters).toFixed(2));
+    } else {
+      setTotalInput((nextLiters * parseAmount(pricePerLiterInput)).toFixed(2));
+    }
+  };
+
+  const handleTotalChange = (value: string) => {
+    const nextInput = sanitizeDecimal(value, 2);
+    const nextTotal = parseAmount(nextInput);
+    setTotalInput(nextInput);
+    setPriceSource('total');
+    if (liters > 0) setPricePerLiterInput((nextTotal / liters).toFixed(2));
+  };
+
+  const handlePricePerLiterChange = (value: string) => {
+    const nextInput = sanitizeDecimal(value, 2);
+    const nextPricePerLiter = parseAmount(nextInput);
+    setPricePerLiterInput(nextInput);
+    setPriceSource('perLiter');
+    if (liters > 0) setTotalInput((liters * nextPricePerLiter).toFixed(2));
+  };
 
   const handleSave = useCallback(async () => {
+    setSubmitted(true);
+    if (!canSave) {
+      haptic.error();
+      return;
+    }
     setSaving(true);
     try {
+      const timelineIssue = await validateOdometerTimeline(vehicle.id, dateTs, enteredOdometer, editEntry ? [editEntry.id] : []);
+      if (timelineIssue) {
+        setOdometerTimelineError(
+          t(timelineIssue.kind === 'belowPrevious' ? 'common.odometerBelowTimeline' : 'common.odometerAboveTimeline', {
+            km: timelineIssue.boundaryKm.toLocaleString()
+          })
+        );
+        haptic.error();
+        return;
+      }
+
       await onSave({
-        odometerKm: parseInt(odometer, 10),
-        liters: Math.round(liters * 10) / 10,
+        dateTs,
+        odometerKm: enteredOdometer,
+        liters: Math.round(liters * 100) / 100,
         cost: totalCost,
         notes: notes?.trim() || null
       });
+      haptic.success();
       onClose();
     } finally {
       setSaving(false);
     }
-  }, [odometer, liters, totalCost, notes, onSave, onClose]);
+  }, [canSave, validateOdometerTimeline, vehicle.id, dateTs, enteredOdometer, editEntry, t, liters, totalCost, notes, onSave, onClose]);
 
-  const adjustLiters = (delta: number) => {
-    haptic.selection();
-    setLiters((p) => Math.max(0.5, Math.round((p + delta) * 2) / 2));
-  };
-  const adjustPrice = (delta: number) => {
-    haptic.selection();
-    setPricePerLiter((p) => Math.max(0.01, Math.round((p + delta) * 100) / 100));
-  };
-
-  const enteredOdometer = parseInt(odometer || '0', 10);
-  const canNext = editEntry ? odometer !== '' : odometer !== '' && enteredOdometer >= vehicle.currentOdometer;
-  const goNext = () => {
-    if (!canNext) {
-      haptic.error();
-
-      if (!editEntry) {
-        Alert.alert(
-          t('fuel.invalidOdometerTitle'),
-          t('fuel.invalidOdometerMessage', {
-            km: vehicle.currentOdometer.toLocaleString()
-          })
-        );
-      }
-
-      return;
-    }
-
-    haptic.medium();
-    setStep((s) => s + 1);
-  };
-  const goBack = () => {
-    haptic.selection();
-    setStep((s) => s - 1);
-  };
-
-  const fillPct = Math.min(100, Math.round((liters / defaultLiters) * 100));
+  const fillPct = defaultLiters !== null && defaultLiters > 0 ? Math.min(100, Math.round((liters / defaultLiters) * 100)) : 0;
   const vehicleName = vehicle.nickname ?? `${vehicle.make} ${vehicle.model}`;
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <TouchableOpacity style={StyleSheet.absoluteFill} onPress={onClose} activeOpacity={1} />
-
-        <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
-          <View style={styles.handle} />
-
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <Text style={styles.vehicleName} numberOfLines={1}>
-                {vehicleName}
-              </Text>
-              {kmSinceLast > 0 && <Text style={styles.kmSince}>{t('fuel.kmSinceLast', { km: kmSinceLast.toLocaleString() })}</Text>}
-            </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn} hitSlop={12}>
-              <Icon name="times" size={16} color={colors.text2} />
-            </TouchableOpacity>
-          </View>
-
-          <Dots current={step} total={4} />
-
-          {step === 0 && (
-            <View style={styles.stepBody}>
-              <Text style={styles.stepLabel}>{t('fuel.stepOdometer')}</Text>
-              <Text style={styles.bigNumber}>
-                {t('fuel.odometerDisplay', {
-                  km: parseInt(odometer || '0', 10).toLocaleString()
-                })}
-              </Text>
-              {lastEntry && (
-                <Text style={styles.hint}>
-                  {t('fuel.lastTankAt', {
-                    km: lastEntry.odometerKm.toLocaleString()
-                  })}
+        <View style={styles.keyboardArea}>
+          <Animated.View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, spacing.md), marginBottom: sheetBottomOffset }]}>
+            <ModalDragHandle onClose={onClose} disabled={saving} style={styles.handle} />
+            <View style={styles.header}>
+              <View style={styles.headerLeft}>
+                <Text style={styles.vehicleName} numberOfLines={1}>
+                  {vehicleName}
                 </Text>
-              )}
-              <NumPad value={odometer} onChange={setOdometer} />
+                {kmSinceLast > 0 && <Text style={styles.kmSince}>{t('fuel.kmSinceLast', { km: kmSinceLast.toLocaleString() })}</Text>}
+              </View>
+              <View style={styles.headerRight}>
+                <Text style={styles.formTitle}>{editEntry ? t('fuel.editTitle') : t('fuel.newTitle')}</Text>
+                {lastEntry && (
+                  <Text style={[styles.hint, styles.lastTank]} numberOfLines={1}>
+                    {t('fuel.lastTankAt', { km: lastEntry.odometerKm.toLocaleString() })}
+                  </Text>
+                )}
+              </View>
             </View>
-          )}
 
-          {step === 1 && (
-            <View style={styles.stepBody}>
-              <Text style={styles.stepLabel}>{t('fuel.stepLiters')}</Text>
-              <Text style={styles.bigNumber}>{t('fuel.litersDisplay', { liters: liters.toFixed(1) })}</Text>
-              <View style={styles.adjRow}>
-                <AdjBtn label="−5" onPress={() => adjustLiters(-5)} />
-                <AdjBtn label="−½" onPress={() => adjustLiters(-0.5)} />
-                <AdjBtn
-                  label={t('fuel.resetDefault', { liters: defaultLiters })}
-                  onPress={() => {
-                    haptic.selection();
-                    setLiters(defaultLiters);
+            <ScrollView
+              style={[styles.formScroll, { maxHeight: Math.max(160, windowHeight * 0.72) }]}
+              contentContainerStyle={styles.formContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <FormField label={t('common.date')}>
+                <DatePickerField
+                  value={dateTs}
+                  onChange={(value) => {
+                    setDateTs(value);
+                    setOdometerTimelineError(null);
                   }}
-                  accent
+                  showLabel={false}
                 />
-                <AdjBtn label="+½" onPress={() => adjustLiters(0.5)} />
-                <AdjBtn label="+5" onPress={() => adjustLiters(5)} />
+              </FormField>
+              <FormField
+                label={t('fuel.stepOdometer')}
+                error={
+                  submitted && odometer === ''
+                    ? t('fuel.requiredField')
+                    : odometerInvalid
+                      ? t('fuel.invalidOdometerMessage', { km: vehicle.currentOdometer.toLocaleString() })
+                      : (odometerTimelineError ?? undefined)
+                }
+              >
+                <TextInput
+                  style={styles.input}
+                  value={odometer}
+                  onChangeText={(value) => {
+                    setOdometer(value.replace(/[^0-9]/g, ''));
+                    setOdometerTimelineError(null);
+                  }}
+                  placeholder={t('fuel.odometerPlaceholder')}
+                  placeholderTextColor={colors.text2}
+                  keyboardType="number-pad"
+                  returnKeyType="next"
+                />
+              </FormField>
+              <FormField label={t('fuel.stepLiters')} error={submitted && litersInvalid ? t('fuel.invalidLiters') : undefined}>
+                <TextInput
+                  style={styles.input}
+                  value={litersInput}
+                  onChangeText={handleLitersChange}
+                  placeholder={t('fuel.litersPlaceholder')}
+                  placeholderTextColor={colors.text2}
+                  keyboardType="decimal-pad"
+                />
+              </FormField>
+              <View style={styles.fillIndicator}>
+                <View style={styles.barTrack}>
+                  <View style={[styles.barFill, { width: `${fillPct}%` }]} />
+                </View>
+                <Text style={styles.hint}>{t('fuel.tankPercent', { pct: fillPct })}</Text>
               </View>
-              <View style={styles.barTrack}>
-                <View style={[styles.barFill, { width: `${fillPct}%` }]} />
-              </View>
-              <Text style={styles.hint}>{t('fuel.tankPercent', { pct: fillPct })}</Text>
-            </View>
-          )}
 
-          {step === 2 && (
-            <View style={styles.stepBody}>
-              <View style={styles.priceHeaderRow}>
-                <Text style={styles.stepLabel}>{t('fuel.stepPrice')}</Text>
-                <View style={styles.modeToggle}>
-                  <TouchableOpacity
-                    style={[styles.modeBtn, priceMode === 'total' && styles.modeBtnActive]}
-                    onPress={() => {
-                      haptic.selection();
-                      setPriceMode('total');
-                    }}
+              <View style={styles.priceInputsRow}>
+                <View style={styles.priceInputColumn}>
+                  <FormField
+                    label={t('fuel.labelPricePerL')}
+                    error={submitted && pricePerLiterInvalid ? t('fuel.invalidAmount') : undefined}
                   >
-                    <Text style={[styles.modeBtnText, priceMode === 'total' && styles.modeBtnTextActive]}>{t('fuel.priceModeTotal')}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.modeBtn, priceMode === 'perLiter' && styles.modeBtnActive]}
-                    onPress={() => {
-                      haptic.selection();
-                      setPriceMode('perLiter');
-                    }}
-                  >
-                    <Text style={[styles.modeBtnText, priceMode === 'perLiter' && styles.modeBtnTextActive]}>
-                      {t('fuel.priceModePerLiter')}
-                    </Text>
-                  </TouchableOpacity>
+                    <TextInput
+                      style={styles.input}
+                      value={pricePerLiterInput}
+                      onChangeText={handlePricePerLiterChange}
+                      placeholder={t('fuel.pricePlaceholder')}
+                      placeholderTextColor={colors.text2}
+                      keyboardType="decimal-pad"
+                    />
+                  </FormField>
+                </View>
+                <View style={styles.priceInputColumn}>
+                  <FormField label={t('fuel.labelTotal')} error={submitted && totalInvalid ? t('fuel.invalidAmount') : undefined}>
+                    <TextInput
+                      style={styles.input}
+                      value={totalInput}
+                      onChangeText={handleTotalChange}
+                      placeholder={t('fuel.amountPlaceholder')}
+                      placeholderTextColor={colors.text2}
+                      keyboardType="decimal-pad"
+                    />
+                  </FormField>
                 </View>
               </View>
 
-              {priceMode === 'total' ? (
-                <>
-                  <Text style={styles.bigNumber}>
-                    {t('fuel.priceDisplay', {
-                      price: (parseFloat(totalInput || '0') || 0).toFixed(2)
-                    })}
-                  </Text>
-                  <Text style={styles.hint}>
-                    {t('fuel.pricePerLiterEq', {
-                      price: effectivePricePerLiter.toFixed(2)
-                    })}
-                  </Text>
-                  <NumPad value={totalInput || '0'} onChange={setTotalInput} allowDecimal />
-                </>
-              ) : (
-                <>
-                  <Text style={styles.bigNumber}>
-                    {t('fuel.priceDisplay', {
-                      price: pricePerLiter.toFixed(2)
-                    })}
-                  </Text>
-                  <View style={styles.adjRow}>
-                    <AdjBtn label="−10 Rp." onPress={() => adjustPrice(-0.1)} />
-                    <AdjBtn label="−1 Rp." onPress={() => adjustPrice(-0.01)} />
-                    <AdjBtn label="+1 Rp." onPress={() => adjustPrice(0.01)} />
-                    <AdjBtn label="+10 Rp." onPress={() => adjustPrice(0.1)} />
-                  </View>
-                  <View style={styles.totalRow}>
-                    <Text style={styles.totalLabel}>
-                      {t('fuel.totalPreview', {
-                        liters: liters.toFixed(1),
-                        price: effectivePricePerLiter.toFixed(2)
-                      })}
-                    </Text>
-                    <Text style={styles.totalValue}>{t('fuel.totalEq', { total: totalCost.toFixed(2) })}</Text>
-                  </View>
-                </>
-              )}
-            </View>
-          )}
-
-          {step === 3 && (
-            <View style={styles.stepBody}>
-              <Text style={styles.stepLabel}>{t('fuel.stepConfirm')}</Text>
-              <View style={styles.confirmCard}>
-                <ConfirmRow
-                  label={t('fuel.labelOdometer')}
-                  value={t('fuel.odometerDisplay', {
-                    km: parseInt(odometer, 10).toLocaleString()
-                  })}
-                />
-                <ConfirmRow label={t('fuel.labelFilled')} value={t('fuel.litersDisplay', { liters: liters.toFixed(1) })} />
-                <ConfirmRow
-                  label={t('fuel.labelPricePerL')}
-                  value={t('fuel.priceDisplay', {
-                    price: effectivePricePerLiter.toFixed(2)
-                  })}
-                />
-                <ConfirmRow
-                  label={t('fuel.labelTotal')}
-                  value={t('fuel.priceDisplay', {
-                    price: totalCost.toFixed(2)
-                  })}
-                  accent
-                />
-              </View>
-              <View style={styles.notesField}>
-                <Text style={styles.notesLabel}>{t('fuel.notes')}</Text>
+              <FormField label={t('fuel.notes')}>
                 <TextInput
-                  style={styles.notesInput}
+                  style={[styles.input, styles.notesInput, { height: notesHeight }]}
                   value={notes ?? ''}
                   onChangeText={setNotes}
+                  onContentSizeChange={(event) => setNotesHeight(Math.max(48, event.nativeEvent.contentSize.height))}
                   placeholder={t('fuel.notesPlaceholder')}
                   placeholderTextColor={colors.text2}
                   multiline
                   maxLength={500}
                   textAlignVertical="top"
                 />
-              </View>
-            </View>
-          )}
+              </FormField>
+            </ScrollView>
 
-          <View style={styles.navRow}>
-            <TouchableOpacity
-              style={[styles.navBtn, styles.navBtnBack, step === 0 && styles.navBtnInvisible]}
-              onPress={goBack}
-              disabled={step === 0}
-            >
-              <Icon name="chevron-left" size={14} color={colors.text1} />
-              <Text style={styles.navBtnBackText}>{t('fuel.back')}</Text>
-            </TouchableOpacity>
-
-            {step < 3 ? (
-              <TouchableOpacity
-                style={[styles.navBtn, styles.navBtnNext, !canNext && styles.navBtnDisabled]}
-                onPress={goNext}
-                disabled={!canNext}
-              >
-                <Text style={styles.navBtnNextText}>{t('fuel.next')}</Text>
-                <Icon name="chevron-right" size={14} color={colors.white} />
+            <View style={styles.actionRow}>
+              <TouchableOpacity style={[styles.actionButton, styles.cancelButton]} onPress={onClose} disabled={saving}>
+                <Text style={styles.cancelText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
-            ) : (
               <TouchableOpacity
-                style={[styles.navBtn, styles.navBtnNext, saving && styles.navBtnDisabled]}
+                style={[styles.actionButton, styles.saveButton, saving && styles.saveDisabled]}
                 onPress={handleSave}
                 disabled={saving}
               >
-                {saving ? (
-                  <ActivityIndicator size="small" color={colors.white} />
-                ) : (
-                  <>
-                    <Text style={styles.navBtnNextText}>{t('fuel.saveChanges')}</Text>
-                  </>
-                )}
+                {saving ? <ActivityIndicator size="small" color={colors.white} /> : <Text style={styles.saveText}>{t('common.save')}</Text>}
               </TouchableOpacity>
-            )}
-          </View>
+            </View>
+          </Animated.View>
         </View>
       </View>
     </Modal>
@@ -473,19 +353,17 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(0,0,0,0.6)'
   },
+  keyboardArea: { flex: 1, justifyContent: 'flex-end' },
   sheet: {
+    flexShrink: 1,
+    maxHeight: '98%',
     backgroundColor: colors.bg1,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.md,
-    marginBottom: spacing.lg,
-    gap: spacing.lg
+    paddingTop: spacing.xl,
+    gap: spacing.md,
+    overflow: 'hidden'
   },
   handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
     backgroundColor: colors.border2,
     alignSelf: 'center'
   },
@@ -495,6 +373,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   headerLeft: { flex: 1, marginRight: spacing.md },
+  headerRight: { alignItems: 'flex-end', maxWidth: '50%', marginLeft: spacing.md },
   vehicleName: {
     fontSize: typeScale.subtitle,
     fontWeight: '700',
@@ -505,29 +384,29 @@ const styles = StyleSheet.create({
     color: colors.text2,
     marginTop: 2
   },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.bg3,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  stepBody: { gap: spacing.md, height: 370 },
-  stepLabel: {
-    ...typography.overline
-  },
-  bigNumber: {
-    ...typography.showcase,
+  formTitle: { ...typography.overline, color: colors.text2 },
+  lastTank: { textAlign: 'right' },
+  formScroll: { flexGrow: 0, flexShrink: 1 },
+  formContent: { gap: spacing.md },
+  field: { gap: spacing.xs },
+  fieldLabel: { ...typography.overline },
+  fieldError: { fontSize: typeScale.captionLarge, color: colors.danger },
+  input: {
+    minHeight: 48,
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border1,
+    backgroundColor: colors.bg2,
     color: colors.text0,
-    textAlign: 'center'
+    fontSize: typeScale.bodyMedium,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm
   },
   hint: {
     fontSize: typeScale.captionLarge,
-    color: colors.text2,
-    textAlign: 'center'
+    color: colors.text2
   },
-  adjRow: { flexDirection: 'row', gap: spacing.sm },
+  fillIndicator: { gap: spacing.xs },
   barTrack: {
     height: 8,
     borderRadius: 4,
@@ -540,85 +419,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between'
   },
-  modeToggle: {
+  priceInputsRow: { flexDirection: 'row', gap: spacing.md },
+  priceInputColumn: { flex: 1 },
+  notesInput: { minHeight: 48 },
+  actionRow: {
     flexDirection: 'row',
-    backgroundColor: colors.bg2,
-    borderRadius: radius.full,
-    padding: 3,
-    gap: 2
+    gap: spacing.md,
+    paddingTop: 0
   },
-  modeBtn: {
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: 5,
-    borderRadius: radius.full
-  },
-  modeBtnActive: { backgroundColor: colors.accent },
-  modeBtnText: {
-    fontSize: typeScale.caption,
-    fontWeight: '600',
-    color: colors.text2
-  },
-  modeBtnTextActive: { color: colors.white },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  actionButton: {
+    flex: 1,
+    height: 52,
+    borderRadius: radius.md,
     alignItems: 'center',
-    backgroundColor: colors.bg2,
-    borderRadius: radius.md,
-    padding: spacing.md
+    justifyContent: 'center'
   },
-  totalLabel: { fontSize: typeScale.bodyMedium, color: colors.text2 },
-  totalValue: {
-    fontSize: typeScale.titleSmall,
-    fontWeight: '700',
-    color: colors.accent
-  },
-  confirmCard: {
-    backgroundColor: colors.bg2,
-    borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border1,
-    paddingHorizontal: spacing.md
-  },
-  notesField: { gap: spacing.xs },
-  notesLabel: { ...typography.overline },
-  notesInput: {
-    height: 82,
-    borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border1,
-    backgroundColor: colors.bg2,
-    color: colors.text0,
-    fontSize: typeScale.bodyMedium,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm
-  },
-  navRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
-  navBtn: {
-    width: NAV_BTN_WIDTH,
-    height: 50,
-    borderRadius: radius.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs
-  },
-  navBtnBack: {
+  cancelButton: {
     backgroundColor: colors.bg2,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border1
   },
-  navBtnBackText: { ...typography.button, color: colors.text1 },
-  navBtnNext: { backgroundColor: colors.accent },
-  navBtnNextText: {
+  cancelText: { ...typography.button, color: colors.text1 },
+  saveButton: { backgroundColor: colors.accent },
+  saveText: {
     ...typography.button,
     fontWeight: '700',
     color: colors.white
   },
-  navBtnInvisible: { opacity: 0 },
-  navBtnDisabled: { opacity: 0.4 }
+  saveDisabled: { opacity: 0.5 }
 });

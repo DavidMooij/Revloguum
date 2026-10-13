@@ -11,6 +11,8 @@ interface VehicleRow {
   nickname: string | null;
   current_odometer: number;
   base_odometer: number;
+  purchase_price: number | null;
+  residual_value: number | null;
   photo_path: string | null;
   default_tank_liters: number | null;
   default_fuel_price: number | null;
@@ -29,6 +31,8 @@ function rowToEntity(row: VehicleRow): Vehicle {
     nickname: row.nickname,
     currentOdometer: row.current_odometer,
     baseOdometer: row.base_odometer,
+    purchasePrice: row.purchase_price ?? null,
+    residualValue: row.residual_value ?? null,
     photoPath: row.photo_path,
     defaultTankLiters: row.default_tank_liters ?? null,
     defaultFuelPrice: row.default_fuel_price ?? null,
@@ -57,10 +61,10 @@ export class SQLiteVehicleRepo implements IVehicleRepo {
     const now = Date.now();
     await this.db.runAsync(
       `INSERT INTO vehicles
-        (id, make, model, year, nickname, current_odometer, base_odometer, photo_path,
+        (id, make, model, year, nickname, current_odometer, base_odometer, purchase_price, residual_value, photo_path,
           default_tank_liters, default_fuel_price, service_intervals,
           vehicle_type, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       [
         id,
         input.make,
@@ -69,6 +73,8 @@ export class SQLiteVehicleRepo implements IVehicleRepo {
         input.nickname ?? null,
         input.currentOdometer,
         input.baseOdometer,
+        input.purchasePrice ?? null,
+        input.residualValue ?? null,
         input.photoPath ?? null,
         input.defaultTankLiters ?? null,
         input.defaultFuelPrice ?? null,
@@ -91,6 +97,8 @@ export class SQLiteVehicleRepo implements IVehicleRepo {
     if (input.nickname !== undefined) (sets.push('nickname = ?'), values.push(input.nickname ?? null));
     if (input.currentOdometer !== undefined) (sets.push('current_odometer = ?'), values.push(input.currentOdometer));
     if (input.baseOdometer !== undefined) (sets.push('base_odometer = ?'), values.push(input.baseOdometer));
+    if (input.purchasePrice !== undefined) (sets.push('purchase_price = ?'), values.push(input.purchasePrice ?? null));
+    if (input.residualValue !== undefined) (sets.push('residual_value = ?'), values.push(input.residualValue ?? null));
     if (input.photoPath !== undefined) (sets.push('photo_path = ?'), values.push(input.photoPath ?? null));
     if (input.defaultTankLiters !== undefined) (sets.push('default_tank_liters = ?'), values.push(input.defaultTankLiters ?? null));
     if (input.defaultFuelPrice !== undefined) (sets.push('default_fuel_price = ?'), values.push(input.defaultFuelPrice ?? null));

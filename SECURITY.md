@@ -20,7 +20,7 @@ Revloguum is intended to be a local-first mobile application. Its security goals
 - detect modification of authenticated encrypted media and backups;
 - avoid server-side exposure of personal vehicle data by design.
 
-Sensitive data includes vehicle details, odometer history, service records, fuel entries, payments, notes, vehicle and service photos, document metadata, document pages, and exported reports or backups.
+Sensitive data includes vehicle details, odometer history, service records, fuel entries, payments, notes, vehicle, service, and cost photos, document metadata, document pages, and exported reports or backups.
 
 ## Current Implementation
 
@@ -37,19 +37,21 @@ Relevant code: [database.ts](src/data/db/database.ts), [keyGenerator.ts](src/sec
 
 ### Persistent Images and Document Pages
 
-- The source code attempts to encrypt new vehicle photos, service photos, and document pages individually before storing managed copies in the app's persistent directory.
+- The source code attempts to encrypt new vehicle, service, and cost photos, plus document pages, individually before storing managed copies in the app's persistent directory.
 - The media helper is implemented using AES-256-GCM and requests a fresh random 12-byte IV and authentication tag for each file.
 - Document pages are routed through the same helper as other managed images.
 - Import code is intended to encrypt imported media again with the destination device's database key.
+- The purchase-price migration transfers legacy cost notes and encrypted image/page references into a vehicle-owned document before deleting the old cost rows; it does not decrypt or rewrite the referenced media.
 
 Relevant code: [imageEncryption.ts](src/security/imageEncryption.ts) and [SQLiteDocumentRepo.ts](src/data/repositories/SQLiteDocumentRepo.ts).
 
 ### Backups
 
 - Backup code is intended to include database records and referenced media and document pages.
+- Backup export fails when a referenced vehicle, service, cost or document image cannot be read instead of silently omitting it.
 - The current implementation requests a 32-byte random salt and uses PBKDF2-HMAC-SHA256 with 650,000 iterations to derive a 256-bit key from the user's password.
 - It uses AES-256-GCM with a requested fresh 12-byte IV for the backup payload.
-- Import code attempts to reject an invalid envelope, wrong password, authentication failure, malformed core data, or missing document-page data.
+- Import rejects an invalid envelope, wrong password, authentication failure, or malformed core data before committing records. Missing or unreadable optional images and invalid optional notes are skipped and reported in the completion summary.
 - Import is implemented with merge/replace-by-identifier semantics rather than a destructive full-database replacement.
 - The code includes a compatibility path for backups created using the historical authenticated app identifier.
 
@@ -89,14 +91,16 @@ The current source code contains no Revloguum account system, advertising SDK, a
 
 ### Permissions
 
-- Camera access is requested when the user chooses to capture a service image or document page.
-- Photo-library access is used when the user selects a vehicle image, service image, or document page through the platform picker.
+- Camera access is requested when the user chooses to capture a vehicle, service, or cost photo, or a document page.
+- Photo-library access is used when the user selects a vehicle, service, or cost photo, or a document page through the platform picker.
 - Notification permission is requested for local reminders. The operating system controls lock-screen visibility.
 - The system document picker and sharing interface are used for user-directed backup and report operations.
 
 ### Exports and Sharing
 
 The backup implementation is intended to password-protect `.rvlg` files, but this property is not guaranteed without independent verification. Generated PDF reports are plaintext and may contain sensitive records and media. Once a file leaves the app, its retention and protection depend on the selected destination and the user.
+
+When document pages are included in a PDF, export copies are resized to a maximum 1800-pixel longest edge and JPEG-compressed at 75% quality to limit Android rendering memory. The encrypted source pages are not modified. The generated PDF remains plaintext in the app cache and after sharing.
 
 ### Retention and Deletion
 
@@ -124,22 +128,25 @@ Data normally remains until it is edited or deleted, the in-app delete-all flow 
 Security-sensitive releases should manually verify:
 
 1. A fresh install creates a keyed SQLCipher database and an unkeyed open cannot read it.
-2. Vehicle, service, and document images are not stored as plain JPEG or PNG files in persistent app storage.
+2. Vehicle, service, cost, and document images are not stored as plain JPEG or PNG files in persistent app storage.
 3. A backup imports with the correct password and fails with a wrong password.
 4. Modifying encrypted backup bytes causes authentication failure.
-5. Vehicle, service, fuel, cost, intervals, custom types, photos, documents, and document page order survive backup and restore.
+5. Vehicle profile values, service, fuel, cost entries and their photos, intervals, custom types, documents, and document page order survive backup and restore.
 6. Imported images and document pages are encrypted under the destination device key.
-7. Deleting a document or its vehicle/service/payment owner removes its managed encrypted pages.
-8. PDF options include or omit notes, costs, photos, document metadata, and document pages as selected.
+7. Deleting a document or its vehicle/service/payment owner removes its managed encrypted pages; deleting a cost removes its managed photos.
+8. PDF options include or omit selected sections and details; verify the Images option controls the vehicle, service, cost, and selected document-page images, with document pages included only when Documents is selected; verify purchase and residual values appear only when payment history and cost amounts are enabled; verify grouped services show a right-aligned total when costs are enabled, retain per-entry costs and notes, and place shared photos once at the end of the group; on Android verify document pages remain visible and stored originals are unchanged.
+9. Upgrade a database containing purchase-category costs with notes, cost photos, and attached documents; verify the purchase total is on the vehicle profile, migrated material appears in vehicle documents, old cost entries/category are gone, and media remains readable.
+10. Restore an older backup containing purchase-category costs and verify the same migration, then export and restore the resulting backup.
+11. Restore a valid backup with one missing or unreadable image and one invalid optional note; verify other records import, skipped items are reported with locations, and malformed core records still leave the database unchanged.
 
 The repository currently has no automated security test suite. TypeScript compilation does not replace these device checks or an independent security review.
 
 ## Dependency Advisory Status
 
-As of 2026-09-01, `npm audit --omit=dev` reports 24 transitive advisories: 19 moderate and 5 high.
+As of 2026-10-13, `npm audit --omit=dev` reports 28 transitive advisories: 8 moderate and 20 high.
 
-- The high-severity findings are in `image-size` through Metro/Expo build tooling.
-- Moderate findings are reported through React Navigation's URI parsing dependencies and Expo/Xcode tooling.
+- High-severity findings affect `braces` through Metro, `image-size` through Metro/Expo tooling, and `node-forge` through Expo tooling.
+- Moderate findings include `uuid` through Xcode/Expo configuration tooling.
 - `npm audit fix --force` proposes an incompatible Expo downgrade and must not be applied blindly.
 
 These are upstream transitive dependencies rather than application-owned cryptographic code, but they still require review before a production binary release. Update only to versions supported by the active Expo SDK, run native regression tests after upgrading, and rerun the audit. Do not process untrusted project assets with affected build tooling.

@@ -10,6 +10,7 @@ import { typography, typeScale } from '../../theme/typography';
 import { spacing, radius } from '../../theme/spacing';
 import { useServiceTypes } from '../../hooks/useServiceTypes';
 import { useServiceEntryActions } from '../../hooks/useServiceHistory';
+import { useOdometerTimelineValidation } from '../../hooks/useOdometerTimelineValidation';
 import { useVehicles } from '../../hooks/useVehicles';
 import { getDatabase } from '../../data/db/database';
 import { SQLiteServiceEntryRepo } from '../../data/repositories/SQLiteServiceEntryRepo';
@@ -21,12 +22,11 @@ import PrimaryButton from '../components/PrimaryButton';
 import ScreenHeader from '../components/ScreenHeader';
 import AlertModal from '../components/AlertModal';
 import { haptic } from '@/utils/haptics';
-import * as ImagePicker from 'expo-image-picker';
-import { Image } from 'expo-image';
 import { FontAwesome5 as Icon } from '@expo/vector-icons';
-import { decryptImage, encryptImage } from '@/security/imageEncryption';
+import { encryptImagePaths } from '@/security/imageEncryption';
 import { useFeedback } from '../components/feedback/Feedbackprovider';
 import { SQLiteDocumentRepo } from '../../data/repositories/SQLiteDocumentRepo';
+import PhotoAttachmentsField from '../components/PhotoAttachmentsField';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddEntry'>;
 
@@ -39,6 +39,7 @@ export default function AddEntryScreen() {
 
   const { serviceTypes } = useServiceTypes();
   const { addGroup, deleteGroup, deleteEntry } = useServiceEntryActions();
+  const validateOdometerTimeline = useOdometerTimelineValidation();
   const { vehicles, activeVehicleId } = useVehicles();
 
   const resolvedMotoId = vehicleId ?? activeVehicleId ?? vehicles[0]?.id ?? '';
@@ -50,11 +51,10 @@ export default function AddEntryScreen() {
   const [errors, setErrors] = useState<{ blocks?: string; odometer?: string }>({});
   const [images, setImages] = useState<string[]>([]);
   const [errorAlert, setErrorAlert] = useState<string | null>(null);
-  const [cameraAlert, setCameraAlert] = useState(false);
   const isEditing = !!editEntryId;
-  const [displayUris, setDisplayUris] = useState<Record<string, string>>({});
   const [editGroupId, setEditGroupId] = useState<string | null>(null);
   const [editVehicleId, setEditVehicleId] = useState<string | null>(null);
+  const [editEntryIds, setEditEntryIds] = useState<string[]>([]);
   const { showToast, showCelebration } = useFeedback();
 
   const updateBlock = useCallback((key: string, patch: Partial<ServiceBlock>) => {
@@ -73,10 +73,6 @@ export default function AddEntryScreen() {
     })();
   }, [resolvedMotoId, isEditing]);
 
-  const getEncryptedImages = useCallback(async (uris: string[]) => {
-    return Promise.all(uris.map((uri) => (uri.endsWith('.enc') ? uri : encryptImage(uri))));
-  }, []);
-
   useEffect(() => {
     if (!editEntryId) return;
     (async () => {
@@ -88,9 +84,11 @@ export default function AddEntryScreen() {
       setOdometer(String(entry.odometerKm));
       setImages(entry.imagePaths ?? []);
       setEditVehicleId(entry.vehicleId);
+      setEditEntryIds([entry.id]);
       if (entry.groupId) {
         const groupItems = await repo.getGroup(entry.groupId);
         setEditGroupId(entry.groupId);
+        setEditEntryIds(groupItems.map((item) => item.id));
         setBlocks(
           groupItems.map((g) => ({
             key: g.id,
@@ -112,57 +110,6 @@ export default function AddEntryScreen() {
     })();
   }, [editEntryId]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadImages() {
-      const result: Record<string, string> = {};
-
-      for (const path of images) {
-        try {
-          if (path.endsWith('.enc')) {
-            result[path] = await decryptImage(path);
-          } else {
-            result[path] = path;
-          }
-        } catch {}
-      }
-
-      if (!cancelled) {
-        setDisplayUris(result);
-      }
-    }
-    if (images.length > 0) {
-      loadImages();
-    }
-    return () => {
-      cancelled = true;
-    };
-  }, [images]);
-
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsMultipleSelection: true,
-      quality: 0.8
-    });
-    if (!result.canceled) {
-      setImages((prev) => [...prev, ...result.assets.map((a) => a.uri)]);
-    }
-  };
-
-  const takePhoto = async () => {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      setCameraAlert(true);
-      return;
-    }
-    const result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
-    if (!result.canceled) {
-      setImages((prev) => [...prev, result.assets[0].uri]);
-    }
-  };
-
   const validate = useCallback(() => {
     const errs: { blocks?: string; odometer?: string } = {};
     if (!blocks.some((b) => b.serviceTypeId)) errs.blocks = t('addEntry.errorTypeRequired');
@@ -181,7 +128,24 @@ export default function AddEntryScreen() {
     setSaving(true);
     try {
       const parsedOdo = parseInt(odometer, 10);
-      const encryptedImages = await getEncryptedImages(images);
+      const timelineIssue = await validateOdometerTimeline(
+        isEditing ? (editVehicleId ?? resolvedMotoId) : resolvedMotoId,
+        dateTs,
+        parsedOdo,
+        isEditing ? editEntryIds : []
+      );
+      if (timelineIssue) {
+        setErrors((previous) => ({
+          ...previous,
+          odometer: t(timelineIssue.kind === 'belowPrevious' ? 'common.odometerBelowTimeline' : 'common.odometerAboveTimeline', {
+            km: timelineIssue.boundaryKm.toLocaleString()
+          })
+        }));
+        haptic.error();
+        return;
+      }
+
+      const encryptedImages = await encryptImagePaths(images);
       const items = blocks
         .filter((b) => b.serviceTypeId)
         .map((b) => ({
@@ -240,9 +204,9 @@ export default function AddEntryScreen() {
         });
       }
       navigation.goBack();
-    } catch (e) {
+    } catch {
       haptic.error();
-      setErrorAlert((e as Error).message);
+      setErrorAlert(t('common.unexpectedError'));
     } finally {
       setSaving(false);
     }
@@ -251,12 +215,13 @@ export default function AddEntryScreen() {
     odometer,
     blocks,
     images,
-    getEncryptedImages,
     isEditing,
     editGroupId,
     editEntryId,
     editVehicleId,
     resolvedMotoId,
+    editEntryIds,
+    validateOdometerTimeline,
     dateTs,
     addGroup,
     deleteGroup,
@@ -297,69 +262,31 @@ export default function AddEntryScreen() {
           <TextInputField
             label={t('addEntry.odometer')}
             value={odometer}
-            onChangeText={setOdometer}
+            onChangeText={(value) => {
+              setOdometer(value);
+              setErrors((previous) => ({ ...previous, odometer: undefined }));
+            }}
             keyboardType="numeric"
             placeholder={t('addEntry.placeholderOdometer')}
             suffix="km"
             error={errors.odometer}
           />
 
-          <DatePickerField value={dateTs} onChange={setDateTs} />
+          <DatePickerField
+            value={dateTs}
+            onChange={(value) => {
+              setDateTs(value);
+              setErrors((previous) => ({ ...previous, odometer: undefined }));
+            }}
+          />
 
-          <View style={styles.imageSection}>
-            <Text style={styles.imageLabel}>{t('addEntry.photos')}</Text>
-            <View style={styles.imageRow}>
-              {images.map((uri, i) => (
-                <View key={i} style={styles.imageWrapper}>
-                  <Image
-                    source={{
-                      uri: displayUris[uri] ?? uri
-                    }}
-                    style={styles.image}
-                    contentFit="cover"
-                  />
-                  <TouchableOpacity
-                    onPress={() => {
-                      setImages((prev) => prev.filter((_, idx) => idx !== i));
-
-                      setDisplayUris((prev) => {
-                        const copy = { ...prev };
-                        delete copy[uri];
-                        return copy;
-                      });
-                    }}
-                    style={styles.removeBtn}
-                  >
-                    <Text style={styles.removeText}>×</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-              <TouchableOpacity onPress={pickImage} style={styles.addTile}>
-                <Icon name="images" size={18} color={colors.text2} />
-                <Text style={styles.addText}>{t('addEntry.gallery')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={takePhoto} style={styles.addTile}>
-                <Icon name="camera" size={18} color={colors.text2} />
-                <Text style={styles.addText}>{t('addEntry.camera')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          <PhotoAttachmentsField label={t('addEntry.photos')} images={images} onChange={setImages} />
         </ScrollView>
 
         <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
           <PrimaryButton label={isEditing ? t('addEntry.saveChanges') : t('addEntry.saveEntry')} onPress={handleSave} loading={saving} />
         </View>
       </View>
-
-      <AlertModal
-        visible={cameraAlert}
-        onClose={() => setCameraAlert(false)}
-        icon="camera"
-        iconColor={colors.warningText}
-        title={t('addEntry.cameraPermission')}
-        message={t('addEntry.cameraPermissionMessage')}
-        actions={[{ label: t('common.ok'), variant: 'secondary', onPress: () => {} }]}
-      />
 
       <AlertModal
         visible={!!errorAlert}
@@ -408,53 +335,5 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border0,
     backgroundColor: colors.bg0
-  },
-  imageSection: { marginTop: spacing.md },
-  imageLabel: {
-    ...typography.caption,
-    marginBottom: spacing.sm
-  },
-  imageRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  imageWrapper: {
-    width: 86,
-    height: 86,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: colors.bg2,
-    position: 'relative'
-  },
-  image: { width: '100%', height: '100%' },
-  removeBtn: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  removeText: {
-    color: 'white',
-    fontSize: typeScale.bodyMedium,
-    lineHeight: 14,
-    fontWeight: '700'
-  },
-  addTile: {
-    width: 86,
-    height: 86,
-    borderRadius: 12,
-    backgroundColor: colors.bg1,
-    borderWidth: 1,
-    borderColor: colors.border0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6
-  },
-  addText: {
-    fontSize: typeScale.caption,
-    color: colors.text2,
-    fontWeight: '500'
   }
 });

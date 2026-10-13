@@ -12,6 +12,9 @@ import { migrateV9 } from './v9_payment_intervals';
 import { migrateV10 } from './v10_payment_types';
 import { migrateV11 } from './v11_base_odometer';
 import { migrateV12 } from './v12_documents';
+import { migrateV13 } from './v13_cost_photos';
+import { migrateV14 } from './v14_vehicle_residual_value';
+import { migrateV15 } from './v15_vehicle_purchase_price';
 
 type Migration = (db: SQLite.SQLiteDatabase) => Promise<void>;
 
@@ -27,7 +30,10 @@ const MIGRATIONS: Migration[] = [
   migrateV9,
   migrateV10,
   migrateV11,
-  migrateV12
+  migrateV12,
+  migrateV13,
+  migrateV14,
+  migrateV15
 ];
 
 export async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {

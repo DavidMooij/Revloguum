@@ -12,20 +12,12 @@ export type CreatePaymentTypeInput = Omit<PaymentType, 'id' | 'createdAt' | 'isS
 
 export const SYSTEM_PAYMENT_TYPES: Omit<PaymentType, 'createdAt'>[] = [
   {
-    id: 'purchase',
-    name: 'Purchase',
-    translationKey: 'costs.categories.purchase',
-    icon: 'tag',
-    isSystem: true,
-    sortOrder: 0
-  },
-  {
     id: 'insurance',
     name: 'Insurance',
     translationKey: 'costs.categories.insurance',
     icon: 'shield-alt',
     isSystem: true,
-    sortOrder: 1
+    sortOrder: 0
   },
   {
     id: 'tax',
@@ -33,7 +25,7 @@ export const SYSTEM_PAYMENT_TYPES: Omit<PaymentType, 'createdAt'>[] = [
     translationKey: 'costs.categories.tax',
     icon: 'file-invoice',
     isSystem: true,
-    sortOrder: 2
+    sortOrder: 1
   },
   {
     id: 'parking',
@@ -41,7 +33,7 @@ export const SYSTEM_PAYMENT_TYPES: Omit<PaymentType, 'createdAt'>[] = [
     translationKey: 'costs.categories.parking',
     icon: 'parking',
     isSystem: true,
-    sortOrder: 3
+    sortOrder: 2
   },
   {
     id: 'accessory',
@@ -49,7 +41,7 @@ export const SYSTEM_PAYMENT_TYPES: Omit<PaymentType, 'createdAt'>[] = [
     translationKey: 'costs.categories.accessory',
     icon: 'tools',
     isSystem: true,
-    sortOrder: 4
+    sortOrder: 3
   },
   {
     id: 'gear',
@@ -57,7 +49,7 @@ export const SYSTEM_PAYMENT_TYPES: Omit<PaymentType, 'createdAt'>[] = [
     translationKey: 'costs.categories.gear',
     icon: 'hard-hat',
     isSystem: true,
-    sortOrder: 5
+    sortOrder: 4
   },
   {
     id: 'maintenance',
@@ -65,7 +57,7 @@ export const SYSTEM_PAYMENT_TYPES: Omit<PaymentType, 'createdAt'>[] = [
     translationKey: 'costs.categories.maintenance',
     icon: 'wrench',
     isSystem: true,
-    sortOrder: 6
+    sortOrder: 5
   },
   {
     id: 'other',
@@ -73,6 +65,6 @@ export const SYSTEM_PAYMENT_TYPES: Omit<PaymentType, 'createdAt'>[] = [
     translationKey: 'costs.categories.other',
     icon: 'ellipsis-h',
     isSystem: true,
-    sortOrder: 7
+    sortOrder: 6
   }
 ];

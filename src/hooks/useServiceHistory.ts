@@ -82,7 +82,7 @@ export function useServiceHistory(filter: ServiceEntryFilter) {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState(false);
   const offsetRef = useRef(0);
 
   const load = useCallback(
@@ -108,9 +108,9 @@ export function useServiceHistory(filter: ServiceEntryFilter) {
         }
         setHasMore(rows.length === PAGE_SIZE);
         offsetRef.current += rows.length;
-        setError(null);
-      } catch (e) {
-        setError(e as Error);
+        setError(false);
+      } catch (error) {
+        setError(true);
       } finally {
         setLoading(false);
         setLoadingMore(false);

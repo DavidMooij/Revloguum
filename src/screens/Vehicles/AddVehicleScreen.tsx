@@ -43,6 +43,8 @@ export default function AddVehicleScreen() {
   const [year, setYear] = useState('');
   const [nickname, setNickname] = useState('');
   const [odometer, setOdometer] = useState('');
+  const [purchasePrice, setPurchasePrice] = useState('');
+  const [residualValue, setResidualValue] = useState('');
   const [defaultTankLiters, setDefaultTankLiters] = useState('');
   const [defaultFuelPrice, setDefaultFuelPrice] = useState('');
   const [saving, setSaving] = useState(false);
@@ -50,6 +52,8 @@ export default function AddVehicleScreen() {
     make?: string;
     model?: string;
     odometer?: string;
+    purchasePrice?: string;
+    residualValue?: string;
     tankLiters?: string;
   }>({});
   const [photoPath, setPhotoPath] = useState<string | null>(null);
@@ -80,6 +84,8 @@ export default function AddVehicleScreen() {
       setYear(moto.year ? String(moto.year) : '');
       setNickname(moto.nickname ?? '');
       setOdometer(String(moto.currentOdometer));
+      setPurchasePrice(moto.purchasePrice != null ? String(moto.purchasePrice) : '');
+      setResidualValue(moto.residualValue != null ? String(moto.residualValue) : '');
       setDefaultTankLiters(moto.defaultTankLiters ? String(moto.defaultTankLiters) : '');
       setDefaultFuelPrice(moto.defaultFuelPrice ? String(moto.defaultFuelPrice) : '');
       setPhotoPath(moto.photoPath ?? null);
@@ -108,11 +114,17 @@ export default function AddVehicleScreen() {
     if (!model.trim()) errs.model = t('vehicles.errorModelRequired');
     const odo = parseInt(odometer, 10);
     if (isNaN(odo) || odo < 0) errs.odometer = t('vehicles.errorOdometerInvalid');
+    const purchase = purchasePrice.trim() ? Number.parseFloat(purchasePrice) : null;
+    if (purchasePrice.trim() && (!Number.isFinite(purchase) || purchase! < 0)) {
+      errs.purchasePrice = t('vehicles.errorPurchasePriceInvalid');
+    }
+    const residual = residualValue.trim() ? Number.parseFloat(residualValue) : null;
+    if (residualValue.trim() && (!Number.isFinite(residual) || residual! < 0)) errs.residualValue = t('vehicles.errorResidualValueInvalid');
     const tank = defaultTankLiters.trim() ? parseFloat(defaultTankLiters) : NaN;
     if (isNaN(tank) || tank <= 0) errs.tankLiters = t('vehicles.errorTankRequired');
     setErrors(errs);
     return Object.keys(errs).length === 0;
-  }, [make, model, odometer, defaultTankLiters, t]);
+  }, [make, model, odometer, purchasePrice, residualValue, defaultTankLiters, t]);
 
   const handleSave = useCallback(async () => {
     if (!validate()) {
@@ -124,6 +136,8 @@ export default function AddVehicleScreen() {
     try {
       const parsedYear = year.trim() ? parseInt(year, 10) : null;
       const parsedOdo = parseInt(odometer, 10);
+      const parsedPurchasePrice = purchasePrice.trim() ? Number.parseFloat(purchasePrice) : null;
+      const parsedResidualValue = residualValue.trim() ? Number.parseFloat(residualValue) : null;
       const parsedTankLiters = defaultTankLiters.trim() ? parseFloat(defaultTankLiters) : null;
       const parsedFuelPrice = defaultFuelPrice.trim() ? parseFloat(defaultFuelPrice) : null;
       const baseOdometer = originalVehicle && parsedOdo === originalVehicle.currentOdometer ? originalVehicle.baseOdometer : parsedOdo;
@@ -135,6 +149,8 @@ export default function AddVehicleScreen() {
         nickname: nickname.trim() || null,
         currentOdometer: parsedOdo,
         baseOdometer,
+        purchasePrice: parsedPurchasePrice,
+        residualValue: parsedResidualValue,
         photoPath: newPhotoUri ? await encryptImage(newPhotoUri) : (photoPath ?? null),
         defaultTankLiters: parsedTankLiters,
         defaultFuelPrice: parsedFuelPrice,
@@ -163,9 +179,9 @@ export default function AddVehicleScreen() {
       }
 
       navigation.goBack();
-    } catch (e) {
+    } catch {
       haptic.error();
-      setErrorAlert((e as Error).message);
+      setErrorAlert(t('common.unexpectedError'));
     } finally {
       setSaving(false);
     }
@@ -176,6 +192,8 @@ export default function AddVehicleScreen() {
     year,
     nickname,
     odometer,
+    purchasePrice,
+    residualValue,
     defaultTankLiters,
     defaultFuelPrice,
     vehicleType,
@@ -296,6 +314,24 @@ export default function AddVehicleScreen() {
             autoCapitalize="words"
           />
 
+          <TextInputField
+            label={t('vehicles.purchasePrice')}
+            value={purchasePrice}
+            onChangeText={setPurchasePrice}
+            keyboardType="decimal-pad"
+            placeholder={t('vehicles.placeholderPurchasePrice')}
+            suffix="CHF"
+            error={errors.purchasePrice}
+          />
+          <TextInputField
+            label={t('vehicles.residualValue')}
+            value={residualValue}
+            onChangeText={setResidualValue}
+            keyboardType="decimal-pad"
+            placeholder={t('vehicles.placeholderResidualValue')}
+            suffix="CHF"
+            error={errors.residualValue}
+          />
           <View style={styles.sectionHeader}>
             <Icon name="gas-pump" size={13} color={colors.accent} />
             <Text style={styles.sectionTitle}>{t('vehicles.tankSettings')}</Text>

@@ -62,6 +62,26 @@ export async function encryptImage(uri: string): Promise<string> {
   return filename;
 }
 
+export async function encryptImagePaths(paths: string[]): Promise<string[]> {
+  const encryptedPaths: string[] = [];
+  const createdPaths: string[] = [];
+  try {
+    for (const path of paths) {
+      if (path.endsWith('.enc')) {
+        encryptedPaths.push(path);
+      } else {
+        const encryptedPath = await encryptImage(path);
+        encryptedPaths.push(encryptedPath);
+        createdPaths.push(encryptedPath);
+      }
+    }
+    return encryptedPaths;
+  } catch (error) {
+    await Promise.all(createdPaths.map((path) => deleteEncryptedImage(path).catch(() => {})));
+    throw error;
+  }
+}
+
 export async function decryptImage(encryptedPath: string): Promise<string> {
   const keyHex = await getDatabaseKey();
 

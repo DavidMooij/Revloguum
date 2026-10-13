@@ -257,7 +257,7 @@ export default function DashboardScreen() {
   );
 
   const handleQuickFuelSave = useCallback(
-    async (entry: { odometerKm: number; liters: number; cost: number; notes: string | null }) => {
+    async (entry: { dateTs: number; odometerKm: number; liters: number; cost: number; notes: string | null }) => {
       if (!activeVehicle) return;
 
       const vehicleId = activeVehicle.id;
@@ -266,7 +266,6 @@ export default function DashboardScreen() {
 
       await fuelRepo.insert({
         vehicleId,
-        dateTs: Date.now(),
         ...entry
       });
 
